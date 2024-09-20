@@ -1,10 +1,10 @@
-deno # ojpoker | Updated: September 17, 2024
+# ojpoker | Updated: September 20, 2024
 
 This is code for the `OneJoker` project, aiming to create libraries for
 handling playing cards and card games in general, and more spcifically poker
 and its many variants.
 
-I wrote to provide some advantages over other libraries you may encounter
+I wrote it to provide some advantages over other libraries you may encounter
 on the net:
 
 - Completeness: Card-handling code covers things that others don't like
@@ -38,7 +38,7 @@ and has all the features needed for that job.
 The rust code (in the `rs` directory) is designed for pure performance.
 
 There are many serialized data sets for things like test data and pre-computed
-lookup tables. Each data set exists in three or more forms. They begin life in
+lookup tables. Each data set exists in two or more forms. They begin life in
 JSON5 for easy creation, reading, and editing by humans. I then use a unique
 Deno script for each file to convert it into MessagePack format, consolidating
 duplicate data and removing map key names for size and performance. The final
@@ -151,7 +151,7 @@ Value       | Rank
 
 Jokers have neither rank nor suit. American decks of cards typically contain
 two jokers: one is drawn in plain black ink, and the other is more colorful.
-We call the former the #3 "black" joker, and the latter the #2 "red" joker,
+We call the former the #2 "black" joker, and the latter the #3 "red" joker,
 for games like Dou Dizhou which distinguish them. I don't know of any games
 requiring three distinguished jokers, but Unicode seems to think there is, so
 that's my joker #1. If there is just one joker, we use the red/colorful one.
@@ -190,17 +190,18 @@ are familiar with can be summoned by the names "english" or "poker" or
 "bridge", for example. If your game is California lowball, where aces are low
 and a joker is included in the deck, ask for a "lowball" deck.
 
-## Deck, Hand
+## CardList, Deck, Hand
 
-`Deck`s and `Hand`s are list objects containing `Card`s, and have many of the
-same kinds of methods that expandable lists have in each language (`Array` for
-TypeScript, `Vec` for Rust, `List` for Dart). But there are restrictions on
-what you can do with them. A `Deck` is created from a `MasterDeck` and starts
-out full, can be shuffled and dealt from, and refilled as needed. `Hand`s can
-either be created from a `Deck` object that it takes cards from, or can be an
-"orphan" hand with no association. The `Hand` object can be used for other
-groups of cards that aren't decks, such as a Gin discard pile, a Texas Hold'em
-board, a solitaire tableau, etc.
+A `CardList` is just a simple array of card objects, with the usual functions
+of expandable arrays (`List` for Dart, `Vec` for Rust). `Deck`s and `Hand`s
+are more spcialized objects containing a `CardList`, and features more suited
+to their task. In particular, each is associated with a `MasterDeck` that
+determines which cards are allowed, etc. `Deck`s are initialized and refilled
+from this master. `Hand`s are given cards from a `Deck` from which they are
+created, or they can be "orphans", giving themselves whatever cards they want
+for simulations and such. The `Hand` object can be used for any other group
+of cards that's not a deck, such as a Gin discard pile, a Texas Hold'em board,
+a solitaire tableau, etc.
 
 ## Cards in text
 
@@ -211,9 +212,9 @@ and `A`. Suits are `c`, `d`, `h`, and `s`.
 This format is used in lots of data files of card games around the net, such
 as PHH (<https://arxiv.org/html/2312.11753v2>) poker hand history format.
 "AsKsQsJsTs" is a royal flush, for example.
-I also recognize `C` for knight/cavalier, `Jk` for joker, `Jr` for the
-red/colored joker in games that distinguish between them, and `Jw` for the
-third "white" joker.
+I also recognize `C` for knight/cavalier, `Jk` for joker, `Jb` for the
+black/uncolored joker in games that distinguish between them, and `Jw` for
+the third "white" joker.
 Whitespace between cards is ignored, but is not allowed between rank and suit.
 It is never produced on output. Invalid values produce `??`.
 We can also produce Unicode suit symbols and single-code cards, which may
