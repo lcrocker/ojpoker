@@ -1,8 +1,25 @@
-#!/usr/bin/env -S deno run --allow-write --allow-read
+#!/usr/bin/env -S deno run --allow-read=./json --allow-write=./bin
 
 /**
  * @file pack_hands_text.ts
  * @brief Build msgpack file from hands_text.json5
+ * 
+ * JSON input is array of 4-tuples, each containing deck name, hand,
+ * length, and hash:
+ * 
+ * [
+ *  [ "onejoker", "7c4sAh", 3, 1820849030 ],
+ *  . . .
+ * ]
+ * 
+ * Output is struct with similar array, but deck names are consolidated
+ * into numbers for compactness:
+ * 
+ * type HandTestData = {
+ *   count: number,
+ *   deckNames: string[],
+ *   hands: [ number, string, number, number ][];
+ * }
  */
 
 import * as json5 from "https://deno.land/x/json5@v1.0.0/mod.ts";
@@ -11,18 +28,14 @@ import * as mp from "https://deno.land/x/msgpack@v1.2/mod.ts";
 type HandTestData = {
     count: number,
     deckNames: string[],
-    hands: {
-        deck: number,
-        hand: string,
-        len: number,
-        hash: number,
-    }[];
+    hands: [ number, string, number, number ][];
 }
 
-function run() {
+export async function packHandsText() {
     let deckNoNext = 1;
     const deckMap: Map<string, number> = new Map();
-    const handDataIn = json5.parse(Deno.readTextFileSync("./json/hands_text.json5"));
+
+    const handDataIn = json5.parse(await Deno.readTextFile("./json/hands_text.json5"));
     const handDataOut: HandTestData = {
         count: handDataIn.length,
         deckNames: [],
@@ -43,7 +56,9 @@ function run() {
     // console.log(handDataOut);
 
     const pack = mp.encode(handDataOut);
-    Deno.writeFileSync("./bin/hands_text.msgpack", pack);
+    await Deno.writeFile("./bin/hands_text.msgpack", pack);
 }
 
-run();
+if (import.meta.main) {
+    packHandsText().then(() => { console.log("Hand text data done."); });
+}

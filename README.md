@@ -1,40 +1,41 @@
-deno # ojpoker | Updated: September 11, 2024
+deno # ojpoker | Updated: September 17, 2024
 
 This is code for the `OneJoker` project, aiming to create libraries for
 handling playing cards and card games in general, and more spcifically poker
 and its many variants.
 
-It has some advantages over other libraries you may encounter on the net:
+I wrote to provide some advantages over other libraries you may encounter
+on the net:
 
-- Support for multiple languages starting with low-level Rust, high-level
-  TypeScript, and Dart for mobile. Others may be added in the future.
 - Completeness: Card-handling code covers things that others don't like
-  jokers and foreign decks. Poker code handles more variants.
+  jokers and foreign decks. Poker code handles more variants. The two
+  initial languages (Dart and Rust) cover more application areas.
 - Correctness: Many libraries do not correctly handle things like lowball
   and badugi hands, or betting limits and procedures. Author is a long-time
   poker player and casino manager with extensive knowledge of the rules,
   and implements them carefully.
-- Performance: Poker code is *fast*, taking advantage of modern 64-bit
+- Performance: Poker code is *fast*, taking full advantage of modern 64-bit
   machines. It does sacrifice memory efficiency for this in some cases.
 
 # Requirements
 
-The project will begin with three languages: TypeScript, Rust, and Dart.
-TypeScript will serve as the "reference" implementation and be used to make
-scripts for building lookup tables, test data, etc. Emphasis here will be on
-documentation, correctness, and completeness, though it should still be usable
-for web apps if desired.
-The Rust version will be focused on pure performance.
-Dart will be used with Flutter for mobile apps and may contain GUI extras.
+I use three languages in the code, but all have very good development
+environments that are easy to get started with on all platforms and do not
+interfere with each other.
 
-I'm using Deno 1.46.3 (TypeScript 5.5.2) for the TypeScript, and I strongly
-recommend you install Deno even if you are a long-time Node user. Converting
-to Node would not be too painful: change the imports to ".ts" to comply with
-ECMA, and change things like Deno.readFileSync() to fs.readFileSync(). But
-using Deno will definitely simplify your life in many ways. This code is in
-the `ts` directory.
-I am using Rust/Cargo 1.80.0. It's in the `rs` directory.
-I am using Flutter 3.24.3, Dart 3.5.3. It's in the `dart` directory.
+I'm using Dart 3.5.3. The code in the repo does not use Flutter, so you can
+set up Dart with or without Flutter as you prefer. Flutter is a good mobile
+development platform based on Dart, but is beyond the scope of this project.
+I am using Rust/Cargo 1.80.0. It's a very simple and complete development
+environment and I use very few external libraries.
+Finally, I use Deno 1.46.3 (TypeScript 5.5.2) for utility scripts. It has all
+the power of TypeScript without the overwhelming complexity of NodeJS. I
+strongly recommend it for general-purpose scripting.
+
+The Dart code (in the `dart` directory) serves as a "reference" implementation
+for all the features of the project. Dart is strongly typed, very expressive,
+and has all the features needed for that job.
+The rust code (in the `rs` directory) is designed for pure performance.
 
 There are many serialized data sets for things like test data and pre-computed
 lookup tables. Each data set exists in three or more forms. They begin life in
@@ -43,14 +44,18 @@ Deno script for each file to convert it into MessagePack format, consolidating
 duplicate data and removing map key names for size and performance. The final
 code in each language then reads that binary and re-creates objects appropriate
 for its use (which may or may not resemble the original JSON5 schema).
-The `data` directory contains these files and scripts. This may sound overly
-complicated, but it's actually quite simple compared to managing schemas and
-generated code in more powerful serialization formats like ProtoBufs.
+The `data` directory contains these files and scripts. This may sound complex,
+but it's actually quite simple compared to managing schemas and generated code
+needed by more powerful serialization formats like ProtoBufs.
+
+IMPORTANT: Test code for all laguages relies on the existence of these
+.msgpack files that are not checked into the repo, so those must be built
+before any tests will run. Go to the `data` directory and run the `packall.ts`
+script to build these files before doing anything else.
 
 <https://deno.com> \
 <https://rust-lang.org> \
 <https://dart.dev> \
-<https://flutter.dev> \
 <https://json5.org> \
 <https://msgpack.org> \
 
@@ -60,15 +65,15 @@ Some basic data representations used across all languages:
 
 ## Card
 
-The `Card` class is a full-fledged class with one data member: a small integer
-which we will call an "ordinal", arranged like this:
+The `Card` class is an enum in Dart and a single-member anonymous tuple
+class in Rust. Both use the same values:
 
 Value     | Card
 ----------|-------
 0         | None/unknown
 1         | White/Blue third joker
-2         | Red/Colored second joker
-3         | Black/Uncolored joker
+2         | Black/Uncolored second joker
+3         | Red/Colored default joker
 4         | Ace of clubs (low, see below)
 5         | Ace of diamonds (low)
 6         | Ace of hearts (low)
@@ -113,9 +118,9 @@ let me know, and we'll try to standardize.
 
 ## Rank, Suit
 
-Ranks and suits are not classes, but simple integer types or enums with
-specifically assigned numerical values for the purpose of utility functions to
-print them and such. Only Rust type-checks the `Rank` and `Suit` types.
+Ranks and suits are simple enums with a few basic methods. The specific values
+are important, though, to keep algorithms and data files compatible among all
+the languages.
 
 Value       | Suit
 ------------|------
@@ -149,7 +154,7 @@ two jokers: one is drawn in plain black ink, and the other is more colorful.
 We call the former the #3 "black" joker, and the latter the #2 "red" joker,
 for games like Dou Dizhou which distinguish them. I don't know of any games
 requiring three distinguished jokers, but Unicode seems to think there is, so
-that's my joker #1.
+that's my joker #1. If there is just one joker, we use the red/colorful one.
 
 Games that use the Knight/Cavalier usually have only three face cards, using
 the Knight in place of the Queen. For those games it's probably best to just

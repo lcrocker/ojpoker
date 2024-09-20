@@ -1,0 +1,16 @@
+
+build/
+bin/*.msgpack
+
+node_modules/
+/.pnp
+*.js
+*.js.map
+.tsbuildinfo
+.npm
+
+/coverage
+/.next/
+/out/
+.vercel
+

@@ -11,6 +11,9 @@ pids
 *.seed
 *.pid.lock
 
+# keys
+.pem
+
 # MacOS crap
 .DS_Store
 .DS_Store?
@@ -18,4 +21,7 @@ pids
 # IDE crap
 .idea/
 .vscode/
+*.iml
+*.ipr
+*.iws
 
