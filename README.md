@@ -35,7 +35,7 @@ strongly recommend it for general-purpose scripting.
 The Dart code (in the `dart` directory) serves as a "reference" implementation
 for all the features of the project. Dart is strongly typed, very expressive,
 and has all the features needed for that job.
-The rust code (in the `rs` directory) is designed for pure performance.
+The rust code (in the `rust` directory) is designed for pure performance.
 
 There are many serialized data sets for things like test data and pre-computed
 lookup tables. Each data set exists in two or more forms. They begin life in
@@ -53,9 +53,9 @@ IMPORTANT: Test code for all laguages relies on the existence of these
 before any tests will run. Go to the `data` directory and run the `packall.ts`
 script to build these files before doing anything else.
 
-<https://deno.com> \
-<https://rust-lang.org> \
 <https://dart.dev> \
+<https://rust-lang.org> \
+<https://deno.com> \
 <https://json5.org> \
 <https://msgpack.org> \
 

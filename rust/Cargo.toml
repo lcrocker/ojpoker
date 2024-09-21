@@ -1,0 +1,11 @@
+[package]
+name = "onejoker"
+version = "0.1.0"
+authors = ["Lee Daniel Crocker <lee@piclab.com>"]
+edition = "2021"
+
+[features]
+rdrand = []
+
+[dependencies]
+getrandom = "0.2.15"
