@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
 import 'package:onejoker/card.dart';
-import 'package:onejoker/masterdeck.dart';
+import 'package:onejoker/master_deck.dart';
 
 void main() {
   group('MasterDeck', () {
@@ -16,7 +16,7 @@ void main() {
         "canasta",
         "pinochle"
       ]) {
-        var deck = await MasterDeck.byName(dname);
+        var deck = MasterDeck.byName(dname);
         switch (dname) {
           case "poker":
             expect("english", deck.name);

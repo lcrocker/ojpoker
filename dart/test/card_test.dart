@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
 import 'package:onejoker/card.dart';
-import 'package:onejoker/masterdeck.dart';
+import 'package:onejoker/master_deck.dart';
 
 import 'dart:io';
 import 'package:msgpack_dart/msgpack_dart.dart' as mp;
@@ -142,7 +142,7 @@ void main() {
 
         for (int i = 0; i < data.count; i += 1) {
           var ht = data.hands[i];
-          var deck = await MasterDeck.byName(ht.deck);
+          var deck = MasterDeck.byName(ht.deck);
           var hand = cardsFromText(ht.hand).toList();
 
           if (deck.lowAces) {

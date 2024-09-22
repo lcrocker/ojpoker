@@ -25,6 +25,15 @@
 import * as json5 from "https://deno.land/x/json5@v1.0.0/mod.ts";
 import * as mp from "https://deno.land/x/msgpack@v1.2/mod.ts";
 
+let SCRIPT_DIR: string | undefined = undefined;
+
+function sdir(): string {
+    if (SCRIPT_DIR !== undefined) return SCRIPT_DIR;
+    SCRIPT_DIR = import.meta.dirname;
+    if (SCRIPT_DIR === undefined) SCRIPT_DIR = ".";
+    return SCRIPT_DIR;
+}
+
 type HandTestData = {
     count: number,
     deckNames: string[],
@@ -35,7 +44,7 @@ export async function packHandsText() {
     let deckNoNext = 1;
     const deckMap: Map<string, number> = new Map();
 
-    const handDataIn = json5.parse(await Deno.readTextFile("./json/hands_text.json5"));
+    const handDataIn = json5.parse(await Deno.readTextFile(`${sdir()}/json/hands_text.json5`));
     const handDataOut: HandTestData = {
         count: handDataIn.length,
         deckNames: [],
@@ -56,9 +65,10 @@ export async function packHandsText() {
     // console.log(handDataOut);
 
     const pack = mp.encode(handDataOut);
-    await Deno.writeFile("./bin/hands_text.msgpack", pack);
+    await Deno.writeFile(`${sdir()}/bin/hands_text.msgpack`, pack);
+    console.log("hand data packed");
 }
 
 if (import.meta.main) {
-    packHandsText().then(() => { console.log("Hand text data done."); });
+    await packHandsText();
 }

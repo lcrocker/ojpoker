@@ -1,4 +1,4 @@
-# ojpoker | Updated: September 20, 2024
+# ojpoker | Updated: September 21, 2024
 
 This is code for the `OneJoker` project, aiming to create libraries for
 handling playing cards and card games in general, and more spcifically poker
@@ -52,6 +52,11 @@ IMPORTANT: Test code for all laguages relies on the existence of these
 .msgpack files that are not checked into the repo, so those must be built
 before any tests will run. Go to the `data` directory and run the `packall.ts`
 script to build these files before doing anything else.
+
+There are also some source code files built by scripts, but these are checked
+into the repo so you can build all the code without having to generate them.
+If you do install Deno to run the scripts, the script `clean_build_all.ts` at
+the root will remove all previously generated files and rebuild them.
 
 <https://dart.dev> \
 <https://rust-lang.org> \

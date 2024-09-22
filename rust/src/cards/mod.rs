@@ -15,8 +15,8 @@ pub use rank::Rank;
 pub mod card;
 pub use card::{ Card, cards_from_text };
 
-pub mod masterdeck;
-pub use masterdeck::MasterDeck;
+pub mod master_deck;
+pub use master_deck::MasterDeck;
 
 // pub mod lists;
 // pub use lists::{ Hand, Deck };
