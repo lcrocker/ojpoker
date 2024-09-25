@@ -1,13 +1,12 @@
 //! # OneJoker | [wiki](https://github.com/lcrocker/tspoker/wiki) | A library for handling playing cards and card games.
 //! 
-//! Last updated September 20, 2024 \
+//! Last updated September 24, 2024 \
 //! \
-//! This crate is part of the OneJoker project to create free software for
-//! handling playing cards and card games in general, and many poker variants
-//! in particular.
+//! This crate is part of the [OneJoker](https://onejoker.org) project
+//! to create free software for handling playing cards and card games
+//! in general, and many poker variants in particular.
 //! 
-//! <https://onejoker.org/> \
-//! Lee Daniel Crocker <lee@piclab.com> \
+//! Lee Daniel Crocker <lee@onejoker.org> \
 //! Licensed <https://creativecommons.org/publicdomain/zero/1.0/>
 
 pub mod rand;

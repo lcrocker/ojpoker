@@ -2,7 +2,7 @@
 
 /**
  * @file test_all.ts
- * @brief 
+ * @brief run all Dart and Rust tests
  */
 
 let SCRIPT_DIR: string | undefined = undefined;

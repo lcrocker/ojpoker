@@ -19,7 +19,6 @@
  * "name": "english",
  * "dups_allowed": false,
  * "low_aces": false,
- * "q_is_knight": false,
  * "aliases":["default","french","poker","bridge","52","deucetoseven",
  * "tienlen","gin","spades","hearts"],
  * "card_list":[8,9,10,11, 12,13,14,15, 16,17,18,19, 20,21,22,23,
@@ -41,6 +40,24 @@ function sdir(): string {
     return SCRIPT_DIR;
 }
 
+const DART_CARD_NAMES = [ "",
+  "WhiteJoker", "BlackJoker", "Joker",
+  "LowAceOfClubs", "LowAceOfDiamonds", "LowAceOfHearts", "LowAceOfSpades",
+  "DeuceOfClubs", "DeuceOfDiamonds", "DeuceOfHearts", "DeuceOfSpades",
+  "TreyOfClubs", "TreyOfDiamonds", "TreyOfHearts", "TreyOfSpades",
+  "FourOfClubs", "FourOfDiamonds", "FourOfHearts", "FourOfSpades",
+  "FiveOfClubs", "FiveOfDiamonds", "FiveOfHearts", "FiveOfSpades",
+  "SixOfClubs", "SixOfDiamonds", "SixOfHearts", "SixOfSpades",
+  "SevenOfClubs", "SevenOfDiamonds", "SevenOfHearts", "SevenOfSpades",
+  "EightOfClubs", "EightOfDiamonds", "EightOfHearts", "EightOfSpades",
+  "NineOfClubs", "NineOfDiamonds", "NineOfHearts", "NineOfSpades",
+  "TenOfClubs", "TenOfDiamonds", "TenOfHearts", "TenOfSpades",
+  "JackOfClubs", "JackOfDiamonds", "JackOfHearts", "JackOfSpades",
+  "KnightOfClubs", "KnightOfDiamonds", "KnightOfHearts", "KnightOfSpades",
+  "QueenOfClubs", "QueenOfDiamonds", "QueenOfHearts", "QueenOfSpades",
+  "KingOfClubs", "KingOfDiamonds", "KingOfHearts", "KingOfSpades",
+  "AceOfClubs", "AceOfDiamonds", "AceOfHearts", "AceOfSpades", ];
+
 export async function buildMasterDeckDart() {
     const deckDataIn = json5.parse(await Deno.readTextFile(`${sdir()}/json/master_decks.json5`));
     const enc = new TextEncoder();
@@ -51,23 +68,42 @@ export async function buildMasterDeckDart() {
 `// Do not edit: File generated with build_master_deck_code.ts
 import 'package:onejoker/card.dart';
 
+/// # MasterDeck | [wiki](https://github.com/lcrocker/ojpoker/wiki/MasterDeck)
+/// A static object that describes the properties of a new deck of cards for a
+/// certain game. For example, the "English" master deck has 52 cards, no
+/// jokers, aces are high, and no duplicate cards are allowed. The "Canasta"
+/// deck has 108 cards including jokers and duplicates. \\
+/// Since this is all unchanging information, \`MasterDeck.byName()\`
+/// just returns a pointer to an existing static object based on the name you
+/// pass in.
 class MasterDeck {
     final String name;
     final int cardSet;
-    final List<int> cardList;
+    final List<Card> cardList;
     final bool dupsAllowed;
     final bool lowAces;
-    final bool qIsKnight;
 
-    const MasterDeck._(this.name, this.cardSet, this.cardList, this.dupsAllowed,
-        this.lowAces, this.qIsKnight);
+    const MasterDeck._(this.name, this.cardSet, this.cardList,
+        this.dupsAllowed, this.lowAces);
 
+    /// Get a MasterDeck object by name or alias.
     factory MasterDeck.byName(String dname) {
         int id = aliases[dname]!;
         return decks[id - 1];
     }
 
+    /// Does this deck contain the given card?
     bool has(Card c) { return 0 != (cardSet & (1 << c.index)); }
+
+    @override
+    String toString() {
+        int len = cardList.length;
+        String ret = "\$name deck: \${lowAces ? 'LA' : 'HA'} "
+        "\${dupsAllowed ? 'DY' : 'DN'} "
+        "\${cardList[len-1]}\${cardList[len-2]}\${cardList[len-3]}\${cardList[len-4]}"
+        "(+\${cardList.length - 4})...";
+        return ret;
+    }
 `));
 
     const aliases: Record<string, number> = {};
@@ -98,10 +134,18 @@ class MasterDeck {
         await f.write(enc.encode(
 `        MasterDeck._("${deckDataIn[i].name}",
             0x${cset.toString(16)},
-            [${deckDataIn[i].card_list}],
+            [
+`));
+            const cards = deckDataIn[i].card_list;
+            for (let j = cards.length - 1; j >= 0; j -= 1) {
+                await f.write(enc.encode(
+`                Card.${DART_CARD_NAMES[cards[j]]},
+`));
+            }
+            await f.write(enc.encode(
+`            ],
             ${deckDataIn[i].dups_allowed},
-            ${deckDataIn[i].low_aces},
-            ${deckDataIn[i].q_is_knight}),\n`));
+            ${deckDataIn[i].low_aces}),\n`));
     }
     await f.write(enc.encode(
 `    ];
@@ -142,7 +186,6 @@ pub struct MasterDeck {
     pub card_list: &'static [Card],
     pub dups_allowed: bool,
     pub low_aces: bool,
-    pub q_is_knight: bool,
 }
 
 impl MasterDeck {
@@ -166,7 +209,6 @@ impl core::fmt::Debug for MasterDeck {
             .field("card_list", &(self.card_list.len()))
             .field("dups", &format_args!("{}", if self.dups_allowed { "Yes" } else { "No" }))
             .field("aces", &format_args!("{}", if self.low_aces { "Low" } else { "High" }))
-            .field("queen", &format_args!("{}", if self.q_is_knight { "Is Knight" } else { "Is Queen" }))
             .finish()
     }
 }
@@ -199,14 +241,13 @@ fn masterdeck_by_name(alias: &str) -> &'static MasterDeck {
 
 macro_rules! masterdeck {
     ( $name:literal, $set:literal, $list:expr,
-        $d:literal, $la:literal, $q:literal ) => {
+        $d:literal, $la:literal ) => {
         MasterDeck {
             name: $name,
             card_set: $set,
             card_list: $list,
             dups_allowed: $d,
             low_aces: $la,
-            q_is_knight: $q,
         }
     };
 }
@@ -225,8 +266,7 @@ const DECK_INFO: [MasterDeck; ${deckDataIn.length}] = [
          0x${cset.toString(16)},
          &${lname},
          ${deckDataIn[i].dups_allowed},
-         ${deckDataIn[i].low_aces},
-         ${deckDataIn[i].q_is_knight}),
+         ${deckDataIn[i].low_aces}),
 `));
     }
     f.write(enc.encode(

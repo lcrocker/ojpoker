@@ -1,8 +1,8 @@
-# ojpoker | Updated: September 21, 2024
+# ojpoker | Updated: September 24, 2024
 
-This is code for the `OneJoker` project, aiming to create libraries for
-handling playing cards and card games in general, and more spcifically poker
-and its many variants.
+This is code for the [OneJoker](https://onejoker.org) project,
+aiming to create libraries and other digital tools for handling playing cards
+and card games in general, and more spcifically poker and its many variants.
 
 I wrote it to provide some advantages over other libraries you may encounter
 on the net:
@@ -19,18 +19,25 @@ on the net:
 
 # Requirements
 
-I use three languages in the code, but all have very good development
-environments that are easy to get started with on all platforms and do not
-interfere with each other.
+This codebase produces two separate libraries in [Rust](https://rust-lang.org)
+and [Dart](https://dart.dev).
+If you are only interested in one of those, you will not have to deal with
+the other if you don't want to.
+I also use TypeScript ([Deno](https://deno.com)) for utility scripts, but
+those too aren't strictly necessary to build the libraries unless you want
+to change something or run tests.
+All of these languages have good complete development environments on Linux.
+I hear those for Windows and Mac are also quite good, but I can't vouch for
+that personally.
 
 I'm using Dart 3.5.3. The code in the repo does not use Flutter, so you can
-set up Dart with or without Flutter as you prefer. Flutter is a good mobile
-development platform based on Dart, but is beyond the scope of this project.
-I am using Rust/Cargo 1.80.0. It's a very simple and complete development
-environment and I use very few external libraries.
-Finally, I use Deno 1.46.3 (TypeScript 5.5.2) for utility scripts. It has all
-the power of TypeScript without the overwhelming complexity of NodeJS. I
-strongly recommend it for general-purpose scripting.
+set up Dart with or without Flutter as you prefer.
+Flutter is a good mobile development platform based on Dart, but is beyond
+the scope of this project.
+I am using Rust/Cargo 1.80.0.
+Finally, I use Deno 1.46.3 (TypeScript 5.5.2) for utility scripts.
+It has all the power of TypeScript without the cruft of NodeJS.
+I strongly recommend it for general-purpose scripting.
 
 The Dart code (in the `dart` directory) serves as a "reference" implementation
 for all the features of the project. Dart is strongly typed, very expressive,
@@ -38,31 +45,29 @@ and has all the features needed for that job.
 The rust code (in the `rust` directory) is designed for pure performance.
 
 There are many serialized data sets for things like test data and pre-computed
-lookup tables. Each data set exists in two or more forms. They begin life in
-JSON5 for easy creation, reading, and editing by humans. I then use a unique
-Deno script for each file to convert it into MessagePack format, consolidating
-duplicate data and removing map key names for size and performance. The final
-code in each language then reads that binary and re-creates objects appropriate
-for its use (which may or may not resemble the original JSON5 schema).
-The `data` directory contains these files and scripts. This may sound complex,
-but it's actually quite simple compared to managing schemas and generated code
-needed by more powerful serialization formats like ProtoBufs.
+lookup tables. Each data set exists in two or more forms.
+They begin life in [JSON5](https://json5.org) for easy creation, reading, and
+editing by humans.
+I then use a unique Deno script for each file to convert it into
+[MessagePack](https://msgpack.org) binary format, consolidating duplicate data
+and removing map key names for size and performance.
+The final code in each language then reads that binary and re-creates objects
+appropriate for its use (which may or may not resemble the original schema).
+The `data` directory contains these files and scripts.
+This may sound complex, but it's actually quite simple compared to managing
+schemas and generated code needed by more powerful serialization formats
+like ProtoBufs.
 
-IMPORTANT: Test code for all laguages relies on the existence of these
+IMPORTANT: Test code for all languages relies on the existence of these
 .msgpack files that are not checked into the repo, so those must be built
-before any tests will run. Go to the `data` directory and run the `packall.ts`
-script to build these files before doing anything else.
+before any tests will run.
+Go to the `data` directory and run the `packall.ts` script to build these
+files before doing anything else.
 
 There are also some source code files built by scripts, but these are checked
 into the repo so you can build all the code without having to generate them.
 If you do install Deno to run the scripts, the script `clean_build_all.ts` at
 the root will remove all previously generated files and rebuild them.
-
-<https://dart.dev> \
-<https://rust-lang.org> \
-<https://deno.com> \
-<https://json5.org> \
-<https://msgpack.org> \
 
 # Data representation
 
@@ -75,7 +80,6 @@ class in Rust. Both use the same values:
 
 Value     | Card
 ----------|-------
-0         | None/unknown
 1         | White/Blue third joker
 2         | Black/Uncolored second joker
 3         | Red/Colored default joker
@@ -92,19 +96,26 @@ Value     | Card
 .         | .
 .         | .
 .         | .
-51        | Queen of spades
-52        | King of clubs
-53        | King of diamonds
-54        | King of hearts
-55        | King of spades
-56        | Ace of clubs (high, see below)
-57        | Ace of diamonds (high)
-58        | Ace of hearts (high)
-59        | Ace of spades (high)
-60        | Knight/Cavalier of clubs
-61        | Knight of diamonds
-62        | Knight of hearts
-63        | Knight of spades
+46        | Jack of Hearts
+47        | Jack of spades
+48        | Knight / Cavalier of spades
+49        | Knight of diamonds
+50        | Knight of hearts
+51        | Knight of spades
+52        | Queen of clubs
+53        | Queen of diamonds
+54        | Queen of hearts
+55        | Queen of spades
+56        | King of clubs
+57        | King of diamonds
+58        | King of hearts
+59        | King of spades
+60        | Ace of clubs (high, see below)
+61        | Ace of diamonds (high)
+62        | Ace of hearts (high)
+63        | Ace of spades (high)
+64..47    | (TBD) Tarot Nouveau trumps
+48..71    | (TBD) Tarot de Marseilles trumps?
 
 The card object does NOT keep the rank and suit separate: if needed, the rank
 and suit of a card can be easily calculated from the ordinals above with shift
@@ -112,32 +123,30 @@ amd mask operations (no expensive division). But with the cards ordered in
 this way, extracting rank and suit is rarely necessary. You can compare ranks,
 for example, just by comparing full ordinals.
 
-Note that you can use either values 8..59 for most games in which aces are
-valued high, or use 4..55 in games where they are valued low, and further
+Note that you can use either values 8..63 for most games in which aces are
+valued high, or use 4..59 in games where they are valued low, and further
 speed up comparisons. The library should make it easy for you to decide which
 to use for your game; see `MasterDeck`, below.
 
-Ordinals over 63 will probably be used to index into tables for things like
-card backs or other needed graphics, but I have not reserved any yet. If you do,
-let me know, and we'll try to standardize.
+Ordinals over 71 will probably be used to index into tables for things like
+card backs or other needed graphics, but I have not reserved any yet.
+If you do, let me know, and we'll try to standardize.
 
 ## Rank, Suit
 
-Ranks and suits are simple enums with a few basic methods. The specific values
-are important, though, to keep algorithms and data files compatible among all
-the languages.
+Ranks and suits are simple enums with a few basic methods.
+The specific values are important, though, to keep algorithms and data files
+compatible between languages.
 
-Value       | Suit
+Value       | Suit (French, Latin [ES, IT, PT], German, Swiss, Tarot)
 ------------|------
-0           | None/unknown
-1           | Club
-2           | Diamond
-3           | Heart
-4           | Spade
+1           | Clubs / Batons / Acorns / Acorns / Wands
+2           | Diamonds / Coins / Bells / Bells / Pentacles
+3           | Hearts / Cups / Hearts / Roses / Cups
+4           | Spades / Swords / Leaves / Shields / Swords
 
 Value       | Rank
 ------------|------
-0           | None/Unknown
 1           | Ace (low)
 2           | Deuce
 3           | Trey
@@ -148,45 +157,36 @@ Value       | Rank
 8           | Eight
 9           | Nine
 10          | Ten
-11          | Jack
-12          | Queen
-13          | King
-14          | Ace (high)
-15          | Knight/Cavalier
+11          | Jack / Under
+12          | Knight / Cavalier / Ober
+13          | Queen
+14          | King
+15          | Ace (high)
 
-Jokers have neither rank nor suit. American decks of cards typically contain
-two jokers: one is drawn in plain black ink, and the other is more colorful.
+Jokers and tarot trumps have neither rank nor suit.
+English/American decks of cards typically contain two jokers: one is drawn
+in plain black ink, and the other is more colorful.
 We call the former the #2 "black" joker, and the latter the #3 "red" joker,
-for games like Dou Dizhou which distinguish them. I don't know of any games
-requiring three distinguished jokers, but Unicode seems to think there is, so
-that's my joker #1. If there is just one joker, we use the red/colorful one.
+for games like Dou Dizhou which distinguish them.
+I don't know of any games requiring three distinguished jokers, but
+[Unicode](https://https://en.wikipedia.org/wiki/Playing_cards_in_Unicode)
+seems to think there is, so that's my joker #1.
+If there is just one joker, we use the red/colorful one.
 
-Games that use the Knight/Cavalier usually have only three face cards, using
-the Knight in place of the Queen. For those games it's probably best to just
-use the 12 rank and adjust visually on output. But the graphic tables still
-need a location to put the image, so I put them up higher, and there are games
-and decks that use all four (e.g. the Tarot de Marseille).
-
-Aces are high by default; hands being read from text files, for example, will
-put aces into the 56..59 slots, and must be adjusted afterwards for games
-using low aces.
-
-No special provisions are made for German, Swiss, or Italian-suited playing
-cards, or for Uber and Under face cards. Using the existing rank and suit
-numbers with just different visuals should suffice. The same perhaps cannot
-be said for my exclusion of pip cards above ten and Tarot trumps. If there is
-sufficient interest in standardizing these and providing code for them, I'd
-be happy to add them.
+Aces are high by default; hands being read from text files, for example,
+will put aces into the 60..63 slots, and must be adjusted afterwards for
+games using low aces (the library mostly handles this automatically).
 
 ## MasterDeck
 
 Every game or simulation begins with a full deck of some kind that I call a
-"master" deck. This determines the initial state of the "live" decks actually
+`MasterDeck`. This determines the initial state of the "live" decks actually
 used for dealing cards, and such things as which cards are allowed, whether
 duplicates are allowed, etc. If you are playing Skat, for exmaple, you would
 begin with a 32-card German deck with no cards below seven. Error checking in
 the system would detect if, say, a five were to appear in a hand or deck
-associated with that master.
+associated with that master. The master also determines whether aces are high
+or low, and does appropriate adjustments and error checking.
 
 Master decks are generally named after the place where they are commonly used,
 or the specific games they are designed for playing, and you choose the master
@@ -195,18 +195,18 @@ are familiar with can be summoned by the names "english" or "poker" or
 "bridge", for example. If your game is California lowball, where aces are low
 and a joker is included in the deck, ask for a "lowball" deck.
 
-## CardList, Deck, Hand
+## CardStack, Deck, Hand
 
-A `CardList` is just a simple array of card objects, with the usual functions
-of expandable arrays (`List` for Dart, `Vec` for Rust). `Deck`s and `Hand`s
-are more spcialized objects containing a `CardList`, and features more suited
-to their task. In particular, each is associated with a `MasterDeck` that
+A `CardStack` is just a simple LIFO stack of card objects, with many of the
+usual functions of arrays or stacks or queues in many languages. These can be
+used for whole decks, player hands, discard piles, Texas Hold'em boards,
+active tricks, solitaire tableaux, etc. `Deck`s and `Hand`s are more
+spcialized objects containing a `CardStack` and other features suited to
+their task. In particular, each is associated with a `MasterDeck` that
 determines which cards are allowed, etc. `Deck`s are initialized and refilled
 from this master. `Hand`s are given cards from a `Deck` from which they are
 created, or they can be "orphans", giving themselves whatever cards they want
-for simulations and such. The `Hand` object can be used for any other group
-of cards that's not a deck, such as a Gin discard pile, a Texas Hold'em board,
-a solitaire tableau, etc.
+for simulations and such.
 
 ## Cards in text
 
@@ -221,6 +221,6 @@ I also recognize `C` for knight/cavalier, `Jk` for joker, `Jb` for the
 black/uncolored joker in games that distinguish between them, and `Jw` for
 the third "white" joker.
 Whitespace between cards is ignored, but is not allowed between rank and suit.
-It is never produced on output. Invalid values produce `??`.
+It is never produced on output.
 We can also produce Unicode suit symbols and single-code cards, which may
 come in handy for producing documentation.

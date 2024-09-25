@@ -1,5 +1,4 @@
 //@ cards/rank.rs
-//@ Lee Daniel Crocker <lee@piclab.com>
 
 //! # rank | [wiki](https://github.com/lcrocker/tspoker/wiki/Rank) | Simple numeric enum for card ranks.
 
@@ -30,24 +29,24 @@ pub enum Rank {
     Nine = 9,
     Ten = 10,
     Jack = 11,
-    Queen = 12,
-    King = 13,
-    Ace = 14,
-    Knight = 15,
+    Knight = 12,
+    Queen = 13,
+    King = 14,
+    Ace = 15,
 }
 
 const RANKS: [Rank; 15] = [ Rank::LowAce, Rank::Deuce,
     Rank::Trey, Rank::Four, Rank::Five, Rank::Six, Rank::Seven,
-    Rank::Eight, Rank::Nine, Rank::Ten, Rank::Jack, Rank::Queen,
-    Rank::King, Rank::Ace, Rank::Knight ];
+    Rank::Eight, Rank::Nine, Rank::Ten, Rank::Jack,  Rank::Knight,
+    Rank::Queen, Rank::King, Rank::Ace,];
 const CHARS: [char; 15] = [ 'A', '2', '3', '4', '5', '6', '7', '8',
-    '9', 'T', 'J', 'Q', 'K', 'A', 'C' ];
+    '9', 'T', 'J', 'C', 'Q', 'K', 'A' ];
 const NAMES: [&str; 15] = [ "ace", "deuce", "trey", "four",
-    "five", "six", "seven", "eight", "nine", "ten", "jack", "queen",
-    "king", "ace", "knight" ];
+    "five", "six", "seven", "eight", "nine", "ten", "jack", "knight",
+    "queen", "king", "ace" ];
 const PLURALS: [&str; 15] = [ "aces", "deuces", "treys", "fours",
-    "fives", "sixes", "sevens", "eights", "nines", "tens", "jacks", "queens",
-    "kings", "aces", "knights" ];
+    "fives", "sixes", "sevens", "eights", "nines", "tens", "jacks", 
+    "knights", "queens", "kings", "aces" ];
 
 impl Rank {
     /// Convert integer to rank.
@@ -70,29 +69,29 @@ impl Rank {
             '9' => Some(Rank::Nine),
             'T' => Some(Rank::Ten),
             'J' => Some(Rank::Jack),
+            'C' => Some(Rank::Knight),
             'Q' => Some(Rank::Queen),
             'K' => Some(Rank::King),
             'A' => Some(Rank::Ace),
-            'C' => Some(Rank::Knight),
             _ => None,
         }
     }
 
-    /// Convert to char. High aces only.
+    /// Convert to char
     pub fn to_char(&self) -> char {
-        if *self < Rank::LowAce || *self > Rank::Knight { return '?'; }
+        debug_assert!(*self >= Rank::LowAce || *self <= Rank::Ace);
         CHARS[*self as usize - 1]
     }
 
     /// Produce "seven", "jack", etc.
     pub fn name(&self) -> &str {
-        if *self < Rank::LowAce || *self > Rank::Knight { return "?"; }
+        debug_assert!(*self >= Rank::LowAce || *self <= Rank::Ace);
         NAMES[*self as usize - 1]
     }
 
     /// Because we have to deal with "sixes".
     pub fn plural(&self) -> &str {
-        if *self < Rank::LowAce || *self > Rank::Knight { return "?"; }
+        debug_assert!(*self >= Rank::LowAce || *self <= Rank::Ace);
         PLURALS[*self as usize - 1]
     }
 
@@ -166,10 +165,10 @@ fn test_ranks() {
     ranktests!(Nine, 9, '9', "a", "nine", "nines");
     ranktests!(Ten, 10, 'T', "a", "ten", "tens");
     ranktests!(Jack, 11, 'J', "a", "jack", "jacks");
-    ranktests!(Queen, 12, 'Q', "a", "queen", "queens");
-    ranktests!(King, 13, 'K', "a", "king", "kings");
-    ranktests!(Ace, 14, 'A', "an", "ace", "aces");
-    ranktests!(Knight, 15, 'C', "a", "knight", "knights");
+    ranktests!(Knight, 12, 'C', "a", "knight", "knights");
+    ranktests!(Queen, 13, 'Q', "a", "queen", "queens");
+    ranktests!(King, 14, 'K', "a", "king", "kings");
+    ranktests!(Ace, 15, 'A', "an", "ace", "aces");
 
     // PartialOrd
     assert!(Rank::Deuce < Rank::Trey);
@@ -180,15 +179,15 @@ fn test_ranks() {
         Rank::Six, Rank::Seven, Rank::Eight);
     assert_eq!("LowAce Deuce Trey Four Five Six Seven Eight", s);
     s = format!("{} {} {} {} {} {} {}",
-        Rank::Nine, Rank::Ten, Rank::Jack, Rank::Queen, Rank::King,
-        Rank::Ace, Rank::Knight);
-    assert_eq!("Nine Ten Jack Queen King Ace Knight", s);
+        Rank::Nine, Rank::Ten, Rank::Jack, Rank::Knight, Rank::Queen,
+        Rank::King, Rank::Ace);
+    assert_eq!("Nine Ten Jack Knight Queen King Ace", s);
     s = format!("{:?} {:?} {:?} {:?} {:?} {:?} {:?} {:?}",
         Rank::LowAce, Rank::Deuce, Rank::Trey, Rank::Four, Rank::Five, Rank::Six,
         Rank::Seven, Rank::Eight);
     assert_eq!("LowAce Deuce Trey Four Five Six Seven Eight", s);
     s = format!("{:?} {:?} {:?} {:?} {:?} {:?} {:?}",
-        Rank::Nine, Rank::Ten, Rank::Jack, Rank::Queen, Rank::King,
-        Rank::Ace, Rank::Knight);
-    assert_eq!("Nine Ten Jack Queen King Ace Knight", s);
+        Rank::Nine, Rank::Ten, Rank::Jack, Rank::Knight, Rank::Queen,
+        Rank::King, Rank::Ace);
+    assert_eq!("Nine Ten Jack Knight Queen King Ace", s);
 }

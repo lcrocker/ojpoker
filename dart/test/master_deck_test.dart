@@ -55,6 +55,8 @@ void main() {
             expect(false, deck.has(Card.Joker));
             expect(false, deck.has(Card.NineOfClubs));
             expect(true, deck.has(Card.FourOfClubs));
+            expect(true, deck.has(Card.KnightOfClubs));
+            expect(false, deck.has(Card.QueenOfClubs));
             expect(false, deck.dupsAllowed);
             expect(true, deck.lowAces);
             break;

@@ -4,14 +4,14 @@
 /// The actual numbers are important here: change them and you will break
 /// some tests and compatibility with the Rust code.
 enum Suit {
-  None, // 0
+  None, // 0 not a valid suit, but Dart won't let me assign the numbers
   Club, // 1
   Diamond, // 2
   Heart, // 3
   Spade; // 4
 
   /// Create one from text character or unicode symbol.
-  static Suit fromChar(String c) {
+  static Suit? fromChar(String c) {
     switch (c) {
       case 'c':
       case '♣':
@@ -26,32 +26,32 @@ enum Suit {
       case '♠':
         return Spade;
       default:
-        return None;
+        return null;
     }
   }
 
   /// Render as text
   String toChar() {
-    if (index < 0 || index > 4) return '?';
-    return ['?', 'c', 'd', 'h', 's'][index];
+    assert(index >= Suit.Club.index && index <= Suit.Spade.index);
+    return ['c', 'd', 'h', 's'][index - 1];
   }
 
   /// Render as unicode symbol
   String toUnicode() {
-    if (index < 0 || index > 4) return '?';
-    return ['?', '♣', '♦', '♥', '♠'][index];
+    assert(index >= Suit.Club.index && index <= Suit.Spade.index);
+    return ['♣', '♦', '♥', '♠'][index - 1];
   }
 
   /// Full English name
   String get name {
-    if (index < 0 || index > 4) return "?";
-    return ["?", "club", "diamond", "heart", "spade"][index];
+    assert(index >= Suit.Club.index && index <= Suit.Spade.index);
+    return ["club", "diamond", "heart", "spade"][index - 1];
   }
 
   /// Full English plural name, not really needed but for consistency
   String get plural {
-    if (index < 0 || index > 4) return "?";
-    return ["?", "clubs", "diamonds", "hearts", "spades"][index];
+    assert(index >= Suit.Club.index && index <= Suit.Spade.index);
+    return ["clubs", "diamonds", "hearts", "spades"][index - 1];
   }
 
   /// For consistency with rank, not really needed
@@ -63,7 +63,7 @@ enum Suit {
 /// Enum for card ranks and their basic methods. As with suits, do not
 /// change the numbers.
 enum Rank {
-  None, // 0
+  None, // 0 not a valid rank
   LowAce, // 1
   Deuce, // 2
   Trey, // 3
@@ -75,16 +75,14 @@ enum Rank {
   Nine, // 9
   Ten, // 10
   Jack, // 11
-  Queen, // 12
-  King, // 13
-  Ace, // 14
-  Knight; // 15
+  Knight, // 12
+  Queen, // 13
+  King, // 14
+  Ace; // 15
 
   /// Create one from text character.
-  static Rank fromChar(String c) {
+  static Rank? fromChar(String c) {
     switch (c) {
-      case '1': // Extension for testing never really used
-        return LowAce;
       case '2':
         return Deuce;
       case '3':
@@ -105,24 +103,23 @@ enum Rank {
         return Ten;
       case 'J':
         return Jack;
+      case 'C':
+        return Knight;
       case 'Q':
         return Queen;
       case 'K':
         return King;
       case 'A':
         return Ace;
-      case 'C':
-        return Knight;
       default:
-        return None;
+        return null;
     }
   }
 
   /// Render as text
   String toChar() {
-    if (index < 0 || index > 15) return '?';
+    assert(index >= Rank.LowAce.index && index <= Rank.Ace.index);
     return [
-      '?',
       'A',
       '2',
       '3',
@@ -134,18 +131,17 @@ enum Rank {
       '9',
       'T',
       'J',
+      'C',
       'Q',
       'K',
       'A',
-      'C'
-    ][index];
+    ][index - 1];
   }
 
   /// Full English name
   String get name {
-    if (index < 0 || index > 15) return "?";
+    assert(index >= Rank.LowAce.index && index <= Rank.Ace.index);
     return [
-      "?",
       "ace",
       "deuce",
       "trey",
@@ -157,18 +153,17 @@ enum Rank {
       "nine",
       "ten",
       "jack",
+      "knight",
       "queen",
       "king",
       "ace",
-      "knight"
-    ][index];
+    ][index - 1];
   }
 
   /// Full English plural name (to deal with "sixes")
   String get plural {
-    if (index < 0 || index > 15) return "?";
+    assert(index >= Rank.LowAce.index && index <= Rank.Ace.index);
     return [
-      "?",
       "aces",
       "deuces",
       "treys",
@@ -180,23 +175,30 @@ enum Rank {
       "nines",
       "tens",
       "jacks",
+      "knights",
       "queens",
       "kings",
       "aces",
-      "knights"
-    ][index];
+    ][index - 1];
   }
 
   /// Indefinite article (to deal with "an eight, an ace")
   String get article {
-    if (index == 1 || index == 8 || index == 14) return "an";
+    if (index == Rank.LowAce.index ||
+        index == Rank.Eight.index ||
+        index == Rank.Ace.index) return "an";
     return "a";
   }
 }
 
+// Patterns for matching cards as text
+final _brackets = RegExp(r'^\s*\[([^\]]+)\]');
+final _oneCard = RegExp(r'\s*(Jk|Jb|Jw|([2-9TJCQKA])([cdhs]))');
+
 /// Enum for cards and their basic methods. Numbers *very* important here,
-/// not just for compatibility but specific algorithms will fail if changed.
-enum Card {
+/// not just for compatibility but specific algorithms will fail if changed
+/// (see README).
+enum Card implements Comparable<Card> {
   None, // 0
   WhiteJoker, // 1
   BlackJoker, // 2
@@ -245,128 +247,267 @@ enum Card {
   JackOfDiamonds, // 45
   JackOfHearts, // 46
   JackOfSpades, // 47
-  QueenOfClubs, // 48
-  QueenOfDiamonds, // 49
-  QueenOfHearts, // 50
-  QueenOfSpades, // 51
-  KingOfClubs, // 52
-  KingOfDiamonds, // 53
-  KingOfHearts, // 54
-  KingOfSpades, // 55
-  AceOfClubs, // 56
-  AceOfDiamonds, // 57
-  AceOfHearts, // 58
-  AceOfSpades, // 59
-  KnightOfClubs, // 60
-  KnightOfDiamonds, // 61
-  KnightOfHearts, // 62
-  KnightOfSpades; // 63
+  KnightOfClubs, // 48
+  KnightOfDiamonds, // 49
+  KnightOfHearts, // 50
+  KnightOfSpades, // 51
+  QueenOfClubs, // 52
+  QueenOfDiamonds, // 53
+  QueenOfHearts, // 54
+  QueenOfSpades, // 55
+  KingOfClubs, // 56
+  KingOfDiamonds, // 57
+  KingOfHearts, // 58
+  KingOfSpades, // 59
+  AceOfClubs, // 60
+  AceOfDiamonds, // 61
+  AceOfHearts, // 62
+  AceOfSpades; // 63
 
   /// Create one from integer value
-  static Card fromInt(int v) {
-    if (v < 1 || v > 63) return None;
+  static Card? fromInt(int v) {
+    if (v < 1 || v > 63) return null;
     return Card.values[v];
   }
 
   /// Create one from rank and suit
   static Card fromRankSuit(Rank r, Suit s) {
-    if (r == Rank.None || s == Suit.None) return None;
     return Card.values[(r.index << 2) | (s.index - 1)];
+  }
+
+  /// Create one from text representation
+  static Card? fromText(String text) {
+    var match = _oneCard.firstMatch(text);
+    if (match == null) return null;
+
+    if (match.group(1) != null) {
+      switch (match.group(1)) {
+        case "Jk":
+          return Joker;
+        case "Jb":
+          return BlackJoker;
+        case "Jw":
+          return WhiteJoker;
+        default:
+          if (match.group(2) != null && match.group(3) != null) {
+            var r = Rank.fromChar(match.group(2)!);
+            var s = Suit.fromChar(match.group(3)!);
+            assert(r != null && s != null);
+            return fromRankSuit(r!, s!);
+          }
+      }
+    }
+    return null;
   }
 
   /// What's the rank of this card? Note that we use a shift on the number
   /// value; that's why the numbers are important. Note that jokers do not
   /// have rank or suit.
-  Rank get rank {
-    if (index < 4 || index > 63) return Rank.None;
+  Rank? get rank {
+    if (index < Card.LowAceOfClubs.index || index > Card.AceOfSpades.index) {
+      return null;
+    }
     return Rank.values[index >> 2];
   }
 
   /// What's the rank of this card, with low aces made high?
-  Rank get highRank {
-    if (index < 4 || index > 63) return Rank.None;
-    if (index < 8) return Rank.Ace;
+  Rank? get highRank {
+    if (index < Card.LowAceOfClubs.index || index > Card.AceOfSpades.index) {
+      return null;
+    }
+    if (index < Card.DeuceOfClubs.index) return Rank.Ace;
     return Rank.values[index >> 2];
   }
 
   /// What's the suit of this card? Jokers have no suit.
-  Suit get suit {
-    if (index < 4 || index > 63) return Suit.None;
+  Suit? get suit {
+    if (index < Card.LowAceOfClubs.index || index > Card.AceOfSpades.index) {
+      return null;
+    }
     return Suit.values[1 + (index & 3)];
   }
 
   /// Is this an actual card (and not None or an invalid number)?
   bool get isCard {
-    return index > 0 && index < 64;
+    return index >= Card.WhiteJoker.index && index <= Card.AceOfSpades.index;
   }
 
   /// Is this card an ace?
   bool get isAce {
-    return (index >= 4 && index <= 7) || (index >= 56 && index <= 59);
+    return (index >= Card.LowAceOfClubs.index &&
+            index <= Card.LowAceOfSpades.index) ||
+        (index >= Card.AceOfClubs.index && index <= Card.AceOfSpades.index);
   }
 
   /// Is this card a joker?
   bool get isJoker {
-    return (index >= 1 && index <= 3);
+    return (index >= Card.WhiteJoker.index && index <= Card.Joker.index);
   }
 
   /// Is this card red? Note that while jokers have no suit, there is a
   /// black one and a red one.
   bool get isRed {
-    if (3 == index) return true;
-    if (index < 4 || index > 63) return false;
-    return (index & 3) == 1 || (index & 3) == 2;
+    if (index == Card.Joker.index) return true;
+    if (index < Card.LowAceOfClubs.index || index > Card.AceOfSpades.index) {
+      return false;
+    }
+    return (index & 3) == Suit.Diamond.index - 1 ||
+        (index & 3) == Suit.Heart.index - 1;
   }
 
   /// Is this card black? Note that while jokers have no suit, there is a
   /// black one and a red one.
   bool get isBlack {
-    if (2 == index) return true;
-    if (index < 4 || index > 63) return false;
-    return (index & 3) == 0 || (index & 3) == 3;
+    if (index == Card.BlackJoker.index) return true;
+    if (index < Card.LowAceOfClubs.index || index > Card.AceOfSpades.index) {
+      return false;
+    }
+    return (index & 3) == Suit.Club.index - 1 ||
+        (index & 3) == Suit.Spade.index - 1;
   }
 
   /// Render to two-character text in standard format
   String toText() {
-    if (!isCard) return "??";
-    if (1 == index) return "Jw";
-    if (2 == index) return "Jb";
-    if (3 == index) return "Jk";
-    return "${rank.toChar()}${suit.toChar()}";
+    assert(isCard);
+    if (Card.WhiteJoker.index == index) return "Jw";
+    if (Card.BlackJoker.index == index) return "Jb";
+    if (Card.Joker.index == index) return "Jk";
+    return "${rank!.toChar()}${suit!.toChar()}";
   }
 
   /// Render to two-character text with unicode suit symbols
   String toUnicode() {
-    if (!isCard) return "??";
-    if (1 == index) return "Jw";
-    if (2 == index) return "Jb";
-    if (3 == index) return "Jk";
-    return "${rank.toChar()}${suit.toUnicode()}";
+    assert(isCard);
+    if (Card.WhiteJoker.index == index) return "Jw";
+    if (Card.BlackJoker.index == index) return "Jb";
+    if (Card.Joker.index == index) return "Jk";
+    return "${rank!.toChar()}${suit!.toUnicode()}";
+  }
+
+  static final List<String> unicodeSingles = [
+    "🃟",
+    "🂿",
+    "🃏",
+    "🃑",
+    "🃁",
+    "🂱",
+    "🂡",
+    "🃒",
+    "🃂",
+    "🂲",
+    "🂢",
+    "🃓",
+    "🃃",
+    "🂳",
+    "🂣",
+    "🃔",
+    "🃄",
+    "🂴",
+    "🂤",
+    "🃕",
+    "🃅",
+    "🂵",
+    "🂥",
+    "🃖",
+    "🃆",
+    "🂶",
+    "🂦",
+    "🃗",
+    "🃇",
+    "🂷",
+    "🂧",
+    "🃘",
+    "🃈",
+    "🂸",
+    "🂨",
+    "🃙",
+    "🃉",
+    "🂹",
+    "🂩",
+    "🃚",
+    "🃊",
+    "🂺",
+    "🂪",
+    "🃛",
+    "🃋",
+    "🂻",
+    "🂫",
+    "🃜",
+    "🃌",
+    "🂼",
+    "🃜",
+    "🃝",
+    "🃍",
+    "🂽",
+    "🂭",
+    "🃞",
+    "🃎",
+    "🂾",
+    "🂮",
+    "🃑",
+    "🃁",
+    "🂱",
+    "🂡",
+  ];
+
+  /// Render to single-character unicode card image.
+  String toUnicodeSingle() {
+    assert(isCard);
+    return unicodeSingles[index - 1];
   }
 
   /// Full English name
   String get fullName {
-    if (!isCard) return "unknown";
-    if (1 == index) return "white joker";
-    if (2 == index) return "black joker";
-    if (3 == index) return "joker";
-    return "${rank.name} of ${suit.plural}";
+    assert(isCard);
+    if (Card.WhiteJoker.index == index) return "white joker";
+    if (Card.BlackJoker.index == index) return "black joker";
+    if (Card.Joker.index == index) return "joker";
+    return "${rank!.name} of ${suit!.plural}";
   }
 
   /// Make high aces low, leave other cards alone
   static Card lowAceFix(Card c) {
-    return Card
-        .values[(c.index >= 56 && c.index <= 59) ? c.index - 52 : c.index];
+    if (c.index >= Card.AceOfClubs.index && c.index <= Card.AceOfSpades.index) {
+      return Card
+          .values[c.index - (Card.AceOfClubs.index - Card.LowAceOfClubs.index)];
+    }
+    return c;
   }
 
   /// Make low aces high, leave other cards alone
   static Card highAceFix(Card c) {
-    return Card.values[(c.index >= 4 && c.index <= 7) ? c.index + 52 : c.index];
+    if (c.index >= Card.LowAceOfClubs.index &&
+        c.index <= Card.LowAceOfSpades.index) {
+      return Card
+          .values[c.index + (Card.AceOfClubs.index - Card.LowAceOfClubs.index)];
+    }
+    return c;
   }
 
   @override
   String toString() {
     return toText();
+  }
+
+  @override
+  int compareTo(Card other) {
+    return index - other.index;
+  }
+
+  bool operator <(Card other) {
+    return index < other.index;
+  }
+
+  bool operator <=(Card other) {
+    return index <= other.index;
+  }
+
+  bool operator >(Card other) {
+    return index > other.index;
+  }
+
+  bool operator >=(Card other) {
+    return index >= other.index;
   }
 }
 
@@ -374,71 +515,37 @@ enum Card {
 /// ignored between cards, but is not allowed between rank and suit.
 /// Cards may be enclosed in square brackets.
 Iterable<Card> cardsFromText(String text) sync* {
-  int state = 0;
-  bool bracketAllowed = true;
-  Suit s = Suit.None;
-  Rank r = Rank.None;
+  var input = text;
 
-  for (String c in text.runes.map((r) => String.fromCharCode(r))) {
-    switch (state) {
-      case 0: // skip whitespace or one [, look for rank
-        if ("[" == c) {
-          if (!bracketAllowed) {
-            return;
-          }
-          bracketAllowed = false;
-          break;
-        }
-        if (" " == c) {
-          break;
-        }
-        bracketAllowed = false;
-
-        if ("J" == c) {
-          state = 1;
-          break;
-        }
-        r = Rank.fromChar(c);
-        if (Rank.None == r) {
-          return;
-        }
-        state = 2;
-        break;
-      case 1: // got J, look for joker color or jack suit
-        if ("k" == c || "r" == c) {
-          yield Card.Joker;
-          state = 0;
-          break;
-        }
-        if ("b" == c) {
-          yield Card.BlackJoker;
-          state = 0;
-          break;
-        }
-        if ("w" == c) {
-          yield Card.WhiteJoker;
-          state = 0;
-          break;
-        }
-        r = Rank.Jack;
-        s = Suit.fromChar(c);
-        if (Suit.None == s) {
-          return;
-        }
-        yield Card.fromRankSuit(r, s);
-        state = 0;
-        break;
-      case 2: // got rank, look for suit
-        s = Suit.fromChar(c);
-        if (Suit.None == s) {
-          return;
-        }
-        assert(Rank.None != r);
-        yield Card.fromRankSuit(r, s);
-        state = 0;
-        break;
-      default:
-        assert(false);
+  var match = _brackets.firstMatch(input);
+  if (match != null && match.group(1)!.isNotEmpty) {
+    input = match.group(1)!;
+  }
+  var matches = _oneCard.allMatches(input);
+  for (var match in matches) {
+    if (match.group(1) == null) {
+      return;
     }
+    if (match.group(1) == "Jk") {
+      yield Card.Joker;
+      continue;
+    }
+    if (match.group(1) == "Jb") {
+      yield Card.BlackJoker;
+      continue;
+    }
+    if (match.group(1) == "Jw") {
+      yield Card.WhiteJoker;
+      continue;
+    }
+    if (match.group(2) == null || match.group(3) == null) {
+      return;
+    }
+    var r = Rank.fromChar(match.group(2)!);
+    var s = Suit.fromChar(match.group(3)!);
+    if (r == null || s == null) {
+      return;
+    }
+    yield Card.fromRankSuit(r, s);
   }
 }

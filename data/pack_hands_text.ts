@@ -17,7 +17,7 @@
  * 
  * type HandTestData = {
  *   count: number,
- *   deckNames: string[],
+ *   deck_names: string[],
  *   hands: [ number, string, number, number ][];
  * }
  */
@@ -36,7 +36,7 @@ function sdir(): string {
 
 type HandTestData = {
     count: number,
-    deckNames: string[],
+    deck_names: string[],
     hands: [ number, string, number, number ][];
 }
 
@@ -47,7 +47,7 @@ export async function packHandsText() {
     const handDataIn = json5.parse(await Deno.readTextFile(`${sdir()}/json/hands_text.json5`));
     const handDataOut: HandTestData = {
         count: handDataIn.length,
-        deckNames: [],
+        deck_names: [],
         hands: [],
     };
 
@@ -58,7 +58,7 @@ export async function packHandsText() {
             dn = deckNoNext;
             deckNoNext += 1;
             deckMap.set(hd[0], dn);
-            handDataOut.deckNames.push(hd[0]);
+            handDataOut.deck_names.push(hd[0]);
         }
         handDataOut.hands.push([ dn, hd[1], hd[2], hd[3], ]);
     }

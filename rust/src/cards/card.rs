@@ -1,5 +1,4 @@
 //@ cards/card.rs
-//@ Lee Daniel Crocker <lee@piclab.com>
 
 //! # card | [wiki](https://github.com/lcrocker/tspoker/wiki/Card) | A simple card object wrapping a u8.
 
@@ -8,29 +7,7 @@ use crate::cards::rank::*;
 use crate::cards::suit::*;
 
 /// # Ordinal | [wiki](https://github.com/lcrocker/tspoker/wiki/Ordinal)
-/// Cards are represented as integers in the range 0..64:
-/// 
-/// Number          | Represents
-/// ----------------|-----------
-/// 1               | White/blue joker
-/// 2               | Black/uncolored joker
-/// 3               | Joker (generic, or colored/red)
-/// 4, 5, 6, 7      | "Low" ace of clubs, diamonds, hearts, spades (see below)
-/// 8, 9, 10, 11    | Deuce of clubs, diamonds, hearts, spades
-/// 12, 13, 14, 15  | Trey of clubs, diamonds, hearts, spades
-/// 16, 17, 18, 19  | Four of clubs, diamonds, hearts, spades
-/// 20, 21, 22, 23  | Five of clubs, diamonds, hearts, spades
-/// 24, 25, 26, 27  | Six of clubs, diamonds, hearts, spades
-/// 28, 29, 30, 31  | Seven of clubs, diamonds, hearts, spades
-/// 32, 33, 34, 35  | Eight of clubs, diamonds, hearts, spades
-/// 36, 37, 38, 39  | Nine of clubs, diamonds, hearts, spades
-/// 40, 41, 42, 43  | Ten of clubs, diamonds, hearts, spades
-/// 44, 45, 46, 47  | Jack of clubs, diamonds, hearts, spades
-/// 48, 49, 50, 51  | Queen of clubs, diamonds, hearts, spades
-/// 52, 53, 54, 55  | King of clubs, diamonds, hearts, spades
-/// 56, 57, 58, 59  | "High" ace of clubs, diamonds, hearts, spades
-/// 60, 61, 62, 63  | Knight / Cavalier, etc.
-
+/// Cards are represented as integers in the range 0..64 (see README)
 pub type Ordinal = u8;  // some machines might be faster with u32?
 
 /// # Card | [wiki](https://github.com/lcrocker/tspoker/wiki/Card)
@@ -44,11 +21,11 @@ pub type Ordinal = u8;  // some machines might be faster with u32?
 #[derive(PartialEq, PartialOrd, Eq, Ord, Clone, Copy, Hash)]
 pub struct Card(pub Ordinal);
 
-const UNICODE_SINGLES: [&str; 64] = [
-    "⁇","🃟","🂿","🃏","🃑","🃁","🂱","🂡","🃒","🃂","🂲","🂢","🃓","🃃","🂳","🂣",
+const UNICODE_SINGLES: [&str; 63] = [
+    "🃟","🂿","🃏","🃑","🃁","🂱","🂡","🃒","🃂","🂲","🂢","🃓","🃃","🂳","🂣",
     "🃔","🃄","🂴","🂤","🃕","🃅","🂵","🂥","🃖","🃆","🂶","🂦","🃗","🃇","🂷","🂧",
     "🃘","🃈","🂸","🂨","🃙","🃉","🂹","🂩","🃚","🃊","🂺","🂪","🃛","🃋","🂻","🂫",
-    "🃝","🃍","🂽","🂭","🃞","🃎","🂾","🂮","🃑","🃁","🂱","🂡","🃜","🃌","🂼","🃜",
+    "🃜","🃌","🂼","🃜","🃝","🃍","🂽","🂭","🃞","🃎","🂾","🂮","🃑","🃁","🂱","🂡",
 ];
 
 impl Card {
@@ -56,7 +33,7 @@ impl Card {
     /// but must fail for invalid values, so returns an `Option`.
     #[inline]
     pub const fn from_i32(v: i32) -> Option<Card> {
-        if v < 1 || v > 63 { return None }
+        if v < WHITE_JOKER.0 as i32 || v > ACE_OF_SPADES.0 as i32 { return None }
         Some(Card(v as Ordinal))
     }
 
@@ -64,8 +41,8 @@ impl Card {
     /// `Suit` objects are valid, this cannot fail, so it returns a real `Card`,
     /// not an Option.
     pub fn from_rank_suit(r: Rank, s: Suit) -> Card {
-        debug_assert!((r as Ordinal) > 0 && (r as Ordinal) < 16);
-        debug_assert!((s as Ordinal) > 0 && (s as Ordinal) < 5);
+        debug_assert!(r >= Rank::LowAce && r <= Rank::Ace);
+        debug_assert!(s >= Suit::Club && s <= Suit::Spade);
         Card(((r as Ordinal) << 2) + (s as Ordinal) - 1)
     }
 
@@ -73,44 +50,44 @@ impl Card {
     /// return the low ace of the same suit.
     pub fn low_ace_fix(v: Card) -> Card {
         if v < ACE_OF_CLUBS || v > ACE_OF_SPADES { return v }
-        Card(v.0 - 52)
+        Card(v.0 - ACE_OF_CLUBS.0 + LOW_ACE_OF_CLUBS.0)
     }
 
     /// Return a card value unmolested, unless it's a low ace, in which case
     /// return the high ace of the same suit.
     pub fn high_ace_fix(v: Card) -> Card {
         if v < LOW_ACE_OF_CLUBS || v > LOW_ACE_OF_SPADES { return v }
-        Card(v.0 + 52)
+        Card(v.0 + ACE_OF_CLUBS.0 - LOW_ACE_OF_CLUBS.0)
     }
 
     /// Rank of the card, if any. `None` for illegal values.
     pub fn rank(&self) -> Option<Rank> {
-        if *self < LOW_ACE_OF_CLUBS || *self > KNIGHT_OF_SPADES { return None }
+        if *self < LOW_ACE_OF_CLUBS || *self > ACE_OF_SPADES { return None }
         Rank::from_i32((self.0 as i32) >> 2)
     }
 
     /// Suit of the card if any. `None` for jokers or illegal values.
     pub fn suit(&self) -> Option<Suit> {
-        if *self < LOW_ACE_OF_CLUBS || *self > KNIGHT_OF_SPADES { return None }
+        if *self < LOW_ACE_OF_CLUBS || *self > ACE_OF_SPADES { return None }
         Suit::from_i32((0x03 & (self.0 as i32)) + 1)
     }
 
     /// Does the object represent an actual card, and not a sentinel value?
     pub fn is_card(&self) -> bool {
-        *self >= WHITE_JOKER && *self <= KNIGHT_OF_SPADES
+        *self >= WHITE_JOKER && *self <= ACE_OF_SPADES
     }
 
     /// Is the card a diamond, heart, or red/colored joker?
     pub fn is_red(&self) -> bool {
         if *self == JOKER { return true }
-        if *self < LOW_ACE_OF_CLUBS || *self > KNIGHT_OF_SPADES { return false }
+        if *self < LOW_ACE_OF_CLUBS || *self > ACE_OF_SPADES { return false }
         1 == (self.0 & 3) || 2 == (self.0 & 3)
     }
 
     /// Is the card a club, spade, or black/generic joker?
     pub fn is_black(&self) -> bool {
         if *self == BLACK_JOKER { return true }
-        if *self < LOW_ACE_OF_CLUBS || *self > KNIGHT_OF_SPADES { return false }
+        if *self < LOW_ACE_OF_CLUBS || *self > ACE_OF_SPADES { return false }
         0 == (self.0 & 3) || 3 == (self.0 & 3)
     }
 
@@ -150,7 +127,7 @@ impl Card {
     /// (U+1F0A1..U+1F0DF)
     pub fn to_unicode_single(&self) -> String {
         if ! self.is_card() { return String::from(UNICODE_SINGLES[0]); }
-        String::from(UNICODE_SINGLES[self.0 as usize])
+        String::from(UNICODE_SINGLES[self.0 as usize - 1])
     }
 
     pub fn full_name(&self) -> String {
@@ -233,8 +210,8 @@ const CARD_NAMES: [&str; 63] = [ "Jw", "Jb", "Jk",
     "Ac", "Ad", "Ah", "As", "2c", "2d", "2h", "2s", "3c", "3d", "3h", "3s",
     "4c", "4d", "4h", "4s", "5c", "5d", "5h", "5s", "6c", "6d", "6h", "6s",
     "7c", "7d", "7h", "7s", "8c", "8d", "8h", "8s", "9c", "9d", "9h", "9s",
-    "Tc", "Td", "Th", "Ts", "Jc", "Jd", "Jh", "Js", "Qc", "Qd", "Qh", "Qs",
-    "Kc", "Kd", "Kh", "Ks", "Ac", "Ad", "Ah", "As", "Cc", "Cd", "Ch", "Cs", ];
+    "Tc", "Td", "Th", "Ts", "Jc", "Jd", "Jh", "Js", "Cc", "Cd", "Ch", "Cs",
+    "Qc", "Qd", "Qh", "Qs", "Kc", "Kd", "Kh", "Ks", "Ac", "Ad", "Ah", "As",  ];
 
 impl std::fmt::Debug for Card {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -323,23 +300,22 @@ pub const JACK_OF_CLUBS: Card = Card(44);
 pub const JACK_OF_DIAMONDS: Card = Card(45);
 pub const JACK_OF_HEARTS: Card = Card(46);
 pub const JACK_OF_SPADES: Card = Card(47);
-pub const QUEEN_OF_CLUBS: Card = Card(48);
-pub const QUEEN_OF_DIAMONDS: Card = Card(49);
-pub const QUEEN_OF_HEARTS: Card = Card(50);
-pub const QUEEN_OF_SPADES: Card = Card(51);
-pub const KING_OF_CLUBS: Card = Card(52);
-pub const KING_OF_DIAMONDS: Card = Card(53);
-pub const KING_OF_HEARTS: Card = Card(54);
-pub const KING_OF_SPADES: Card = Card(55);
-pub const ACE_OF_CLUBS: Card = Card(56);
-pub const ACE_OF_DIAMONDS: Card = Card(57);
-pub const ACE_OF_HEARTS: Card = Card(58);
-pub const ACE_OF_SPADES: Card = Card(59);
-pub const KNIGHT_OF_CLUBS: Card = Card(60);
-pub const KNIGHT_OF_DIAMONDS: Card = Card(61);
-pub const KNIGHT_OF_HEARTS: Card = Card(62);
-pub const KNIGHT_OF_SPADES: Card = Card(63);
-pub const HIGH_SENTINEL: Card = Card(64);
+pub const KNIGHT_OF_CLUBS: Card = Card(48);
+pub const KNIGHT_OF_DIAMONDS: Card = Card(49);
+pub const KNIGHT_OF_HEARTS: Card = Card(50);
+pub const KNIGHT_OF_SPADES: Card = Card(51);
+pub const QUEEN_OF_CLUBS: Card = Card(52);
+pub const QUEEN_OF_DIAMONDS: Card = Card(53);
+pub const QUEEN_OF_HEARTS: Card = Card(54);
+pub const QUEEN_OF_SPADES: Card = Card(55);
+pub const KING_OF_CLUBS: Card = Card(56);
+pub const KING_OF_DIAMONDS: Card = Card(57);
+pub const KING_OF_HEARTS: Card = Card(58);
+pub const KING_OF_SPADES: Card = Card(59);
+pub const ACE_OF_CLUBS: Card = Card(60);
+pub const ACE_OF_DIAMONDS: Card = Card(61);
+pub const ACE_OF_HEARTS: Card = Card(62);
+pub const ACE_OF_SPADES: Card = Card(63);
 
 /*
  * CODE ENDS HERE
@@ -348,9 +324,8 @@ pub const HIGH_SENTINEL: Card = Card(64);
  #[test]
 fn test_card() {
     macro_rules! cardtests {
-        // name, ord, rank, suit, lowacefix, highacefix, knightfix, isjoker, isace, isred, isblack
         ( $x:ident, $v:literal, $r:ident, $s:ident, $t:literal, $u:literal,
-            $laf:literal, $haf:literal, $kf:literal, $isj:literal, $isa:literal,
+            $laf:literal, $haf:literal, $isj:literal, $isa:literal,
             $isr:literal, $isb:literal, $fn:literal ) => {
             {
                 use std::str::FromStr;
@@ -369,7 +344,7 @@ fn test_card() {
                 assert_eq!($isb, $x.is_black());
                 assert_eq!($t, $x.to_string());
                 assert_eq!($u, $x.to_unicode());
-                assert_eq!(UNICODE_SINGLES[$v as usize], $x.to_unicode_single());
+                assert_eq!(UNICODE_SINGLES[$v as usize - 1], $x.to_unicode_single());
                 if Rank::$r != Rank::LowAce {
                     assert_eq!($x, Card::from_str($t).unwrap());
                     assert_eq!($x, Card::from_str($u).unwrap());
@@ -379,126 +354,126 @@ fn test_card() {
             }
         };
     }
-    cardtests!(LOW_ACE_OF_CLUBS, 4, LowAce, Club, "Ac", "A♣", 4, 56, 4,
+    cardtests!(LOW_ACE_OF_CLUBS, 4, LowAce, Club, "Ac", "A♣", 4, 60,
         false, true, false, true, "ace of clubs");
-    cardtests!(LOW_ACE_OF_DIAMONDS, 5, LowAce, Diamond, "Ad", "A♦", 5, 57, 5,
+    cardtests!(LOW_ACE_OF_DIAMONDS, 5, LowAce, Diamond, "Ad", "A♦", 5, 61,
         false, true, true, false, "ace of diamonds");
-    cardtests!(LOW_ACE_OF_HEARTS, 6, LowAce, Heart, "Ah", "A♥", 6, 58, 6,
+    cardtests!(LOW_ACE_OF_HEARTS, 6, LowAce, Heart, "Ah", "A♥", 6, 62,
         false, true, true, false, "ace of hearts");
-    cardtests!(LOW_ACE_OF_SPADES, 7, LowAce, Spade, "As", "A♠", 7, 59, 7,
+    cardtests!(LOW_ACE_OF_SPADES, 7, LowAce, Spade, "As", "A♠", 7, 63,
         false, true, false, true, "ace of spades");
-    cardtests!(DEUCE_OF_CLUBS, 8, Deuce, Club, "2c", "2♣", 8, 8, 8,
+    cardtests!(DEUCE_OF_CLUBS, 8, Deuce, Club, "2c", "2♣", 8, 8,
         false, false, false, true, "deuce of clubs");
-    cardtests!(DEUCE_OF_DIAMONDS, 9, Deuce, Diamond, "2d", "2♦", 9, 9, 9,
+    cardtests!(DEUCE_OF_DIAMONDS, 9, Deuce, Diamond, "2d", "2♦", 9, 9,
         false, false, true, false, "deuce of diamonds");
-    cardtests!(DEUCE_OF_HEARTS, 10, Deuce, Heart, "2h", "2♥", 10, 10, 10,
+    cardtests!(DEUCE_OF_HEARTS, 10, Deuce, Heart, "2h", "2♥", 10, 10,
         false, false, true, false, "deuce of hearts");
-    cardtests!(DEUCE_OF_SPADES, 11, Deuce, Spade, "2s", "2♠", 11, 11, 11,
+    cardtests!(DEUCE_OF_SPADES, 11, Deuce, Spade, "2s", "2♠", 11, 11,
         false, false, false, true, "deuce of spades");
-    cardtests!(TREY_OF_CLUBS, 12, Trey, Club, "3c", "3♣", 12, 12, 12,
+    cardtests!(TREY_OF_CLUBS, 12, Trey, Club, "3c", "3♣", 12, 12,
         false, false, false, true, "trey of clubs");
-    cardtests!(TREY_OF_DIAMONDS, 13, Trey, Diamond, "3d", "3♦", 13, 13, 13,
+    cardtests!(TREY_OF_DIAMONDS, 13, Trey, Diamond, "3d", "3♦", 13, 13,
         false, false, true, false, "trey of diamonds");
-    cardtests!(TREY_OF_HEARTS, 14, Trey, Heart, "3h", "3♥", 14, 14, 14,
+    cardtests!(TREY_OF_HEARTS, 14, Trey, Heart, "3h", "3♥", 14, 14,
         false, false, true, false, "trey of hearts");
-    cardtests!(TREY_OF_SPADES, 15, Trey, Spade, "3s", "3♠", 15, 15, 15,
+    cardtests!(TREY_OF_SPADES, 15, Trey, Spade, "3s", "3♠", 15, 15,
         false, false, false, true, "trey of spades");
-    cardtests!(FOUR_OF_CLUBS, 16, Four, Club, "4c", "4♣", 16, 16, 16,
+    cardtests!(FOUR_OF_CLUBS, 16, Four, Club, "4c", "4♣", 16, 16,
         false, false, false, true, "four of clubs");
-    cardtests!(FOUR_OF_DIAMONDS, 17, Four, Diamond, "4d", "4♦", 17, 17, 17,
+    cardtests!(FOUR_OF_DIAMONDS, 17, Four, Diamond, "4d", "4♦", 17, 17,
         false, false, true, false, "four of diamonds");
-    cardtests!(FOUR_OF_HEARTS, 18, Four, Heart, "4h", "4♥", 18, 18, 18,
+    cardtests!(FOUR_OF_HEARTS, 18, Four, Heart, "4h", "4♥", 18, 18,
         false, false, true, false, "four of hearts");
-    cardtests!(FOUR_OF_SPADES, 19, Four, Spade, "4s", "4♠", 19, 19, 19,
+    cardtests!(FOUR_OF_SPADES, 19, Four, Spade, "4s", "4♠", 19, 19,
         false, false, false, true, "four of spades");
-    cardtests!(FIVE_OF_CLUBS, 20, Five, Club, "5c", "5♣", 20, 20, 20,
+    cardtests!(FIVE_OF_CLUBS, 20, Five, Club, "5c", "5♣", 20, 20,
         false, false, false, true, "five of clubs");
-    cardtests!(FIVE_OF_DIAMONDS, 21, Five, Diamond, "5d", "5♦", 21, 21, 21,
+    cardtests!(FIVE_OF_DIAMONDS, 21, Five, Diamond, "5d", "5♦", 21, 21,
         false, false, true, false, "five of diamonds");
-    cardtests!(FIVE_OF_HEARTS, 22, Five, Heart, "5h", "5♥", 22, 22, 22,
+    cardtests!(FIVE_OF_HEARTS, 22, Five, Heart, "5h", "5♥", 22, 22,
         false, false, true, false, "five of hearts");
-    cardtests!(FIVE_OF_SPADES, 23, Five, Spade, "5s", "5♠", 23, 23, 23,
+    cardtests!(FIVE_OF_SPADES, 23, Five, Spade, "5s", "5♠", 23, 23,
         false, false, false, true, "five of spades");
-    cardtests!(SIX_OF_CLUBS, 24, Six, Club, "6c", "6♣", 24, 24, 24,
+    cardtests!(SIX_OF_CLUBS, 24, Six, Club, "6c", "6♣", 24, 24,
         false, false, false, true, "six of clubs");
-    cardtests!(SIX_OF_DIAMONDS, 25, Six, Diamond, "6d", "6♦", 25, 25, 25,
+    cardtests!(SIX_OF_DIAMONDS, 25, Six, Diamond, "6d", "6♦", 25, 25,
         false, false, true, false, "six of diamonds");
-    cardtests!(SIX_OF_HEARTS, 26, Six, Heart, "6h", "6♥", 26,  26, 26,
+    cardtests!(SIX_OF_HEARTS, 26, Six, Heart, "6h", "6♥", 26, 26,
         false, false, true, false, "six of hearts");
-    cardtests!(SIX_OF_SPADES, 27, Six, Spade, "6s", "6♠", 27, 27, 27,
+    cardtests!(SIX_OF_SPADES, 27, Six, Spade, "6s", "6♠", 27, 27,
         false, false, false, true, "six of spades");
-    cardtests!(SEVEN_OF_CLUBS, 28, Seven, Club, "7c", "7♣", 28, 28, 28,
+    cardtests!(SEVEN_OF_CLUBS, 28, Seven, Club, "7c", "7♣", 28, 28,
         false, false, false, true, "seven of clubs");
-    cardtests!(SEVEN_OF_DIAMONDS, 29, Seven, Diamond, "7d", "7♦", 29, 29, 29,
+    cardtests!(SEVEN_OF_DIAMONDS, 29, Seven, Diamond, "7d", "7♦", 29, 29,
         false, false, true, false, "seven of diamonds");
-    cardtests!(SEVEN_OF_HEARTS, 30, Seven, Heart, "7h", "7♥", 30, 30, 30,
+    cardtests!(SEVEN_OF_HEARTS, 30, Seven, Heart, "7h", "7♥", 30, 30,
         false, false, true, false, "seven of hearts");
-    cardtests!(SEVEN_OF_SPADES, 31, Seven, Spade, "7s", "7♠", 31, 31, 31,
+    cardtests!(SEVEN_OF_SPADES, 31, Seven, Spade, "7s", "7♠", 31, 31,
         false, false, false, true, "seven of spades");
-    cardtests!(EIGHT_OF_CLUBS, 32, Eight, Club, "8c", "8♣", 32, 32, 32,
+    cardtests!(EIGHT_OF_CLUBS, 32, Eight, Club, "8c", "8♣", 32, 32,
         false, false, false, true, "eight of clubs");
-    cardtests!(EIGHT_OF_DIAMONDS, 33, Eight, Diamond, "8d", "8♦", 33, 33, 33,
+    cardtests!(EIGHT_OF_DIAMONDS, 33, Eight, Diamond, "8d", "8♦", 33, 33,
         false, false, true, false, "eight of diamonds");
-    cardtests!(EIGHT_OF_HEARTS, 34, Eight, Heart, "8h", "8♥", 34, 34, 34,
+    cardtests!(EIGHT_OF_HEARTS, 34, Eight, Heart, "8h", "8♥", 34, 34,
         false, false, true, false, "eight of hearts");
-    cardtests!(EIGHT_OF_SPADES, 35, Eight, Spade, "8s", "8♠", 35, 35, 35,
+    cardtests!(EIGHT_OF_SPADES, 35, Eight, Spade, "8s", "8♠", 35, 35,
         false, false, false, true, "eight of spades");
-    cardtests!(NINE_OF_CLUBS, 36, Nine, Club, "9c", "9♣", 36, 36, 36,
+    cardtests!(NINE_OF_CLUBS, 36, Nine, Club, "9c", "9♣", 36, 36,
         false, false, false, true, "nine of clubs");
-    cardtests!(NINE_OF_DIAMONDS, 37, Nine, Diamond, "9d", "9♦", 37, 37, 37,
+    cardtests!(NINE_OF_DIAMONDS, 37, Nine, Diamond, "9d", "9♦", 37, 37,
         false, false, true, false, "nine of diamonds");
-    cardtests!(NINE_OF_HEARTS, 38, Nine, Heart, "9h", "9♥", 38, 38, 38,
+    cardtests!(NINE_OF_HEARTS, 38, Nine, Heart, "9h", "9♥", 38, 38,
         false, false, true, false, "nine of hearts");
-    cardtests!(NINE_OF_SPADES, 39, Nine, Spade, "9s", "9♠", 39, 39, 39,
+    cardtests!(NINE_OF_SPADES, 39, Nine, Spade, "9s", "9♠", 39, 39,
         false, false, false, true, "nine of spades");
-    cardtests!(TEN_OF_CLUBS, 40, Ten, Club, "Tc", "T♣", 40, 40, 40,
+    cardtests!(TEN_OF_CLUBS, 40, Ten, Club, "Tc", "T♣", 40, 40,
         false, false, false, true, "ten of clubs");
-    cardtests!(TEN_OF_DIAMONDS, 41, Ten, Diamond, "Td", "T♦", 41, 41, 41,
+    cardtests!(TEN_OF_DIAMONDS, 41, Ten, Diamond, "Td", "T♦", 41, 41,
         false, false, true, false, "ten of diamonds");
-    cardtests!(TEN_OF_HEARTS, 42, Ten, Heart, "Th", "T♥", 42, 42, 42,
+    cardtests!(TEN_OF_HEARTS, 42, Ten, Heart, "Th", "T♥", 42, 42,
         false, false, true, false, "ten of hearts");
-    cardtests!(TEN_OF_SPADES, 43, Ten, Spade, "Ts", "T♠", 43, 43, 43,
+    cardtests!(TEN_OF_SPADES, 43, Ten, Spade, "Ts", "T♠", 43, 43,
         false, false, false, true, "ten of spades");
-    cardtests!(JACK_OF_CLUBS, 44, Jack, Club, "Jc", "J♣", 44, 44, 44,
+    cardtests!(JACK_OF_CLUBS, 44, Jack, Club, "Jc", "J♣", 44, 44,
         false, false, false, true, "jack of clubs");
-    cardtests!(JACK_OF_DIAMONDS, 45, Jack, Diamond, "Jd", "J♦", 45, 45, 45,
+    cardtests!(JACK_OF_DIAMONDS, 45, Jack, Diamond, "Jd", "J♦", 45, 45,
         false, false, true, false, "jack of diamonds");
-    cardtests!(JACK_OF_HEARTS, 46, Jack, Heart, "Jh", "J♥", 46, 46, 46,
+    cardtests!(JACK_OF_HEARTS, 46, Jack, Heart, "Jh", "J♥", 46, 46,
         false, false, true, false, "jack of hearts");
-    cardtests!(JACK_OF_SPADES, 47, Jack, Spade, "Js", "J♠", 47, 47, 47,
+    cardtests!(JACK_OF_SPADES, 47, Jack, Spade, "Js", "J♠", 47, 47,
         false, false, false, true, "jack of spades");
-    cardtests!(QUEEN_OF_CLUBS, 48, Queen, Club, "Qc", "Q♣", 48, 48, 48,
-        false, false, false, true, "queen of clubs");
-    cardtests!(QUEEN_OF_DIAMONDS, 49, Queen, Diamond, "Qd", "Q♦", 49, 49, 49,
-        false, false, true, false, "queen of diamonds");
-    cardtests!(QUEEN_OF_HEARTS, 50, Queen, Heart, "Qh", "Q♥", 50, 50, 50,
-        false, false, true, false, "queen of hearts");
-    cardtests!(QUEEN_OF_SPADES, 51, Queen, Spade, "Qs", "Q♠", 51, 51, 51,
-        false, false, false, true, "queen of spades");
-    cardtests!(KING_OF_CLUBS, 52, King, Club, "Kc", "K♣", 52, 52, 52,
-        false, false, false, true, "king of clubs");
-    cardtests!(KING_OF_DIAMONDS, 53, King, Diamond, "Kd", "K♦", 53, 53, 53,
-        false, false, true, false, "king of diamonds");
-    cardtests!(KING_OF_HEARTS, 54, King, Heart, "Kh", "K♥", 54, 54, 54,
-        false, false, true, false, "king of hearts");
-    cardtests!(KING_OF_SPADES, 55, King, Spade, "Ks", "K♠", 55, 55, 55,
-        false, false, false, true, "king of spades");
-    cardtests!(ACE_OF_CLUBS, 56, Ace, Club, "Ac", "A♣", 4, 56, 56,
-        false, true, false, true, "ace of clubs");
-    cardtests!(ACE_OF_DIAMONDS, 57, Ace, Diamond, "Ad", "A♦", 5, 57, 57,
-        false, true, true, false, "ace of diamonds");
-    cardtests!(ACE_OF_HEARTS, 58, Ace, Heart, "Ah", "A♥", 6, 58, 58,
-        false, true, true, false, "ace of hearts");
-    cardtests!(ACE_OF_SPADES, 59, Ace, Spade, "As", "A♠", 7, 59, 59,
-        false, true, false, true, "ace of spades");
-    cardtests!(KNIGHT_OF_CLUBS, 60, Knight, Club, "Cc", "C♣", 60, 60, 48,
+    cardtests!(KNIGHT_OF_CLUBS, 48, Knight, Club, "Cc", "C♣", 48, 48,
         false, false, false, true, "knight of clubs");
-    cardtests!(KNIGHT_OF_DIAMONDS, 61, Knight, Diamond, "Cd", "C♦", 61, 61, 49,
+    cardtests!(KNIGHT_OF_DIAMONDS, 49, Knight, Diamond, "Cd", "C♦", 49, 49,
         false, false, true, false, "knight of diamonds");
-    cardtests!(KNIGHT_OF_HEARTS, 62, Knight, Heart, "Ch", "C♥", 62, 62, 50,
+    cardtests!(KNIGHT_OF_HEARTS, 50, Knight, Heart, "Ch", "C♥", 50, 50,
         false, false, true, false, "knight of hearts");
-    cardtests!(KNIGHT_OF_SPADES, 63, Knight, Spade, "Cs", "C♠", 63, 63, 51,
+    cardtests!(KNIGHT_OF_SPADES, 51, Knight, Spade, "Cs", "C♠", 51, 51,
         false, false, false, true, "knight of spades");
+    cardtests!(QUEEN_OF_CLUBS, 52, Queen, Club, "Qc", "Q♣", 52, 52,
+        false, false, false, true, "queen of clubs");
+    cardtests!(QUEEN_OF_DIAMONDS, 53, Queen, Diamond, "Qd", "Q♦", 53, 53,
+        false, false, true, false, "queen of diamonds");
+    cardtests!(QUEEN_OF_HEARTS, 54, Queen, Heart, "Qh", "Q♥", 54, 54,
+        false, false, true, false, "queen of hearts");
+    cardtests!(QUEEN_OF_SPADES, 55, Queen, Spade, "Qs", "Q♠", 55, 55,
+        false, false, false, true, "queen of spades");
+    cardtests!(KING_OF_CLUBS, 56, King, Club, "Kc", "K♣", 56, 56,
+        false, false, false, true, "king of clubs");
+    cardtests!(KING_OF_DIAMONDS, 57, King, Diamond, "Kd", "K♦", 57, 57,
+        false, false, true, false, "king of diamonds");
+    cardtests!(KING_OF_HEARTS, 58, King, Heart, "Kh", "K♥", 58, 58,
+        false, false, true, false, "king of hearts");
+    cardtests!(KING_OF_SPADES, 59, King, Spade, "Ks", "K♠", 59, 59,
+        false, false, false, true, "king of spades");
+    cardtests!(ACE_OF_CLUBS, 60, Ace, Club, "Ac", "A♣", 4, 60,
+        false, true, false, true, "ace of clubs");
+    cardtests!(ACE_OF_DIAMONDS, 61, Ace, Diamond, "Ad", "A♦", 5, 61,
+        false, true, true, false, "ace of diamonds");
+    cardtests!(ACE_OF_HEARTS, 62, Ace, Heart, "Ah", "A♥", 6, 62,
+        false, true, true, false, "ace of hearts");
+    cardtests!(ACE_OF_SPADES, 63, Ace, Spade, "As", "A♠", 7, 63,
+        false, true, false, true, "ace of spades");
 
     macro_rules! cardtests {
         // name, ord, isred, isblack
@@ -518,7 +493,7 @@ fn test_card() {
                 assert!($x.suit().is_none());
                 assert_eq!($t, $x.to_string());
                 assert_eq!($t, $x.to_unicode());
-                assert_eq!(UNICODE_SINGLES[$v as usize], $x.to_unicode_single());
+                assert_eq!(UNICODE_SINGLES[$v as usize - 1], $x.to_unicode_single());
                 assert_eq!($x, Card::from_str($t).unwrap());
                 assert_eq!($t, format!("{}", $x));
                 assert_eq!($t, format!("{:?}", $x));

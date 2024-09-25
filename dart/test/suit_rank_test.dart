@@ -64,10 +64,10 @@ void main() {
       expect(9, Rank.Nine.index);
       expect(10, Rank.Ten.index);
       expect(11, Rank.Jack.index);
-      expect(12, Rank.Queen.index);
-      expect(13, Rank.King.index);
-      expect(14, Rank.Ace.index);
-      expect(15, Rank.Knight.index);
+      expect(12, Rank.Knight.index);
+      expect(13, Rank.Queen.index);
+      expect(14, Rank.King.index);
+      expect(15, Rank.Ace.index);
     });
 
     test('low_ace', () {
@@ -158,6 +158,14 @@ void main() {
       expect('a', Rank.Jack.article);
     });
 
+    test('knight', () {
+      expect(Rank.Knight, Rank.fromChar('C'));
+      expect('C', Rank.Knight.toChar());
+      expect('knight', Rank.Knight.name);
+      expect('knights', Rank.Knight.plural);
+      expect('a', Rank.Knight.article);
+    });
+
     test('queen', () {
       expect(Rank.Queen, Rank.fromChar('Q'));
       expect('Q', Rank.Queen.toChar());
@@ -180,14 +188,6 @@ void main() {
       expect('ace', Rank.Ace.name);
       expect('aces', Rank.Ace.plural);
       expect('an', Rank.Ace.article);
-    });
-
-    test('knight', () {
-      expect(Rank.Knight, Rank.fromChar('C'));
-      expect('C', Rank.Knight.toChar());
-      expect('knight', Rank.Knight.name);
-      expect('knights', Rank.Knight.plural);
-      expect('a', Rank.Knight.article);
     });
   });
 }

@@ -1,5 +1,4 @@
 //@ cards/mod.rs
-//@ Lee Daniel Crocker <lee@piclab.com>
 
 //! # cards | [wiki](https://github.com/lcrocker/tspoker/wiki/Cards) | Non-game-specific card handling.
 
@@ -17,6 +16,9 @@ pub use card::{ Card, cards_from_text };
 
 pub mod master_deck;
 pub use master_deck::MasterDeck;
+
+pub mod stack;
+pub use stack::*;
 
 // pub mod lists;
 // pub use lists::{ Hand, Deck };

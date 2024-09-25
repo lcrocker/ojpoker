@@ -1,28 +1,24 @@
 import 'package:test/test.dart';
 import 'package:onejoker/card.dart';
-import 'package:onejoker/master_deck.dart';
-
-import 'dart:io';
-import 'package:msgpack_dart/msgpack_dart.dart' as mp;
 
 void main() {
   group('Card', () {
     test('properties', () {
       for (var i = 1; i < 64; i += 1) {
-        var c = Card.fromInt(i);
+        var c = Card.fromInt(i)!;
 
         if ({1, 2, 3}.contains(c.index)) {
           expect(true, c.isJoker);
-          expect(Rank.None, c.rank);
-          expect(Suit.None, c.suit);
+          expect(null, c.rank);
+          expect(null, c.suit);
         } else {
           expect(false, c.isJoker);
         }
 
-        if ({4, 5, 6, 7, 56, 57, 58, 59}.contains(c.index)) {
+        if ({4, 5, 6, 7, 60, 61, 62, 63}.contains(c.index)) {
           expect(true, c.isAce);
           expect(true, Card.lowAceFix(c).index < 8);
-          expect(true, Card.highAceFix(c).index > 55);
+          expect(true, Card.highAceFix(c).index > 59);
 
           if (c.index < 8) {
             expect(Rank.LowAce, c.rank);
@@ -136,61 +132,6 @@ void main() {
       expect(Suit.Heart, Card.TenOfHearts.suit);
       expect(Suit.Spade, Card.KingOfSpades.suit);
     });
-
-    test('io', () async {
-      var data = await fetchHandData();
-
-        for (int i = 0; i < data.count; i += 1) {
-          var ht = data.hands[i];
-          var deck = MasterDeck.byName(ht.deck);
-          var hand = cardsFromText(ht.hand).toList();
-
-          if (deck.lowAces) {
-            hand = hand.map((c) => Card.lowAceFix(c)).toList();
-          }
-          // print('${deck.name}  $hand  ${ht.hash}');
-          expect(ht.len, hand.length);
-          expect(ht.hash, quickHash(hand));
-        }
-    });
   });
 }
 
-class OneHandTest {
-  final String deck;
-  final String hand;
-  final int len;
-  final int hash;
-  const OneHandTest(this.deck, this.hand, this.len, this.hash);
-}
-
-class HandTestData {
-  final int count;
-  List<OneHandTest> hands;
-  HandTestData(this.count) : hands = [];
-}
-
-Future<HandTestData> fetchHandData() async {
-  var file = File('../data/bin/hands_text.msgpack');
-  var bytes = await file.readAsBytes();
-  var pack = mp.deserialize(bytes.buffer.asUint8List());
-
-  var data = HandTestData(pack['count']);
-  for (var htin in pack['hands']) {
-    var dname = pack['deckNames'][htin[0] - 1];
-    var htout = OneHandTest(dname, htin[1], htin[2], htin[3]);
-    // print("${htout.deck}  ${htout.hand}  ${htout.len}  ${htout.hash}");
-    data.hands.add(htout);
-  }
-  return data;
-}
-
-int quickHash(List<Card> cards) {
-  var h = 0x811c9dc5;
-
-  for (int i = 0; i < cards.length; i += 1) {
-    h ^= cards[i].index;
-    h *= 0x01000193;
-  }
-  return h & 0xffffffff;
-}

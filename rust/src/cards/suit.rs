@@ -1,5 +1,4 @@
 //@ cards/suit.rs
-//@ Lee Daniel Crocker <lee@piclab.com>
 
 //! # suit | [wiki](https://github.com/lcrocker/tspoker/wiki/Suit) | A simple numeric enum for card suits.
 
