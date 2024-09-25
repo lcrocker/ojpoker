@@ -17,21 +17,11 @@ function sdir(): string {
 }
 
 const CARD_TEXT = [
-    "", "Jw", "Jb", "Jk",
-    "Ac", "Ad", "Ah", "As",
-    "2c", "2d", "2h", "2s",
-    "3c", "3d", "3h", "3s",
-    "4c", "4d", "4h", "4s",
-    "5c", "5d", "5h", "5s",
-    "6c", "6d", "6h", "6s",
-    "7c", "7d", "7h", "7s",
-    "8c", "8d", "8h", "8s",
-    "9c", "9d", "9h", "9s",
-    "Tc", "Td", "Th", "Ts",
-    "Jc", "Jd", "Jh", "Js",
-    "Cc", "Cd", "Ch", "Cs",
-    "Qc", "Qd", "Qh", "Qs",
-    "Kc", "Kd", "Kh", "Ks",
+    "", "Jw", "Jb", "Jk", "Ac", "Ad", "Ah", "As", "2c", "2d", "2h", "2s",
+    "3c", "3d", "3h", "3s", "4c", "4d", "4h", "4s", "5c", "5d", "5h", "5s",
+    "6c", "6d", "6h", "6s", "7c", "7d", "7h", "7s", "8c", "8d", "8h", "8s",
+    "9c", "9d", "9h", "9s", "Tc", "Td", "Th", "Ts", "Jc", "Jd", "Jh", "Js",
+    "Cc", "Cd", "Ch", "Cs", "Qc", "Qd", "Qh", "Qs", "Kc", "Kd", "Kh", "Ks",
     "Ac", "Ad", "Ah", "As"
 ];
 
@@ -43,8 +33,8 @@ export async function buildHandsTextData() {
     const enc = new TextEncoder();
 
     await f.write(enc.encode(
-`// 1000 hands of various sizes from different decks
-// for verifying hand text io functions.
+`// This file is built by the build_hands_text_data.ts script.
+// It is 1000 random hands of various sizes and decks to test text I/O.
 [
 `));
     for (let i = 0; i < 1000; i += 1) {
