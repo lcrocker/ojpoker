@@ -1,6 +1,5 @@
 
 build/
-bin/*.msgpack
 
 node_modules/
 /.pnp

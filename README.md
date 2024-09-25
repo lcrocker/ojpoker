@@ -119,7 +119,7 @@ Value     | Card
 
 The card object does NOT keep the rank and suit separate: if needed, the rank
 and suit of a card can be easily calculated from the ordinals above with shift
-amd mask operations (no expensive division). But with the cards ordered in
+and mask operations (no expensive division). But with the cards ordered in
 this way, extracting rank and suit is rarely necessary. You can compare ranks,
 for example, just by comparing full ordinals.
 
@@ -132,7 +132,7 @@ Ordinals over 71 will probably be used to index into tables for things like
 card backs or other needed graphics, but I have not reserved any yet.
 If you do, let me know, and we'll try to standardize.
 
-## Rank, Suit
+## Suit, Rank
 
 Ranks and suits are simple enums with a few basic methods.
 The specific values are important, though, to keep algorithms and data files
