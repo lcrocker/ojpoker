@@ -83,6 +83,8 @@ enum Rank {
   /// Create one from text character.
   static Rank? fromChar(String c) {
     switch (c) {
+      case '1':
+        return LowAce;
       case '2':
         return Deuce;
       case '3':
@@ -193,7 +195,7 @@ enum Rank {
 
 // Patterns for matching cards as text
 final _brackets = RegExp(r'^\s*\[([^\]]+)\]');
-final _oneCard = RegExp(r'\s*(Jk|Jb|Jw|([2-9TJCQKA])([cdhs]))');
+final _oneCard = RegExp(r'\s*(Jk|Jb|Jw|([1-9TJCQKA])([cdhs]))');
 
 /// Enum for cards and their basic methods. Numbers *very* important here,
 /// not just for compatibility but specific algorithms will fail if changed

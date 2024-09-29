@@ -1,4 +1,4 @@
-# ojpoker | Updated: September 24, 2024
+# ojpoker | Updated: September 28, 2024
 
 This is code for the [OneJoker](https://onejoker.org) project,
 aiming to create libraries and other digital tools for handling playing cards
@@ -205,8 +205,8 @@ spcialized objects containing a `CardStack` and other features suited to
 their task. In particular, each is associated with a `MasterDeck` that
 determines which cards are allowed, etc. `Deck`s are initialized and refilled
 from this master. `Hand`s are given cards from a `Deck` from which they are
-created, or they can be "orphans", giving themselves whatever cards they want
-for simulations and such.
+created. If you need "orphan" hands that have no such error checking for
+simulations and such, use `CardStack`.
 
 ## Cards in text
 

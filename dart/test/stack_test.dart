@@ -20,8 +20,8 @@ void main() {
         if (deck.lowAces) {
           hand.lowAceFix();
         }
-        expect(hand.len(), hands[i][2]);
-        for (int j = 0; j < hand.len(); j += 1) {
+        expect(hand.length, hands[i][2]);
+        for (int j = 0; j < hand.length; j += 1) {
           expect(true, deck.has(hand.cardAt(j)!));
         }
         expect(hands[i][1], hand.toString());
@@ -33,28 +33,28 @@ void main() {
   group('methods', () {
     test('constructors', () {
       var hand = CardStack();
-      expect(hand.len(), 0);
-      expect(hand.isEmpty(), true);
+      expect(hand.length, 0);
+      expect(hand.isEmpty, true);
 
       hand = CardStack.fromList([Card.FourOfSpades, Card.Joker]);
-      expect(hand.len(), 2);
+      expect(hand.length, 2);
       expect(hand.cardAt(0), Card.FourOfSpades);
       expect(hand.cardAt(1), Card.Joker);
 
       expect(hand.contains(Card.FourOfSpades), true);
       expect(hand.contains(Card.EightOfClubs), false);
       hand.clear();
-      expect(hand.isEmpty(), true);
+      expect(hand.isEmpty, true);
       expect(hand.contains(Card.FourOfSpades), false);
 
       hand = CardStack.fromText("4sJc9d");
-      expect(3, hand.len());
+      expect(3, hand.length);
       expect(hand[0], Card.FourOfSpades);
       expect(hand[1], Card.JackOfClubs);
       expect(hand[2], Card.NineOfDiamonds);
 
       var hand2 = hand.clone();
-      expect(3, hand2.len());
+      expect(3, hand2.length);
       expect(hand2[0], Card.FourOfSpades);
       expect(hand2[1], Card.JackOfClubs);
       expect(hand2[2], Card.NineOfDiamonds);
@@ -89,19 +89,19 @@ void main() {
     test('push and pop', () {
       var hand = CardStack();
       hand.push(Card.FourOfSpades);
-      expect(hand.len(), 1);
+      expect(hand.length, 1);
       expect(hand.cardAt(0), Card.FourOfSpades);
       hand.push(Card.Joker);
-      expect(hand.len(), 2);
+      expect(hand.length, 2);
       expect(hand.cardAt(0), Card.Joker);
       expect(hand.cardAt(1), Card.FourOfSpades);
       expect(hand.toString(), "Jk4s");
       expect(hand.pop(), Card.Joker);
-      expect(hand.len(), 1);
+      expect(hand.length, 1);
       expect(hand.cardAt(0), Card.FourOfSpades);
       expect(hand.pop(), Card.FourOfSpades);
-      expect(hand.len(), 0);
-      expect(hand.isEmpty(), true);
+      expect(hand.length, 0);
+      expect(hand.isEmpty, true);
 
       hand.push(Card.fromText("9d")!);
       hand.push(Card.fromText("Qs")!);
@@ -151,7 +151,7 @@ void main() {
     test('shuffle and sort', () {
       var hand = CardStack.fromText("3h5h8dTh3c4h7sJkQs7d");
       hand.shuffle();
-      expect(hand.len(), 10);
+      expect(hand.length, 10);
       expect(hand.contains(Card.FiveOfHearts), true);
       expect(hand.contains(Card.TenOfHearts), true);
       expect(hand.contains(Card.SevenOfDiamonds), true);
@@ -162,7 +162,7 @@ void main() {
 
       hand.removeCard(Card.SevenOfDiamonds);
       hand.shuffle();
-      expect(hand.len(), 9);
+      expect(hand.length, 9);
       expect(hand.contains(Card.TreyOfClubs), true);
       expect(hand.contains(Card.SevenOfSpades), true);
       expect(hand.contains(Card.Joker), true);

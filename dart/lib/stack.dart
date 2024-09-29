@@ -1,6 +1,50 @@
 import 'package:onejoker/card.dart';
 import 'package:onejoker/utils.dart';
 
+abstract class CardStackInterface {
+  int get length;
+  bool get isEmpty;
+  List<Card> toList();
+  bool contains(Card card);
+  void clear();
+  Card? cardAt(int index);
+  void push(Card card);
+  Card? pop();
+  void pushN(List<Card> cards);
+  List<Card>? popN(int n);
+  void insertAt(int index, Card card);
+  void insertAtEnd(Card card);
+  Card? removeAt(int index);
+  Card? removeAtEnd();
+  bool removeCard(Card card);
+  void shuffle();
+  void sort();
+  int quickHash();
+  operator [](int index);
+  operator []=(int index, Card card);
+}
+
+class CardStackIterator implements Iterator<Card> {
+  final List<Card> _cards;
+  int _currentIndex = -1;
+
+  CardStackIterator(this._cards) {
+    _currentIndex = _cards.length;
+  }
+
+  @override
+  bool moveNext() {
+    if (_currentIndex > 0) {
+      _currentIndex -= 1;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  Card get current => _cards[_currentIndex];
+}
+
 /// A `CardStack` is the basic card collection type for the library, used to
 /// implement whole decks, player hands, discard piles, Texas Hold'em boards,
 /// active tricks, solitaire tableaux, etc. It is a simple LIFO stack of
@@ -29,7 +73,7 @@ import 'package:onejoker/utils.dart';
 /// ```
 /// will print `QcKc5sJc9d`. There are also `insertX()` and `removeX()`
 /// methods, but these are less efficient than `push()` and `pop()`.
-class CardStack {
+class CardStack extends Iterable<Card> implements CardStackInterface {
   List<Card> _cards = [];
 
   /// Create new empty stack.
@@ -58,10 +102,8 @@ class CardStack {
     return s;
   }
 
-  /// Return list copy (reversed).
-  List<Card> toList() {
-    return _cards.reversed.toList();
-  }
+  @override
+  Iterator<Card> get iterator => CardStackIterator(_cards);
 
   /// Fix cards for decks with low aces.
   void lowAceFix() {
@@ -70,44 +112,65 @@ class CardStack {
     }
   }
 
+  /// Fix cards for decks with high aces.
+  void highAceFix() {
+    for (int i = 0; i < _cards.length; i += 1) {
+      _cards[i] = Card.highAceFix(_cards[i]);
+    }
+  }
+
+  /// Return list copy (reversed).
+  @override
+  List<Card> toList({ bool growable = true }) {
+    return _cards.reversed.toList(growable: growable);
+  }
+
   /// How many cards currently in the stack?
-  int len() {
+  @override
+  int get length {
     return _cards.length;
   }
 
   /// Is list empty?
-  bool isEmpty() {
+  @override
+  bool get isEmpty {
     return _cards.isEmpty;
   }
 
   /// Does the stack contain the specific card?
-  bool contains(Card card) {
-    return _cards.contains(card);
-  }
+  // @override
+  // bool contains(Object? card) {
+  //   return _cards.contains(card);
+  // }
 
   /// Empty the stack.
+  @override
   void clear() {
     _cards.clear();
   }
 
   /// Return the card at position `index`.
+  @override
   Card? cardAt(int index) {
     if (index < 0 || index >= _cards.length) return null;
     return _cards[_cards.length - 1 - index];
   }
 
   /// Add card to top of the stack.
+  @override
   void push(Card card) {
     _cards.add(card);
   }
 
   /// Remove card from the top of the stack.
+  @override
   Card? pop() {
     if (_cards.isEmpty) return null;
     return _cards.removeLast();
   }
 
   /// Add *n* cards to the top of the stack as a unit.
+  @override
   void pushN(List<Card> cards) {
     for (int i = cards.length - 1; i >= 0; i -= 1) {
       _cards.add(cards[i]);
@@ -116,6 +179,7 @@ class CardStack {
 
   /// Remove *n* cards from the top of the stack as a list.
   /// All or none: if we can't return `n`, return null.
+  @override
   List<Card>? popN(int n) {
     if (_cards.length < n) return null;
 
@@ -127,29 +191,34 @@ class CardStack {
   }
 
   /// Insert card at position `index`.
+  @override
   void insertAt(int index, Card card) {
     assert(index >= 0 && index <= _cards.length);
     _cards.insert(_cards.length - index, card);
   }
 
   /// Insert card at bottom of stack.
+  @override
   void insertAtEnd(Card card) {
     _cards.insert(0, card);
   }
 
   /// Remove card at position `index`.
+  @override
   Card? removeAt(int index) {
     if (index < 0 || index >= _cards.length) return null;
     return _cards.removeAt(_cards.length - 1 - index);
   }
 
   /// Remove card at bottom of stack.
+  @override
   Card? removeAtEnd() {
     if (_cards.isEmpty) return null;
     return _cards.removeAt(0);
   }
 
   /// Remove top-most specific card from list.
+  @override
   bool removeCard(Card card) {
     for (var i = _cards.length - 1; i >= 0; i -= 1) {
       if (_cards[i] == card) {
@@ -161,16 +230,19 @@ class CardStack {
   }
 
   /// Randomize order of cards in the stack.
+  @override
   void shuffle() {
     ojShuffle(_cards);
   }
 
   /// Sort cards in the stack in *descending* order from the top.
+  @override
   void sort() {
     ojSort(_cards);
   }
 
   /// Simple FNV hash useful for testing.
+  @override
   int quickHash() {
     int h = 0x811c9dc5;
     for (int i = _cards.length - 1; i >= 0; i -= 1) {
@@ -180,10 +252,12 @@ class CardStack {
     return h & 0xFFFFFFFF;
   }
 
+  @override
   operator [](int index) {
     return cardAt(index);
   }
 
+  @override
   operator []=(int index, Card card) {
     _cards[_cards.length - 1 - index] = card;
   }

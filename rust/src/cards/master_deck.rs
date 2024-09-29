@@ -1,5 +1,6 @@
 // Do not edit: File generated with build_master_deck_code.ts
 //@ cards/master_deck.rs
+//@ Lee Daniel Crocker <lee@piclab.com>
 
 //! # masterdeck | [wiki](https://github.com/lcrocker/ojpoker/wiki/MasterDeck)
 
@@ -60,7 +61,7 @@ impl std::fmt::Display for MasterDeck {
 fn masterdeck_by_name(alias: &str) -> &'static MasterDeck {
     match &alias.to_lowercase()[..] {
         "english" | "default" | "french" | "poker" | "bridge" | "52" | "deucetoseven" | "tienlen" | "gin" | "spades" | "hearts" | "bouré" => &DECK_INFO[0],
-        "onejoker" | "joker" | "53" | "bug" => &DECK_INFO[1],
+        "onejoker" | "joker" | "53" | "bug" | "paigow" => &DECK_INFO[1],
         "twojokers" | "54" | "doudizhu" => &DECK_INFO[2],
         "low" | "low52" | "razz" | "badugi" | "acetofive" | "blackjack" | "cribbage" | "baccarat" => &DECK_INFO[3],
         "lowjoker" | "lowball" | "low53" | "lowbug" => &DECK_INFO[4],

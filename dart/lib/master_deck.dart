@@ -25,6 +25,10 @@ class MasterDeck {
         return decks[id - 1];
     }
 
+    factory MasterDeck.default_() => decks[0];
+
+    int get size => cardList.length;
+
     /// Does this deck contain the given card?
     bool has(Card c) { return 0 != (cardSet & (1 << c.index)); }
 
@@ -64,6 +68,7 @@ class MasterDeck {
         "english": 1,
         "joker": 2,
         "bug": 2,
+        "paigow": 2,
         "onejoker": 2,
         "doudizhu": 3,
         "twojokers": 3,

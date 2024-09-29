@@ -7,14 +7,15 @@ repository: https://github.com/lcrocker/ojpoker
 environment:
   sdk: ^3.5.3
 
+executables:
+  oj: oj
+
 dependencies:
   msgpack_dart: ^1.0.1
+  # collection: ^1.14.13
   # path: ^1.8.0
 
 dev_dependencies:
   lints: ^4.0.0
   test: ^1.24.0
 
-executables:
-  onejoker: main
-  tool1: tool1
