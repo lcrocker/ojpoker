@@ -1,4 +1,4 @@
-# ojpoker | Updated: September 28, 2024
+# ojpoker | Updated: September 29, 2024
 
 This is code for the [OneJoker](https://onejoker.org) project,
 aiming to create libraries and other digital tools for handling playing cards
@@ -19,6 +19,14 @@ on the net:
 
 # Requirements
 
+If you already have the Dart and Rust development environments and the Deno
+runtime running on your machine, you can jump right in and run the build and
+test scripts:
+
+```
+./clean_build_all.ts
+./test_all.ts
+```
 This codebase produces two separate libraries in [Rust](https://rust-lang.org)
 and [Dart](https://dart.dev).
 If you are only interested in one of those, you will not have to deal with
@@ -27,8 +35,6 @@ I also use TypeScript ([Deno](https://deno.com)) for utility scripts, but
 those too aren't strictly necessary to build the libraries unless you want
 to change something or run tests.
 All of these languages have good complete development environments on Linux.
-I hear those for Windows and Mac are also quite good, but I can't vouch for
-that personally.
 
 I'm using Dart 3.5.3. The code in the repo does not use Flutter, so you can
 set up Dart with or without Flutter as you prefer.
@@ -40,9 +46,8 @@ It has all the power of TypeScript without the cruft of NodeJS.
 I strongly recommend it for general-purpose scripting.
 
 The Dart code (in the `dart` directory) serves as a "reference" implementation
-for all the features of the project. Dart is strongly typed, very expressive,
-and has all the features needed for that job.
-The rust code (in the `rust` directory) is designed for pure performance.
+for the features of the project, while the rust code (in the `rust` directory)
+is designed for pure performance.
 
 There are many serialized data sets for things like test data and pre-computed
 lookup tables. Each data set exists in two or more forms.
@@ -58,16 +63,11 @@ This may sound complex, but it's actually quite simple compared to managing
 schemas and generated code needed by more powerful serialization formats
 like ProtoBufs.
 
-IMPORTANT: Test code for all languages relies on the existence of these
-.msgpack files that are not checked into the repo, so those must be built
-before any tests will run.
-Go to the `data` directory and run the `packall.ts` script to build these
-files before doing anything else.
-
-There are also some source code files built by scripts, but these are checked
-into the repo so you can build all the code without having to generate them.
-If you do install Deno to run the scripts, the script `clean_build_all.ts` at
-the root will remove all previously generated files and rebuild them.
+Test code for both languages relies on the existence of these .msgpack files
+that are not checked into the repo, so those must be built before all tests
+will run. There are also some source code files built by scripts, but these
+are checked into the repo so you can build all the code without having to
+generate them.
 
 # Data representation
 

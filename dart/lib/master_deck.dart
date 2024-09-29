@@ -1,4 +1,6 @@
 // Do not edit: File generated with build_master_deck_code.ts
+import 'dart:ffi';
+
 import 'package:onejoker/card.dart';
 
 /// # MasterDeck | [wiki](https://github.com/lcrocker/ojpoker/wiki/MasterDeck)
@@ -24,8 +26,6 @@ class MasterDeck {
         int id = aliases[dname]!;
         return decks[id - 1];
     }
-
-    factory MasterDeck.default_() => decks[0];
 
     int get size => cardList.length;
 
