@@ -1,6 +1,4 @@
-import 'package:onejoker/card.dart';
-import 'package:onejoker/stack.dart';
-import 'package:onejoker/master_deck.dart';
+import 'package:onejoker/onejoker.dart';
 
 /// # Deck | [wiki](https://github.com/lcrocker/ojpoker/wiki/Deck)
 /// This is the "live" deck of cards that is used for a game. In a

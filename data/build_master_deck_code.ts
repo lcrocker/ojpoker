@@ -66,7 +66,7 @@ export async function buildMasterDeckDart() {
     });
     await f.write(enc.encode(
 `// Do not edit: File generated with build_master_deck_code.ts
-import 'package:onejoker/card.dart';
+import 'package:onejoker/onejoker.dart';
 
 /// # MasterDeck | [wiki](https://github.com/lcrocker/ojpoker/wiki/MasterDeck)
 /// A static object that describes the properties of a new deck of cards for a
@@ -91,6 +91,8 @@ class MasterDeck {
         int id = aliases[dname]!;
         return decks[id - 1];
     }
+
+    int get size => cardList.length;
 
     /// Does this deck contain the given card?
     bool has(Card c) { return 0 != (cardSet & (1 << c.index)); }

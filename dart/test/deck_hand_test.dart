@@ -8,8 +8,12 @@ void main() {
       d1.shuffle();
 
       expect(d1.length, 52);
-      for (var v in [9, 11, 15, 22, 26, 31, 39, 43, 49, 52, 55, 62]) {
-        expect(d1.contains(Card.fromInt(v)!), true);
+      for (var c in [
+          Card.DeuceOfDiamonds, Card.FourOfClubs, Card.SevenOfHearts,
+          Card.EightOfSpades, Card.TenOfClubs, Card.JackOfClubs,
+          Card.QueenOfDiamonds, Card.AceOfSpades
+        ]) {
+        expect(d1.contains(c), true);
       }
       var h1 = d1.newHand();
       expect(h1.isEmpty, true);

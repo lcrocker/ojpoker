@@ -8,8 +8,13 @@ import 'package:onejoker/stack.dart';
 
 void main() {
   group('text i/o', () {
+    dynamic skip = false;
+    var file = File('../data/bin/hands_text.msgpack');
+    if (! file.existsSync()) {
+      skip = "Test files not built, skipping...";
+    }
+
     test('hands text data file', () async {
-      var file = File('../data/bin/hands_text.msgpack');
       var bytes = await file.readAsBytes();
       var data = mp.deserialize(bytes);
 
@@ -27,7 +32,7 @@ void main() {
         expect(hands[i][1], hand.toString());
         expect(hands[i][3], hand.quickHash());
       }
-    });
+    }, skip: skip);
   });
 
   group('methods', () {

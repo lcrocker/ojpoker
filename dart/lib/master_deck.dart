@@ -1,7 +1,5 @@
 // Do not edit: File generated with build_master_deck_code.ts
-import 'dart:ffi';
-
-import 'package:onejoker/card.dart';
+import 'package:onejoker/onejoker.dart';
 
 /// # MasterDeck | [wiki](https://github.com/lcrocker/ojpoker/wiki/MasterDeck)
 /// A static object that describes the properties of a new deck of cards for a
