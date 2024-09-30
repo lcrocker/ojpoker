@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["oj_next_combination","oj_shuffle","oj_sort"],"mod":["card","master_deck","rank","stack","suit"]};
