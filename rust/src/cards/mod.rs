@@ -1,6 +1,6 @@
 //@ cards/mod.rs
 
-//! # cards | [wiki](https://github.com/lcrocker/tspoker/wiki/Cards) | Non-game-specific card handling.
+//! # cards | [wiki](https://github.com/lcrocker/ojpoker/wiki/Libraries) | Non-game-specific card handling.
 
 pub use crate::errors::*;
 pub use crate::rand::*;

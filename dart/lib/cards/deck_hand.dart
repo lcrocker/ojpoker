@@ -1,4 +1,7 @@
-import 'package:onejoker/onejoker.dart';
+
+import 'package:onejoker/cards/card.dart';
+import 'package:onejoker/cards/master_deck.dart';
+import 'package:onejoker/cards/stack.dart';
 
 /// # Deck | [wiki](https://github.com/lcrocker/ojpoker/wiki/Deck)
 /// This is the "live" deck of cards that is used for a game. In a
@@ -73,7 +76,7 @@ class Deck extends Iterable<Card> implements CardStackInterface {
 
   /// Return list copy (reversed).
   @override
-  List<Card> toList({ bool growable = true }) {
+  List<Card> toList({bool growable = true}) {
     return _cards.toList(growable: growable);
   }
 
@@ -219,7 +222,7 @@ class Hand extends Iterable<Card> implements CardStackInterface {
 
   /// Return list copy (reversed).
   @override
-  List<Card> toList({ bool growable = true }) {
+  List<Card> toList({bool growable = true}) {
     return _cards.toList(growable: growable);
   }
 

@@ -1,6 +1,5 @@
 import 'package:test/test.dart';
-import 'package:onejoker/card.dart';
-import 'package:onejoker/master_deck.dart';
+import 'package:onejoker/onejoker.dart';
 
 void main() {
   group('MasterDeck', () {

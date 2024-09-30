@@ -1,4 +1,4 @@
-import 'package:onejoker/card.dart';
+import 'package:onejoker/cards/card.dart';
 
 /// This file contains utility functions that are used in multiple places in
 /// the library. Things like random number generation, shuffling, and sorting

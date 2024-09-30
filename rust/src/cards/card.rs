@@ -1,16 +1,16 @@
 //@ cards/card.rs
 
-//! # card | [wiki](https://github.com/lcrocker/tspoker/wiki/Card) | A simple card object wrapping a u8.
+//! # card | [wiki](https://github.com/lcrocker/ojpoker/wiki/Card) | A simple card object wrapping a u8.
 
 use crate::errors::*;
 use crate::cards::rank::*;
 use crate::cards::suit::*;
 
-/// # Ordinal | [wiki](https://github.com/lcrocker/tspoker/wiki/Ordinal)
+/// # Ordinal | [wiki](https://github.com/lcrocker/ojpoker/wiki/Ordinal)
 /// Cards are represented as integers in the range 0..64 (see README)
 pub type Ordinal = u8;  // some machines might be faster with u32?
 
-/// # Card | [wiki](https://github.com/lcrocker/tspoker/wiki/Card)
+/// # Card | [wiki](https://github.com/lcrocker/ojpoker/wiki/Card)
 /// A simple one-element tuple object wrapping an `Ordinal` value,
 /// which is just an alias for u8 (although it should be easy to
 /// change to u32 if that's faster on some machines).

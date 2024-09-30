@@ -1,4 +1,4 @@
-//! # OneJoker | [wiki](https://github.com/lcrocker/tspoker/wiki) | A library for handling playing cards and card games.
+//! # OneJoker | [wiki](https://github.com/lcrocker/ojpoker/wiki) | A library for handling playing cards and card games.
 //! 
 //! Last updated September 24, 2024 \
 //! \

@@ -2,9 +2,7 @@ import 'dart:io';
 import 'package:test/test.dart';
 import 'package:msgpack_dart/msgpack_dart.dart' as mp;
 
-import 'package:onejoker/card.dart';
-import 'package:onejoker/master_deck.dart';
-import 'package:onejoker/stack.dart';
+import 'package:onejoker/onejoker.dart';
 
 void main() {
   group('text i/o', () {

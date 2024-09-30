@@ -1,6 +1,6 @@
 //@ cards/stack.rs
 
-//! # stack | [wiki](https://github.com/lcrocker/tspoker/wiki/CardStack) | A simple LIFO stack for cards.
+//! # stack | [wiki](https://github.com/lcrocker/ojpoker/wiki/CardStack) | A simple LIFO stack for cards.
 
 // use crate::errors::*;
 use crate::cards::*;

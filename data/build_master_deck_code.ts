@@ -1,4 +1,4 @@
-#!/usr/bin/env -S deno run --allow-read=./json --allow-write=../dart/lib,../rust/src/cards build_master_deck_code.ts
+#!/usr/bin/env -S deno run --allow-read=./json --allow-write=../dart/lib/cards,../rust/src/cards build_master_deck_code.ts
 
 /**
  * @file build_master_deck_code.ts
@@ -61,12 +61,12 @@ const DART_CARD_NAMES = [ "",
 export async function buildMasterDeckDart() {
     const deckDataIn = json5.parse(await Deno.readTextFile(`${sdir()}/json/master_decks.json5`));
     const enc = new TextEncoder();
-    const f = await Deno.open(`${sdir()}/../dart/lib/master_deck.dart`, {
+    const f = await Deno.open(`${sdir()}/../dart/lib/cards/master_deck.dart`, {
         write: true, create: true, truncate: true
     });
     await f.write(enc.encode(
 `// Do not edit: File generated with build_master_deck_code.ts
-import 'package:onejoker/onejoker.dart';
+import 'package:onejoker/cards/card.dart';
 
 /// # MasterDeck | [wiki](https://github.com/lcrocker/ojpoker/wiki/MasterDeck)
 /// A static object that describes the properties of a new deck of cards for a

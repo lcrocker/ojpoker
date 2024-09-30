@@ -1,6 +1,6 @@
 //@ cards/rank.rs
 
-//! # rank | [wiki](https://github.com/lcrocker/tspoker/wiki/Rank) | Simple numeric enum for card ranks.
+//! # rank | [wiki](https://github.com/lcrocker/ojpoker/wiki/Rank) | Simple numeric enum for card ranks.
 
 use crate::cards::OjError;
 

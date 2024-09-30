@@ -3,16 +3,21 @@ import 'package:onejoker/onejoker.dart';
 
 void main() {
   group('text i/o', () {
-    test('hands text data file', () async {
+    test('deck', () async {
       var d1 = Deck("poker");
       d1.shuffle();
 
       expect(d1.length, 52);
       for (var c in [
-          Card.DeuceOfDiamonds, Card.FourOfClubs, Card.SevenOfHearts,
-          Card.EightOfSpades, Card.TenOfClubs, Card.JackOfClubs,
-          Card.QueenOfDiamonds, Card.AceOfSpades
-        ]) {
+        Card.DeuceOfDiamonds,
+        Card.FourOfClubs,
+        Card.SevenOfHearts,
+        Card.EightOfSpades,
+        Card.TenOfClubs,
+        Card.JackOfClubs,
+        Card.QueenOfDiamonds,
+        Card.AceOfSpades
+      ]) {
         expect(d1.contains(c), true);
       }
       var h1 = d1.newHand();
@@ -32,6 +37,16 @@ void main() {
         expect(d1.contains(c), false);
         expect(h2.contains(c), false);
       }
+
+      h1.removeAt(2);
+      expect(h1.length, 4);
+      d1.dealTo(h1);
+      expect(h1.length, 5);
+      expect(d1.length, 41);
+
+      print(d1);
+      print(h1);
+      print(h2);
     });
   });
 }

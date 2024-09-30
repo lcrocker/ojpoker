@@ -1,6 +1,6 @@
 //@ cards/suit.rs
 
-//! # suit | [wiki](https://github.com/lcrocker/tspoker/wiki/Suit) | A simple numeric enum for card suits.
+//! # suit | [wiki](https://github.com/lcrocker/ojpoker/wiki/Suit) | A simple numeric enum for card suits.
 
 use crate::cards::OjError;
 

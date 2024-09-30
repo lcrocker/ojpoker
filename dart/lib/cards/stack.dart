@@ -1,4 +1,4 @@
-import 'package:onejoker/card.dart';
+import 'package:onejoker/cards/card.dart';
 import 'package:onejoker/utils.dart';
 
 abstract class CardStackInterface {
