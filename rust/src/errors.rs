@@ -1,4 +1,4 @@
-//! # errors | [wiki](https://github.com/lcrocker/ojpoker/wiki/Errors) | Library-related error types.
+//! # errors | [wiki](https://github.com/lcrocker/ojpoker/wiki/Rust_Errors) | Library-related error types.
 
 use crate::cards::*;
 

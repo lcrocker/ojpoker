@@ -1,4 +1,4 @@
-//! # rand | [wiki](https://github.com/lcrocker/ojpoker/wiki/Rand) | Simple fast xoshiro128++ PRNG and utilities.
+//! # rand | [wiki](https://github.com/lcrocker/ojpoker/wiki/Rust_Rand) | Simple fast xoshiro128++ PRNG and utilities.
 //! I know, I know, first rule of PRNG club is don't roll your own,
 //! just use the library.
 //! But I'm pretty sure I'm one of the few people who understands this
