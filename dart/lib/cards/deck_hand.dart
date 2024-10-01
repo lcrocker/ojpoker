@@ -1,7 +1,7 @@
-
 import 'package:onejoker/cards/card.dart';
 import 'package:onejoker/cards/master_deck.dart';
 import 'package:onejoker/cards/stack.dart';
+import 'package:onejoker/utils.dart';
 
 /// # Deck | [wiki](https://github.com/lcrocker/ojpoker/wiki/Deck)
 /// This is the "live" deck of cards that is used for a game. In a
@@ -45,6 +45,12 @@ class Deck extends Iterable<Card> implements CardStackInterface {
     return true;
   }
 
+  void clearAll() {
+    for (var h in hands) {
+      h.clear();
+    }
+  }
+
   refill() {
     _cards.clear();
     _cards.pushN(master.cardList);
@@ -86,10 +92,14 @@ class Deck extends Iterable<Card> implements CardStackInterface {
   @override
   bool get isEmpty => _cards.isEmpty;
 
-  // @override
-  // bool contains(Card card) {
-  //   return _cards.contains(card);
-  // }
+  @override
+  bool get isNotEmpty => _cards.isNotEmpty;
+
+  @override
+  bool contains(Object? element) {
+    if (element is! Card) return false;
+    return _cards.contains(validCard(element));
+  }
 
   @override
   void clear() {
@@ -164,6 +174,11 @@ class Deck extends Iterable<Card> implements CardStackInterface {
   }
 
   @override
+  String toString() {
+    return _cards.toString();
+  }
+
+  @override
   operator [](int index) {
     return _cards[index];
   }
@@ -197,8 +212,8 @@ class Hand extends Iterable<Card> implements CardStackInterface {
     return false;
   }
 
-  bool drawHand(String text) {
-    for (Card c in cardsFromText(text)) {
+  bool drawHand(List<Card> cards) {
+    for (Card c in cards) {
       if (deck.removeCard(c)) {
         _cards.push(c);
       } else {
@@ -213,6 +228,29 @@ class Hand extends Iterable<Card> implements CardStackInterface {
       _cards.lowAceFix();
     } else {
       _cards.highAceFix();
+    }
+  }
+
+  // Do hands contain same cards, regardless of order?
+  bool isEquivalentTo(Hand other) {
+    if (_cards.length != other.length) return false;
+
+    if (deck.master.dupsAllowed) {
+      List<Card> as = _cards.toList();
+      List<Card> os = other.toList();
+      ojSort(as);
+      ojSort(os);
+      for (int i = 0; i < as.length; i += 1) {
+        if (as[i] != os[i]) return false;
+      }
+      return true;
+    } else {
+      int mask1 = 0, mask2 = 0;
+      for (int i = 0; i < _cards.length; i += 1) {
+        mask1 |= (1 << _cards.cardAt(i)!.index);
+        mask2 |= (1 << other.cardAt(i)!.index);
+      }
+      return mask1 == mask2;
     }
   }
 
@@ -232,10 +270,14 @@ class Hand extends Iterable<Card> implements CardStackInterface {
   @override
   bool get isEmpty => _cards.isEmpty;
 
-  // @override
-  // bool contains(Card card) {
-  //   return _cards.contains(card);
-  // }
+  @override
+  bool get isNotEmpty => _cards.isNotEmpty;
+
+  @override
+  bool contains(Object? element) {
+    if (element is! Card) return false;
+    return _cards.contains(deck.validCard(element));
+  }
 
   @override
   void clear() {
@@ -307,6 +349,11 @@ class Hand extends Iterable<Card> implements CardStackInterface {
   @override
   int quickHash() {
     return _cards.quickHash();
+  }
+
+  @override
+  String toString() {
+    return _cards.toString();
   }
 
   @override

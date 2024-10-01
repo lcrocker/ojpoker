@@ -41,13 +41,19 @@ pub fn next32() -> u32 {
 /// Return a random integer uniformly distributed in range [0, limit)
 /// with no division, using rejection sampling. The mask `m` is created
 /// to minimize rejections, which will be at worst 50%.
-pub fn range_uniform(limit: i32) -> i32 {
+pub fn range_uniform(limit: usize) -> usize {
     debug_assert!(limit > 0);
+    debug_assert!(limit < (1 << 31));
+
     let mut m: u32 = (limit - 1) as u32;
     for i in [1, 2, 4, 8, 16] { m |= m >> i; }
 
-    loop {
+    let mut loop_guard = 100;
+    while loop_guard > 0 {
+        loop_guard -= 1;
+
         let v = next32() & m;
-        if (v as i32) < limit { return v as i32; }
+        if (v as usize) < limit { return v as usize; }
     }
+    0
 }

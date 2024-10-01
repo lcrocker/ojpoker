@@ -1,11 +1,34 @@
 //@ cards/stack.rs
-
 //! # stack | [wiki](https://github.com/lcrocker/ojpoker/wiki/CardStack) | A simple LIFO stack for cards.
+
+use std::ops::{Index, IndexMut};
 
 // use crate::errors::*;
 use crate::cards::*;
-
 use super::oj_shuffle;
+
+pub trait CardStackTrait {
+    fn to_vec(&self) -> Vec<Card>;
+    fn len(&self) -> usize;
+    fn is_empty(&self) -> bool;
+    fn is_not_empty(&self) -> bool;
+    fn contains(&self, card: Card) -> bool;
+    fn clear(&mut self);
+    fn card_at(&self, index: usize) -> Option<Card>;
+    fn push(&mut self, card: Card);
+    fn pop(&mut self) -> Option<Card>;
+    fn push_n(&mut self, cards: &[Card]);
+    fn pop_n(&mut self, n: usize) -> Vec<Card>;
+    fn insert_at(&mut self, index: usize, card: Card);
+    fn insert_at_end(&mut self, card: Card);
+    fn remove_at(&mut self, index: usize) -> Option<Card>;
+    fn remove_at_end(&mut self) -> Option<Card>;
+    fn remove_card(&mut self, card: Card) -> bool;
+    fn shuffle(&mut self);
+    fn sort(&mut self);
+    fn quick_hash(&self) -> u32;
+    // Index and IndexMut traits are implemented below.
+}
 
 /// # CardStack | [wiki](https://github.com/lcrocker/tspoker/wiki/CardStack)
 /// A `CardStack` is the basic card collection type for the library, used to
@@ -40,7 +63,7 @@ use super::oj_shuffle;
 /// ```
 /// will print `QcKc5sJc9d`. There are also `insertX()` and `removeX()`
 /// methods, but these are less efficient than `push()` and `pop()`.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct CardStack {
     pub cards: Vec<Card>,
 }
@@ -63,13 +86,6 @@ impl CardStack {
         CardStack::from_slice(&cards_from_text(s)[..])
     }
 
-    /// Return contents of stack as a vector of cards.
-    pub fn to_vec(&self) -> Vec<Card> {
-        let mut rv = self.cards.clone();
-        rv.reverse();
-        rv
-    }
-
     /// For all cards in stack, convert any high aces to low aces.
     pub fn low_ace_fix(&mut self) {
         for i in 0..self.cards.len() {
@@ -77,28 +93,49 @@ impl CardStack {
         }
     }
 
+    /// For all cards in stack, convert any high aces to low aces.
+    pub fn high_ace_fix(&mut self) {
+        for i in 0..self.cards.len() {
+            self.cards[i] = Card::high_ace_fix(self.cards[i]);
+        }
+    }
+}
+
+impl CardStackTrait for CardStack {
+    /// Return contents of stack as a vector of cards.
+    fn to_vec(&self) -> Vec<Card> {
+        let mut rv = self.cards.clone();
+        rv.reverse();
+        rv
+    }
+
     /// How many cards are in the stack? 
-    pub fn len(&self) -> usize {
+    fn len(&self) -> usize {
         self.cards.len()
     }
 
     /// Is the stack empty?
-    pub fn is_empty(&self) -> bool {
+    fn is_empty(&self) -> bool {
         0 == self.cards.len()
     }
 
-    /// Clear the stack of all cards.
-    pub fn clear(&mut self) {
-        self.cards.clear()
+    /// Is the stack not empty?
+    fn is_not_empty(&self) -> bool {
+        0 != self.cards.len()
     }
 
     /// Is card `c` in the stack?
-    pub fn contains(&self, c: Card) -> bool {
+    fn contains(&self, c: Card) -> bool {
         self.cards.contains(&c)
     }
 
+    /// Clear the stack of all cards.
+    fn clear(&mut self) {
+        self.cards.clear()
+    }
+
     /// Return the card at given index from the top.
-    pub fn card_at(&self, index: usize) -> Option<Card> {
+    fn card_at(&self, index: usize) -> Option<Card> {
         if index >= self.cards.len() {
             return None;
         }
@@ -106,18 +143,18 @@ impl CardStack {
     }
 
     /// Push a card onto the top of the stack.
-    pub fn push(&mut self, c: Card) {
+    fn push(&mut self, c: Card) {
         self.cards.push(c)
     }
 
     /// Pop a card from the top of the stack.
-    pub fn pop(&mut self) -> Option<Card> {
+    fn pop(&mut self) -> Option<Card> {
         self.cards.pop()
     }
 
     /// Push a vector of cards onto the top of the stack as a unit.
     /// When done, the first card of the vec will be on top of the stack.
-    pub fn push_n(&mut self, cv: &[Card]) {
+    fn push_n(&mut self, cv: &[Card]) {
         for i in (0..=(cv.len() - 1)).rev() {
             self.cards.push(cv[i]);
         }
@@ -125,7 +162,7 @@ impl CardStack {
 
     /// Return a vector of the top N cards, or an empty vec if we
     /// can't fulfill the request (never a partial vec).
-    pub fn pop_n(&mut self, n: usize) -> Vec<Card> {
+    fn pop_n(&mut self, n: usize) -> Vec<Card> {
         let mut rv: Vec<Card> = Vec::new();
         if n > self.cards.len() {
             return rv;
@@ -137,18 +174,18 @@ impl CardStack {
     }
 
     /// Insert a card at a given index from the top.
-    pub fn insert_at(&mut self, n: usize, c: Card) {
+    fn insert_at(&mut self, n: usize, c: Card) {
         debug_assert!(n <= self.cards.len());
         self.cards.insert(self.cards.len() - n, c);
     }
 
     /// Insert a card at the bottom of the stack.
-    pub fn insert_at_end(&mut self, c: Card) {
+    fn insert_at_end(&mut self, c: Card) {
         self.cards.insert(0, c);
     }
 
     /// Remove the card at a given index from the top.
-    pub fn remove_at(&mut self, n: usize) -> Option<Card> {
+    fn remove_at(&mut self, n: usize) -> Option<Card> {
         if n >= self.cards.len() {
             return None;
         }
@@ -156,7 +193,7 @@ impl CardStack {
     }
 
     /// Remove the card from the bottom of the stack.
-    pub fn remove_at_end(&mut self) -> Option<Card> {
+    fn remove_at_end(&mut self) -> Option<Card> {
         if self.cards.is_empty() {
             return None;
         }
@@ -165,7 +202,7 @@ impl CardStack {
 
     /// Remove the first instance of the given card from the stack.
     /// Return true if the card was found and removed, false otherwise.
-    pub fn remove_card(&mut self, c: Card) -> bool {
+    fn remove_card(&mut self, c: Card) -> bool {
         for i in (0..self.cards.len()).rev() {
             if self.cards[i] == c {
                 self.cards.remove(i);
@@ -176,7 +213,7 @@ impl CardStack {
     }
 
     /// Quick-and dirty FNV hash function for hands. Likely to have collisions.
-    pub fn quick_hash(&self) -> u32 {
+    fn quick_hash(&self) -> u32 {
         let mut h: u32 = 0x811c9dc5;
         for c in self.cards.iter().rev() {
             h ^= c.0 as u32;
@@ -186,12 +223,12 @@ impl CardStack {
     }   
 
     /// Randomize the order of the cards in the stack.
-    pub fn shuffle(&mut self) {
+    fn shuffle(&mut self) {
         oj_shuffle(self.cards.as_mut_slice());
     }
 
     /// Sort the cards in the stack in descending from the stack top.
-    pub fn sort(&mut self) {
+    fn sort(&mut self) {
         oj_sort(self.cards.as_mut_slice());
     }
 }
@@ -224,17 +261,18 @@ impl std::str::FromStr for CardStack {
     }
 }
 
-impl std::cmp::PartialEq for CardStack {
-    fn eq(&self, other: &Self) -> bool {
-        let sc = &self.cards;
-        let oc = &other.cards;
-        if sc.len() != oc.len() { return false; }
+impl Index<usize> for CardStack {
+    type Output = Card;
 
-        let mut v1 = sc.clone();
-        oj_sort(&mut v1[..]);
-        let mut v2 = oc.clone();
-        oj_sort(&mut v2[..]);
-        v1 == v2
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.cards[self.cards.len() - 1 - index]
+    }
+}
+
+impl IndexMut<usize> for CardStack {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        let len = self.cards.len();
+        &mut self.cards[len - 1 - index]
     }
 }
 
@@ -245,48 +283,146 @@ impl std::cmp::PartialEq for CardStack {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde::Deserialize;
-    use std::fs::File;
-    use std::io::BufReader;
-    use rmp_serde::decode::from_read;
-
-    #[derive(Debug, Deserialize)]
-    struct HandData {
-        deck: i32,
-        text: String,
-        len: usize,
-        hash: u32,
-    }
-
-    #[derive(Debug, Deserialize)]
-    struct HandDataList {
-        count: usize,
-        deck_names: Vec<String>,
-        hands: Vec<HandData>,
-    }
 
     #[test]
-    fn test_hand_data_file() -> Result<(), Box<dyn std::error::Error>> {
-        let file = File::open("../data/bin/hands_text.msgpack");
-        if file.is_err() {
-            eprintln!("No test data file found; skipping test.");
-            return Ok(());
-        }
-        let reader = BufReader::new(file.unwrap());
-        let data: HandDataList = from_read(reader)?;
+    fn test_stack_methods() -> Result<(), OjError> {
+        let mut h = CardStack::new();
+        assert_eq!(h.len(), 0);
+        assert!(h.is_empty());
 
-        for i in 0..data.count as usize {
-            let deck = MasterDeck::by_name(&data.deck_names[data.hands[i].deck as usize - 1]);
-            let mut h = CardStack::from_text(&data.hands[i].text);
-            if deck.low_aces {
-                h.low_ace_fix();
+        h = CardStack::from_slice(&[FOUR_OF_SPADES,JOKER]);
+        assert_eq!(h.len(), 2);
+        assert_eq!(h.card_at(0).unwrap(), FOUR_OF_SPADES);
+        assert_eq!(h.card_at(1).unwrap(), JOKER);
+
+        assert!(h.contains(FOUR_OF_SPADES));
+        assert!(! h.contains(EIGHT_OF_CLUBS));
+        h.clear();
+        assert!(h.is_empty());
+        assert!(! h.contains(FOUR_OF_SPADES));
+
+        h = CardStack::from_text("4sJc9d");
+        assert_eq!(h.len(), 3);
+        assert_eq!(h.card_at(0).unwrap(), FOUR_OF_SPADES);
+        assert_eq!(h.card_at(1).unwrap(), JACK_OF_CLUBS);
+        assert_eq!(h.card_at(2).unwrap(), NINE_OF_DIAMONDS);
+
+        h = CardStack::from_slice(&[
+            LOW_ACE_OF_DIAMONDS, SEVEN_OF_HEARTS,
+            ACE_OF_HEARTS, KING_OF_CLUBS
+        ]);
+        assert_eq!(h.card_at(0).unwrap(), LOW_ACE_OF_DIAMONDS);
+        assert_eq!(h.card_at(1).unwrap(), SEVEN_OF_HEARTS);
+        assert_eq!(h.card_at(2).unwrap(), ACE_OF_HEARTS);
+        assert_eq!(h.card_at(3).unwrap(), KING_OF_CLUBS);
+        h.low_ace_fix();
+        assert_eq!(h.card_at(0).unwrap(), LOW_ACE_OF_DIAMONDS);
+        assert_eq!(h.card_at(1).unwrap(), SEVEN_OF_HEARTS);
+        assert_eq!(h.card_at(2).unwrap(), LOW_ACE_OF_HEARTS);
+        assert_eq!(h.card_at(3).unwrap(), KING_OF_CLUBS);
+
+        h[0] = QUEEN_OF_DIAMONDS;
+        h[2] = FIVE_OF_HEARTS;
+        assert_eq!(h.to_string(), "Qd7h5hKc");
+
+        /* Push and pop
+         */
+        h = CardStack::new();
+        h.push(FOUR_OF_SPADES);
+        assert_eq!(h.len(), 1);
+        assert_eq!(h.card_at(0).unwrap(), FOUR_OF_SPADES);
+        h.push(JOKER);
+        assert_eq!(h.len(), 2);
+        assert_eq!(h.card_at(0).unwrap(), JOKER);
+        assert_eq!(h.card_at(1).unwrap(), FOUR_OF_SPADES);
+        assert_eq!(h.to_string(), "Jk4s");
+        assert_eq!(h.pop().unwrap(), JOKER);
+        assert_eq!(h.len(), 1);
+        assert_eq!(h.card_at(0).unwrap(), FOUR_OF_SPADES);
+        assert_eq!(h.pop().unwrap(), FOUR_OF_SPADES);
+        assert_eq!(h.len(), 0);
+        assert!(h.is_empty());
+
+        h.push(NINE_OF_DIAMONDS);
+        h.push(QUEEN_OF_SPADES);
+        assert_eq!(h.to_string(), "Qs9d");
+
+        h = CardStack::from_slice(&[ KING_OF_CLUBS, ACE_OF_CLUBS ]);
+        h.push_n(&[
+            TEN_OF_CLUBS, JACK_OF_CLUBS, QUEEN_OF_CLUBS
+        ]);
+        assert_eq!(h.to_string(), "TcJcQcKcAc");
+
+        let list = h.pop_n(2);
+        assert_eq!(list[0], TEN_OF_CLUBS);
+        assert_eq!(list[1], JACK_OF_CLUBS);
+        assert_eq!(h.to_string(), "QcKcAc");
+
+        /* insert and remove
+         */
+        h = CardStack::from_text("4sJc9d");
+        h.insert_at(1, JOKER);
+        assert_eq!(h.to_string(), "4sJkJc9d");
+        h.insert_at(0, TEN_OF_DIAMONDS);
+        assert_eq!(h.to_string(), "Td4sJkJc9d");
+        h.insert_at(4, QUEEN_OF_DIAMONDS);
+        assert_eq!(h.to_string(), "Td4sJkJcQd9d");
+        h.insert_at_end(ACE_OF_CLUBS);
+        assert_eq!(h.to_string(), "Td4sJkJcQd9dAc");
+        h.insert_at(7, SIX_OF_SPADES);
+        assert_eq!(h.to_string(), "Td4sJkJcQd9dAc6s");
+
+        assert_eq!(h.remove_at(0).unwrap(), TEN_OF_DIAMONDS);
+        assert_eq!(h.to_string(), "4sJkJcQd9dAc6s");
+        assert_eq!(h.remove_at(2).unwrap(), JACK_OF_CLUBS);
+        assert_eq!(h.to_string(), "4sJkQd9dAc6s");
+        assert_eq!(h.remove_card(ACE_OF_CLUBS), true);
+        assert_eq!(h.to_string(), "4sJkQd9d6s");
+        assert_eq!(h.remove_at_end().unwrap(), SIX_OF_SPADES);
+        assert_eq!(h.to_string(), "4sJkQd9d");
+        assert_eq!(h.remove_at(3).unwrap(), NINE_OF_DIAMONDS);
+        assert_eq!(h.to_string(), "4sJkQd");
+
+        /* shuffle and sort
+         */
+
+        h = CardStack::from_text("3h5h8dTh3c4h7sJkQs7d");
+        h.shuffle();
+        assert_eq!(h.len(), 10);
+        assert!(h.contains(FIVE_OF_HEARTS));
+        assert!(h.contains(TEN_OF_HEARTS));
+        assert!(h.contains(SEVEN_OF_DIAMONDS));
+        assert!(! h.contains(NINE_OF_CLUBS));
+
+        h.sort();
+        assert_eq!(h.to_string(), "QsTh8d7s7d5h4h3h3cJk");
+
+        h.remove_card(SEVEN_OF_DIAMONDS);
+        h.shuffle();
+        assert_eq!(h.len(), 9);
+        assert!(h.contains(TREY_OF_CLUBS));
+        assert!(h.contains(SEVEN_OF_SPADES));
+        assert!(h.contains(JOKER));
+        assert!(! h.contains(SEVEN_OF_DIAMONDS));
+
+        h.sort();
+        assert_eq!(h.to_string(), "QsTh8d7s5h4h3h3cJk");
+
+        // Test randomness of shuffle
+        let mut counts = [0; 20];
+        h = CardStack::from_text("As2s3s4s5s6s7s8s9sTsAh2h3h4h5h6h7h8h9hTh");
+        for _ in 0..1000000 {
+            h.shuffle();
+            for j in 0..20 {
+                if h[j] == ACE_OF_SPADES {
+                    counts[j] += 1;
+                    break;
+                }
             }
-            assert_eq!(h.len(), data.hands[i].len as usize);
-            for j in 0..h.len() {
-                assert_eq!(true, deck.has(h.card_at(j).unwrap()));
-            }
-            assert_eq!(h.to_string(), data.hands[i].text);
-            assert_eq!(h.quick_hash(), data.hands[i].hash);
+        }
+        for i in 0..20 {
+            assert!(counts[i] > 49000);
+            assert!(counts[i] < 51000);
         }
         Ok(())
     }

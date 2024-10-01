@@ -1,4 +1,4 @@
-# ojpoker | Updated: September 29, 2024
+# ojpoker | Updated: September 30, 2024
 
 This is code for the [OneJoker](https://onejoker.org) project,
 aiming to create libraries and other digital tools for handling playing cards
@@ -75,8 +75,10 @@ Some basic data representations used across all languages:
 
 ## Card
 
-The `Card` class is an enum in Dart and a single-member anonymous tuple
-class in Rust. Both use the same values:
+The [`Card`](https://github.com/lcrocker/ojpoker/wiki/Card)
+class is an enum in Dart and a single-member anonymous tuple
+class in Rust. Both use the same values, which we refer to as
+[ordinals](https://github.com/lcrocker/ojpoker/wiki/Ordinal).
 
 Value     | Card
 ----------|-------
@@ -134,7 +136,9 @@ If you do, let me know, and we'll try to standardize.
 
 ## Suit, Rank
 
-Ranks and suits are simple enums with a few basic methods.
+[`Rank`](https://github.com/lcrocker/ojpoker/wiki/Rank) and
+[`Suit`](https://github.com/lcrocker/ojpoker/wiki/Suit) are simple enums
+with a few basic methods.
 The specific values are important, though, to keep algorithms and data files
 compatible between languages.
 
@@ -163,7 +167,8 @@ Value       | Rank
 14          | King
 15          | Ace (high)
 
-Jokers and tarot trumps have neither rank nor suit.
+[Joker](https://github.com/lcrocker/ojpoker/wiki/Joker)s and tarot trumps
+have neither rank nor suit.
 English/American decks of cards typically contain two jokers: one is drawn
 in plain black ink, and the other is more colorful.
 We call the former the #2 "black" joker, and the latter the #3 "red" joker,
@@ -173,14 +178,16 @@ I don't know of any games requiring three distinguished jokers, but
 seems to think there is, so that's my joker #1.
 If there is just one joker, we use the red/colorful one.
 
-Aces are high by default; hands being read from text files, for example,
+[Ace](https://github.com/lcrocker/ojpoker/wiki/Ace)s are high by default;
+hands being read from text files, for example,
 will put aces into the 60..63 slots, and must be adjusted afterwards for
 games using low aces (the library mostly handles this automatically).
 
 ## MasterDeck
 
 Every game or simulation begins with a full deck of some kind that I call a
-`MasterDeck`. This determines the initial state of the "live" decks actually
+[`MasterDeck`](https://github.com/lcrocker/ojpoker/wiki/MasterDeck).
+This determines the initial state of the "live" decks actually
 used for dealing cards, and such things as which cards are allowed, whether
 duplicates are allowed, etc. If you are playing Skat, for exmaple, you would
 begin with a 32-card German deck with no cards below seven. Error checking in
@@ -197,10 +204,13 @@ and a joker is included in the deck, ask for a "lowball" deck.
 
 ## CardStack, Deck, Hand
 
-A `CardStack` is just a simple LIFO stack of card objects, with many of the
+A [`CardStack`](https://github.com/lcrocker/ojpoker/wiki/CardStack) is just a
+simple LIFO stack of card objects, with many of the
 usual functions of arrays or stacks or queues in many languages. These can be
 used for whole decks, player hands, discard piles, Texas Hold'em boards,
-active tricks, solitaire tableaux, etc. `Deck`s and `Hand`s are more
+active tricks, solitaire tableaux, etc.
+[`Deck`](https://github.com/lcrocker/ojpoker/wiki/Deck)s and
+[`Hand`](https://github.com/lcrocker/ojpoker/wiki/Hand)s are more
 spcialized objects containing a `CardStack` and other features suited to
 their task. In particular, each is associated with a `MasterDeck` that
 determines which cards are allowed, etc. `Deck`s are initialized and refilled

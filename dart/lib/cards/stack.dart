@@ -4,6 +4,7 @@ import 'package:onejoker/utils.dart';
 abstract class CardStackInterface {
   int get length;
   bool get isEmpty;
+  bool get isNotEmpty;
   List<Card> toList();
   bool contains(Card card);
   void clear();
@@ -121,7 +122,7 @@ class CardStack extends Iterable<Card> implements CardStackInterface {
 
   /// Return list copy (reversed).
   @override
-  List<Card> toList({ bool growable = true }) {
+  List<Card> toList({bool growable = true}) {
     return _cards.reversed.toList(growable: growable);
   }
 
@@ -135,6 +136,11 @@ class CardStack extends Iterable<Card> implements CardStackInterface {
   @override
   bool get isEmpty {
     return _cards.isEmpty;
+  }
+
+  @override
+  bool get isNotEmpty {
+    return _cards.isNotEmpty;
   }
 
   /// Does the stack contain the specific card?

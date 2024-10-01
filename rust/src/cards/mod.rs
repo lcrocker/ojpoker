@@ -46,9 +46,30 @@ pub use card::{ WHITE_JOKER, BLACK_JOKER, JOKER,
 pub fn oj_shuffle(a: &mut [Card]) {
     if a.len() < 2 { return; }
 
-    for i in 0..(a.len() - 1) {
-        let j = i + (range_uniform((a.len() - i) as i32) as usize);
+    for i in (1..a.len()).rev() {
+        let j = range_uniform(i + 1);
         if i != j { a.swap(i, j); }
+    }
+}
+
+fn heapify(a: &mut [Card], n: usize, i: usize) {
+    let mut i = i;
+    let mut loop_guard = 200;
+
+    while loop_guard > 0 {
+        loop_guard -= 1;
+
+        let mut max = i;
+        let left = 2 * i + 1;
+        let right = 2 * i + 2;
+
+        if left < n && a[left] > a[max] { max = left; }
+        if right < n && a[right] > a[max] { max = right; }
+
+        if max == i { break; }
+
+        a.swap(i, max);
+        i = max;
     }
 }
 
@@ -56,34 +77,34 @@ pub fn oj_shuffle(a: &mut [Card]) {
 pub fn oj_sort(a: &mut [Card]) {
     match a.len() {
         5 => {
-            if a[0] < a[1] { a.swap(0, 1); }
-            if a[3] < a[4] { a.swap(3, 4); }
-            if a[2] < a[4] { a.swap(2, 4); }
-            if a[2] < a[3] { a.swap(2, 3); }
-            if a[0] < a[3] { a.swap(0, 3); }
-            if a[0] < a[2] { a.swap(0, 2); }
-            if a[1] < a[4] { a.swap(1, 4); }
-            if a[1] < a[3] { a.swap(1, 3); }
-            if a[1] < a[2] { a.swap(1, 2); }
+            if a[0] > a[1] { a.swap(0, 1); }
+            if a[3] > a[4] { a.swap(3, 4); }
+            if a[2] > a[4] { a.swap(2, 4); }
+            if a[2] > a[3] { a.swap(2, 3); }
+            if a[0] > a[3] { a.swap(0, 3); }
+            if a[0] > a[2] { a.swap(0, 2); }
+            if a[1] > a[4] { a.swap(1, 4); }
+            if a[1] > a[3] { a.swap(1, 3); }
+            if a[1] > a[2] { a.swap(1, 2); }
         },
         4 => {
-            if a[0] < a[1] { a.swap(0, 1); }
-            if a[2] < a[3] { a.swap(2, 3); }
-            if a[0] < a[2] { a.swap(0, 2); }
-            if a[1] < a[3] { a.swap(1, 3); }
-            if a[1] < a[2] { a.swap(1, 2); }
+            if a[0] > a[1] { a.swap(0, 1); }
+            if a[2] > a[3] { a.swap(2, 3); }
+            if a[0] > a[2] { a.swap(0, 2); }
+            if a[1] > a[3] { a.swap(1, 3); }
+            if a[1] > a[2] { a.swap(1, 2); }
         },
         3 => {
-            if a[1] < a[2] { a.swap(1, 2); }
-            if a[0] < a[2] { a.swap(0, 2); }
-            if a[0] < a[1] { a.swap(0, 1); }    
+            if a[1] > a[2] { a.swap(1, 2); }
+            if a[0] > a[2] { a.swap(0, 2); }
+            if a[0] > a[1] { a.swap(0, 1); }    
         },
         2 => {
-            if a[0] < a[1] { a.swap(0, 1); }
+            if a[0] > a[1] { a.swap(0, 1); }
         },
         1 | 0 => {},
         _ => {
-            for i in (0..(a.len() / 2)).rev() {
+            for i in (0..=(a.len() / 2)).rev() {
                 heapify(a, a.len(), i);
             }
             for i in (1..a.len()).rev() {
@@ -91,20 +112,6 @@ pub fn oj_sort(a: &mut [Card]) {
                 heapify(a, i, 0);
             }
         },
-    }
-}
-
-fn heapify(a: &mut [Card], n: usize, i: usize) {
-    let mut min = i;
-    let left = 2 * i + 1;
-    let right = 2 * i + 2;
-
-    if left < n && a[left] < a[min] { min = left; }
-    if right < n && a[right] < a[min] { min = right; }
-
-    if min != i {
-        a.swap(i, min);
-        heapify(a, n, min);
     }
 }
 
