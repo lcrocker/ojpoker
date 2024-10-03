@@ -1,9 +1,10 @@
 
-use onejoker::cards::*;
+use onejoker::*;
 
 fn main() ->Result<(), OjError> {
-    let v = cards_from_text("  [5dJsAd7cJk]");
-    println!("{:?}", v);
+    let s = CardStack::from_text("As2d3d4d5d6d7d8d9dTd");
+    for i in 0..10 { println!("{}", s[i]); }
+    for c in s.iter() { println!("{}", c); }
+
     Ok(())
 }
-

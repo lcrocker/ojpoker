@@ -1,4 +1,4 @@
-# ojpoker | Updated: September 30, 2024
+# ojpoker | Updated: October 2, 2024
 
 This is code for the [OneJoker](https://onejoker.org) project,
 aiming to create libraries and other digital tools for handling playing cards

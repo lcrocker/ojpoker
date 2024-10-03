@@ -3,7 +3,6 @@
 //! # cards | [wiki](https://github.com/lcrocker/ojpoker/wiki/Rust_Libraries) | Non-game-specific card handling.
 
 pub use crate::errors::*;
-pub use crate::rand::*;
 
 pub mod suit;
 pub use suit::Suit;
@@ -14,15 +13,20 @@ pub use rank::Rank;
 pub mod card;
 pub use card::{ Card, cards_from_text };
 
+pub mod utils;
+pub use utils::*;
+
+pub mod hashes;
+pub use hashes::*;
+
 pub mod master_deck;
 pub use master_deck::MasterDeck;
 
 pub mod stack;
 pub use stack::*;
 
-// pub mod lists;
-// pub use lists::{ Hand, Deck };
-// pub use std::str::FromStr;
+pub mod deck_hand;
+pub use deck_hand::*;
 
 pub use card::{ WHITE_JOKER, BLACK_JOKER, JOKER,
     LOW_ACE_OF_CLUBS, LOW_ACE_OF_DIAMONDS, LOW_ACE_OF_HEARTS, LOW_ACE_OF_SPADES,
@@ -36,96 +40,8 @@ pub use card::{ WHITE_JOKER, BLACK_JOKER, JOKER,
     NINE_OF_CLUBS, NINE_OF_DIAMONDS, NINE_OF_HEARTS, NINE_OF_SPADES,
     TEN_OF_CLUBS, TEN_OF_DIAMONDS, TEN_OF_HEARTS, TEN_OF_SPADES,
     JACK_OF_CLUBS, JACK_OF_DIAMONDS, JACK_OF_HEARTS, JACK_OF_SPADES,
+    KNIGHT_OF_CLUBS, KNIGHT_OF_DIAMONDS, KNIGHT_OF_HEARTS, KNIGHT_OF_SPADES,
     QUEEN_OF_CLUBS, QUEEN_OF_DIAMONDS, QUEEN_OF_HEARTS, QUEEN_OF_SPADES,
     KING_OF_CLUBS, KING_OF_DIAMONDS, KING_OF_HEARTS, KING_OF_SPADES,
     ACE_OF_CLUBS, ACE_OF_DIAMONDS, ACE_OF_HEARTS, ACE_OF_SPADES,
-    KNIGHT_OF_CLUBS, KNIGHT_OF_DIAMONDS, KNIGHT_OF_HEARTS, KNIGHT_OF_SPADES,
 };
-
-/// Standard Fisher-Yates shuffle using our own PRNG.
-pub fn oj_shuffle(a: &mut [Card]) {
-    if a.len() < 2 { return; }
-
-    for i in (1..a.len()).rev() {
-        let j = range_uniform(i + 1);
-        if i != j { a.swap(i, j); }
-    }
-}
-
-fn heapify(a: &mut [Card], n: usize, i: usize) {
-    let mut i = i;
-    let mut loop_guard = 200;
-
-    while loop_guard > 0 {
-        loop_guard -= 1;
-
-        let mut max = i;
-        let left = 2 * i + 1;
-        let right = 2 * i + 2;
-
-        if left < n && a[left] > a[max] { max = left; }
-        if right < n && a[right] > a[max] { max = right; }
-
-        if max == i { break; }
-
-        a.swap(i, max);
-        i = max;
-    }
-}
-
-/// Somewhat specialized sort optimized for small sets, like poker hands.
-pub fn oj_sort(a: &mut [Card]) {
-    match a.len() {
-        5 => {
-            if a[0] > a[1] { a.swap(0, 1); }
-            if a[3] > a[4] { a.swap(3, 4); }
-            if a[2] > a[4] { a.swap(2, 4); }
-            if a[2] > a[3] { a.swap(2, 3); }
-            if a[0] > a[3] { a.swap(0, 3); }
-            if a[0] > a[2] { a.swap(0, 2); }
-            if a[1] > a[4] { a.swap(1, 4); }
-            if a[1] > a[3] { a.swap(1, 3); }
-            if a[1] > a[2] { a.swap(1, 2); }
-        },
-        4 => {
-            if a[0] > a[1] { a.swap(0, 1); }
-            if a[2] > a[3] { a.swap(2, 3); }
-            if a[0] > a[2] { a.swap(0, 2); }
-            if a[1] > a[3] { a.swap(1, 3); }
-            if a[1] > a[2] { a.swap(1, 2); }
-        },
-        3 => {
-            if a[1] > a[2] { a.swap(1, 2); }
-            if a[0] > a[2] { a.swap(0, 2); }
-            if a[0] > a[1] { a.swap(0, 1); }    
-        },
-        2 => {
-            if a[0] > a[1] { a.swap(0, 1); }
-        },
-        1 | 0 => {},
-        _ => {
-            for i in (0..=(a.len() / 2)).rev() {
-                heapify(a, a.len(), i);
-            }
-            for i in (1..a.len()).rev() {
-                a.swap(0, i);
-                heapify(a, i, 0);
-            }
-        },
-    }
-}
-
-pub fn oj_next_combination(a: &mut [i32], n: i32) -> bool {
-    let k: i32 = a.len() as i32;
-
-    for i in (0..k).rev() {
-        if a[i as usize] < n - k + i + 1 {
-            a[i as usize] += 1;
-            for j in (i + 1)..k {
-                a[j as usize] = a[(j - 1) as usize] + 1;
-            }
-            return true;
-        }
-    }
-    false
-}

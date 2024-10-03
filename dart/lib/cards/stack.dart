@@ -1,5 +1,5 @@
 import 'package:onejoker/cards/card.dart';
-import 'package:onejoker/utils.dart';
+import 'package:onejoker/cards/utils.dart';
 
 abstract class CardStackInterface {
   int get length;
@@ -20,7 +20,6 @@ abstract class CardStackInterface {
   bool removeCard(Card card);
   void shuffle();
   void sort();
-  int quickHash();
   operator [](int index);
   operator []=(int index, Card card);
 }
@@ -245,17 +244,6 @@ class CardStack extends Iterable<Card> implements CardStackInterface {
   @override
   void sort() {
     ojSort(_cards);
-  }
-
-  /// Simple FNV hash useful for testing.
-  @override
-  int quickHash() {
-    int h = 0x811c9dc5;
-    for (int i = _cards.length - 1; i >= 0; i -= 1) {
-      h ^= _cards[i].index;
-      h *= 0x01000193;
-    }
-    return h & 0xFFFFFFFF;
   }
 
   @override

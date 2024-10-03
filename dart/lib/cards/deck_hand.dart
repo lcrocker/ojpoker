@@ -1,7 +1,7 @@
 import 'package:onejoker/cards/card.dart';
 import 'package:onejoker/cards/master_deck.dart';
 import 'package:onejoker/cards/stack.dart';
-import 'package:onejoker/utils.dart';
+import 'package:onejoker/cards/utils.dart';
 
 /// # Deck | [wiki](https://github.com/lcrocker/ojpoker/wiki/Deck)
 /// This is the "live" deck of cards that is used for a game. In a
@@ -166,11 +166,6 @@ class Deck extends Iterable<Card> implements CardStackInterface {
   @override
   void sort() {
     _cards.sort();
-  }
-
-  @override
-  int quickHash() {
-    return _cards.quickHash();
   }
 
   @override
@@ -344,11 +339,6 @@ class Hand extends Iterable<Card> implements CardStackInterface {
   @override
   void sort() {
     _cards.sort();
-  }
-
-  @override
-  int quickHash() {
-    return _cards.quickHash();
   }
 
   @override

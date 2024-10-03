@@ -15,6 +15,7 @@ pub enum OjError {
     EmptyHand(usize, usize),
     CardNotFound(Card),
     NoAssociatedDeck,
+    HashDomain(String),
 }
 
 impl std::fmt::Display for OjError {
@@ -42,6 +43,8 @@ impl std::fmt::Display for OjError {
                 => write!(f, "{} not found", c),
             OjError::NoAssociatedDeck
                 => write!(f, "hand has no deck to draw from"),
+            OjError::HashDomain(s)
+                => write!(f, "hand {} is not in hash function domain", s),
         }
     }
 }

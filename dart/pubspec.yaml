@@ -12,7 +12,7 @@ executables:
 
 dependencies:
   msgpack_dart: ^1.0.1
-  # collection: ^1.14.13
+  collection: ^1.14.13
   # path: ^1.8.0
 
 dev_dependencies:

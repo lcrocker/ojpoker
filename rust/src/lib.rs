@@ -9,7 +9,9 @@
 //! Lee Daniel Crocker <lee@onejoker.org> \
 //! Licensed <https://creativecommons.org/publicdomain/zero/1.0/>
 
-pub mod rand;
 pub mod cards;
-// pub mod poker;
+pub use cards::*;
+
 pub mod errors;
+
+// pub mod poker;

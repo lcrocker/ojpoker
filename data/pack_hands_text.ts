@@ -1,4 +1,4 @@
-#!/usr/bin/env -S deno run --allow-read=./json --allow-write=./bin
+#!/usr/bin/env -S deno run --allow-read=./json --allow-write=./bin pack_hands_text.ts
 
 /**
  * @file pack_hands_text.ts

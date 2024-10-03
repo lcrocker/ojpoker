@@ -10,7 +10,7 @@ fn test_masterdecks() {
         let deck = MasterDeck::by_name(*name);
 
         let mut bits: u64 = 0;
-        for c in deck.card_list { bits |= 1 << c.0; }
+        for c in deck.card_list.iter() { bits |= 1 << c.0; }
         assert_eq!(bits, deck.card_set);
 
         macro_rules! decktests {

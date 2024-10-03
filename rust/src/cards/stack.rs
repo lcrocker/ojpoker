@@ -15,6 +15,7 @@ pub trait CardStackTrait {
     fn contains(&self, card: Card) -> bool;
     fn clear(&mut self);
     fn card_at(&self, index: usize) -> Option<Card>;
+    fn set_card_at(&mut self, index: usize, card: Card);
     fn push(&mut self, card: Card);
     fn pop(&mut self) -> Option<Card>;
     fn push_n(&mut self, cards: &[Card]);
@@ -26,7 +27,6 @@ pub trait CardStackTrait {
     fn remove_card(&mut self, card: Card) -> bool;
     fn shuffle(&mut self);
     fn sort(&mut self);
-    fn quick_hash(&self) -> u32;
     // Index and IndexMut traits are implemented below.
 }
 
@@ -63,7 +63,7 @@ pub trait CardStackTrait {
 /// ```
 /// will print `QcKc5sJc9d`. There are also `insertX()` and `removeX()`
 /// methods, but these are less efficient than `push()` and `pop()`.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct CardStack {
     pub cards: Vec<Card>,
 }
@@ -121,7 +121,7 @@ impl CardStackTrait for CardStack {
 
     /// Is the stack not empty?
     fn is_not_empty(&self) -> bool {
-        0 != self.cards.len()
+        ! self.is_empty()
     }
 
     /// Is card `c` in the stack?
@@ -140,6 +140,14 @@ impl CardStackTrait for CardStack {
             return None;
         }
         Some(self.cards[self.cards.len() - 1 - index])
+    }
+
+    fn set_card_at(&mut self, index: usize, card: Card) {
+        if index >= self.cards.len() {
+            return;
+        }
+        let len = self.cards.len();
+        self.cards[len - 1 - index] = card;
     }
 
     /// Push a card onto the top of the stack.
@@ -212,16 +220,6 @@ impl CardStackTrait for CardStack {
         false
     }
 
-    /// Quick-and dirty FNV hash function for hands. Likely to have collisions.
-    fn quick_hash(&self) -> u32 {
-        let mut h: u32 = 0x811c9dc5;
-        for c in self.cards.iter().rev() {
-            h ^= c.0 as u32;
-            h = h.wrapping_mul(0x01000193);
-        }
-        h
-    }   
-
     /// Randomize the order of the cards in the stack.
     fn shuffle(&mut self) {
         oj_shuffle(self.cards.as_mut_slice());
@@ -261,6 +259,20 @@ impl std::str::FromStr for CardStack {
     }
 }
 
+impl PartialEq for CardStack {
+    fn eq(&self, other: &Self) -> bool {
+        if self.cards.len() != other.cards.len() {
+            return false;
+        }
+        for i in 0..self.cards.len() {
+            if self.cards[i] != other.cards[i] {
+                return false;
+            }
+        }
+        true
+    }
+}
+
 impl Index<usize> for CardStack {
     type Output = Card;
 
@@ -273,6 +285,36 @@ impl IndexMut<usize> for CardStack {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         let len = self.cards.len();
         &mut self.cards[len - 1 - index]
+    }
+}
+
+pub struct CardStackIter<'a> {
+    cards: &'a Vec<Card>,
+    index: usize,
+}
+
+impl CardStackIter<'_> {
+    pub fn new(cards: &Vec<Card>) -> CardStackIter {
+        CardStackIter { cards, index: cards.len() }
+    }
+}
+
+impl CardStack {
+    pub fn iter(&self) -> CardStackIter {
+        CardStackIter::new(&self.cards)
+    }
+}
+
+impl<'a> Iterator for CardStackIter<'a> {
+    type Item = &'a Card;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index == 0 {
+            None
+        } else {
+            self.index -= 1;
+            Some(&self.cards[self.index])
+        }
     }
 }
 

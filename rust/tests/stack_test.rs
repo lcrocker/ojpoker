@@ -29,7 +29,7 @@ fn test_hand_data_file() -> Result<(), Box<dyn std::error::Error>> {
     let file = File::open("../data/bin/hands_text.msgpack");
     if file.is_err() {
         write!(&mut io::stdout(),
-            "*** No test data file found; skipping...").unwrap();
+            "***\n   No test data file found; skipping...\n***").unwrap();
         return Ok(());
     }
     let reader = BufReader::new(file.unwrap());
@@ -46,7 +46,7 @@ fn test_hand_data_file() -> Result<(), Box<dyn std::error::Error>> {
             assert_eq!(true, deck.has(h.card_at(j).unwrap()));
         }
         assert_eq!(h.to_string(), data.hands[i].text);
-        assert_eq!(h.quick_hash(), data.hands[i].hash);
+        assert_eq!(card_hash_fnv_32(&h), data.hands[i].hash);
     }
     Ok(())
 }

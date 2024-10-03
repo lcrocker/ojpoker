@@ -31,11 +31,11 @@ impl MasterDeck {
     /// Rust won't let us implement `Default` as a pointer, so we roll our own.
     pub fn default_as_ptr() -> &'static MasterDeck { &DECK_INFO[0] }
 
-    /// Pointer to the internal array of cards representing a full deck.
-    pub fn card_list_ptr(&self) -> &'static [Card] { self.card_list }
-
     /// Does this deck contain the given card?
     pub fn has(&self, c: Card) -> bool { 0 != (self.card_set & (1 << c.0)) }
+
+    /// How many cards in full deck?
+    pub fn size(&self) -> usize { self.card_list.len() }
 }
 
 impl core::fmt::Debug for MasterDeck {

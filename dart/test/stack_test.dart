@@ -8,7 +8,7 @@ void main() {
   group('text i/o', () {
     dynamic skip = false;
     var file = File('../data/bin/hands_text.msgpack');
-    if (! file.existsSync()) {
+    if (!file.existsSync()) {
       skip = "Test files not built, skipping...";
     }
 
@@ -28,7 +28,7 @@ void main() {
           expect(true, deck.has(hand.cardAt(j)!));
         }
         expect(hands[i][1], hand.toString());
-        expect(hands[i][3], hand.quickHash());
+        expect(hands[i][3], cardHashFNV_32(hand));
       }
     }, skip: skip);
   });
