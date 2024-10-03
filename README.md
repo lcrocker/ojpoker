@@ -29,11 +29,9 @@ test scripts:
 ```
 This codebase produces two separate libraries in [Rust](https://rust-lang.org)
 and [Dart](https://dart.dev).
-If you are only interested in one of those, you will not have to deal with
-the other if you don't want to.
 I also use TypeScript ([Deno](https://deno.com)) for utility scripts, but
-those too aren't strictly necessary to build the libraries unless you want
-to change something or run tests.
+those aren't strictly necessary to build the libraries unless you want
+to change something.
 All of these languages have good complete development environments on Linux.
 
 I'm using Dart 3.5.3. The code in the repo does not use Flutter, so you can
@@ -42,7 +40,6 @@ Flutter is a good mobile development platform based on Dart, but is beyond
 the scope of this project.
 I am using Rust/Cargo 1.80.0.
 Finally, I use Deno 1.46.3 (TypeScript 5.5.2) for utility scripts.
-It has all the power of TypeScript without the cruft of NodeJS.
 I strongly recommend it for general-purpose scripting.
 
 The Dart code (in the `dart` directory) serves as a "reference" implementation
