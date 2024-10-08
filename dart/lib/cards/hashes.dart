@@ -1,68 +1,203 @@
 import 'package:onejoker/cards/card.dart';
 import 'package:onejoker/cards/utils.dart';
 
-/// This file contains hash functions for sets of cards with
-/// varying abilities.
-
-/// FNV hash. Can take any number of cards of any values, but
-/// will produce collisions. Useful mostly for unit tests.
-int cardHashFNV_32(Iterable<Card> cards) {
-  int h = 0x811c9dc5;
-  for (Card c in cards) {
-    h ^= c.index;
-    h *= 0x01000193;
+class CardHashInterface {
+  // 32-bit standard hash
+  static int u32(Iterable<Card> cards) {
+    assert(false);
+    return 0;
   }
-  return h & 0xFFFFFFFF;
-}
 
-int _base64(Iterable<int> ordinals) {
-  int max = 10;
-  int h = 0;
-  for (int d in ordinals) {
-    assert(max > 0);
-    max -= 1;
-
-    h <<= 6;
-    h += 0x3F & d;
+  // 32-bit collison-free
+  static int u32c(Iterable<Card> cards) {
+    assert(false);
+    return 0;
   }
-  return h;
-}
 
-int _base16(Iterable<int> ordinals) {
-  int max = 16;
-  int h = 0;
-  for (int d in ordinals) {
-    assert(max > 0);
-    max -= 1;
-
-    h <<= 4;
-    h += (0x0F & (d >> 2));
+  // 32-bit collision-free order-independent
+  static int u32co(Iterable<Card> cards) {
+    assert(false);
+    return 0;
   }
-  return h;
-}
 
-int cardHashBase64_64(Iterable<Card> cards) {
-  return _base64(cards.map((c) => c.index));
-}
-
-int cardHashBase64U_64(Iterable<Card> cards) {
-  List<Card> s = cards.toList();
-  ojSort(s);
-  return _base64(s.map((c) => c.index));
-}
-
-int cardHashBase16RU_64(Iterable<Card> cards) {
-  List<Card> s = cards.toList();
-  ojSort(s);
-  return _base16(s.map((c) => c.index));
-}
-
-int cardHashBitFieldU_64(Iterable<Card> cards) {
-  int h = 0;
-  for (Card c in cards) {
-    h |= (1 << c.index);
+  // 32-bit collision-free order-independent suit-independent
+  static int u32cos(Iterable<Card> cards) {
+    assert(false);
+    return 0;
   }
-  return h;
+
+  // 64-bit standard hash
+  static int u64(Iterable<Card> cards) {
+    assert(false);
+    return 0;
+  }
+
+  // 64-bit collision-free
+  static int u64c(Iterable<Card> cards) {
+    assert(false);
+    return 0;
+  }
+
+  // 64-bit collision-free order-independent
+  static int u64co(Iterable<Card> cards) {
+    assert(false);
+    return 0;
+  }
+
+  // 64-bit collision-free order-independent suit-independent
+  static int u64cos(Iterable<Card> cards) {
+    assert(false);
+    return 0;
+  }
+}
+
+class FNVHash implements CardHashInterface {
+  static int u32(Iterable<Card> cards) {
+    int h = 0x811c9dc5;
+    for (Card c in cards) {
+      h ^= c.index;
+      h *= 0x01000193;
+    }
+    return h & 0xFFFFFFFF;
+  }
+
+  static int u64(Iterable<Card> cards) {
+    int h = 0xcbf29ce484222325;
+    for (Card c in cards) {
+      h ^= c.index;
+      h *= 0x100000001b3;
+    }
+    return h;
+  }
+}
+
+class PositionalHash implements CardHashInterface {
+  static int u32c(Iterable<Card> cards) {
+    int max = 5;
+    int h = 0;
+
+    for (Card c in cards) {
+      max -= 1;
+      assert(max >= 0);
+
+      h <<= 6;
+      h += (0x3F & c.index);
+    }
+    return h & 0xFFFFFFFF;
+  }
+
+  static int u32co(Iterable<Card> cards) {
+    List<Card> sorted = cards.toList();
+    ojSort(sorted);
+    return PositionalHash.u32c(sorted);
+  }
+
+  static int u32cos(Iterable<Card> cards) {
+    List<Card> sorted = cards.toList();
+    ojSort(sorted);
+
+    int max = 8;
+    int h = 0;
+
+    for (Card c in sorted) {
+      max -= 1;
+      assert(max >= 0);
+
+      h <<= 4;
+      h += (0x0F & (c.index >> 2));
+    }
+    return h & 0xFFFFFFFF;
+  }
+
+  static int u64c(Iterable<Card> cards) {
+    int max = 10;
+    int h = 0;
+
+    for (Card c in cards) {
+      max -= 1;
+      assert(max >= 0);
+
+      h <<= 6;
+      h += (0x3F & c.index);
+    }
+    return h;
+  }
+
+  static int u64co(Iterable<Card> cards) {
+    List<Card> sorted = cards.toList();
+    ojSort(sorted);
+    return PositionalHash.u64c(sorted);
+  }
+
+  static int u64cos(Iterable<Card> cards) {
+    List<Card> sorted = cards.toList();
+    ojSort(sorted);
+
+    int max = 16;
+    int h = 0;
+
+    for (Card c in sorted) {
+      max -= 1;
+      assert(max >= 0);
+
+      h <<= 4;
+      h += (0x0F & (c.index >> 2));
+    }
+    return h;
+  }
+}
+
+class BitfieldHash implements CardHashInterface {
+  static int u64co(Iterable<Card> cards) {
+    int h = 0;
+
+    for (Card c in cards) {
+      assert(0 == (h & (1 << (0x3F & c.index))));
+      h |= (1 << (0x3F & c.index));
+    }
+    return h;
+  }
+}
+
+class PrimeHash implements CardHashInterface {
+  static int u32cos(Iterable<Card> cards) {
+    int max = 5;
+    int h = 1;
+
+    for (Card c in cards) {
+      max -= 1;
+      assert(max >= 0);
+
+      h *= _primes[0x0F & (c.index >> 2)];
+    }
+    return h & 0xFFFFFFFF;
+  }
+
+  static int u64co(Iterable<Card> cards) {
+    int max = 7;
+    int h = 1;
+
+    for (Card c in cards) {
+      max -= 1;
+      assert(max >= 0);
+
+      h *= _primes[0x3F & c.index];
+    }
+    return h;
+  }
+
+  static int u64cos(Iterable<Card> cards) {
+    int max = 10;
+    int h = 1;
+
+    for (Card c in cards) {
+      max -= 1;
+      assert(max >= 0);
+
+      h *= _primes[0x0F & (c.index >> 2)];
+    }
+    return h;
+  }
 }
 
 const List<int> _primes = [
@@ -131,29 +266,3 @@ const List<int> _primes = [
   311,
   313,
 ];
-
-int cardHashPrimeU_64(Iterable<Card> cards) {
-  int max = 7;
-  int h = 1;
-
-  for (Card c in cards) {
-    assert(max > 0);
-    max -= 1;
-
-    h *= _primes[c.index];
-  }
-  return h;
-}
-
-int cardHashPrimeRU_64(Iterable<Card> cards) {
-  int max = 10;
-  int h = 1;
-
-  for (Card c in cards) {
-    assert(max > 0);
-    max -= 1;
-
-    h *= _primes[c.index >> 2];
-  }
-  return h;
-}

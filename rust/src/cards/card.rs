@@ -18,7 +18,7 @@ pub type Ordinal = u8;  // some machines might be faster with u32?
 /// tuple objects like this.
 
 #[allow(dead_code)]
-#[derive(PartialEq, PartialOrd, Eq, Ord, Clone, Copy, Hash)]
+#[derive(PartialEq, PartialOrd, Eq, Ord, Clone, Hash)]
 pub struct Card(pub Ordinal);
 
 const UNICODE_SINGLES: [&str; 63] = [
@@ -140,6 +140,8 @@ impl Card {
         }
     }
 }
+
+impl Copy for Card {}
 
 /// If the given string begins with a card representation (e.g. "Qd"),
 /// return it and the string position immediately after so we can step

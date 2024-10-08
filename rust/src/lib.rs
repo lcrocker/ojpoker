@@ -11,7 +11,8 @@
 
 pub mod cards;
 pub use cards::*;
-
+pub mod poker;
+pub use poker::*;
 pub mod errors;
 
 // pub mod poker;

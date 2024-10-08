@@ -3,7 +3,7 @@ import 'package:onejoker/cards/card.dart';
 /// This file contains utility functions that are used in multiple places in
 /// the library. Things like random number generation, shuffling, and sorting
 /// are present in the language already, but these versions are specifically
-/// tuned and optimized for playing cards and games.
+/// designed and optimized for playing cards and games.
 class OjRandom {
   static final List<int> _s = [0, 0, 0, 0];
   static bool _seeded = false;
@@ -74,22 +74,22 @@ void _heapify(List<Card> a, int n, int i) {
   while (loopGuard > 0) {
     loopGuard -= 1;
 
-    int max = i;
+    int min = i;
     int left = 2 * i + 1;
     int right = 2 * i + 2;
 
-    if (left < n && a[left] > a[max]) {
-      max = left;
+    if (left < n && a[left] < a[min]) {
+      min = left;
     }
-    if (right < n && a[right] > a[max]) {
-      max = right;
+    if (right < n && a[right] < a[min]) {
+      min = right;
     }
-    if (max == i) break;
+    if (min == i) break;
 
     Card temp = a[i];
-    a[i] = a[max];
-    a[max] = temp;
-    i = max;
+    a[i] = a[min];
+    a[min] = temp;
+    i = min;
   }
 }
 
@@ -97,98 +97,98 @@ void _heapify(List<Card> a, int n, int i) {
 void ojSort(List<Card> a) {
   switch (a.length) {
     case 5:
-      if (a[0] > a[1]) {
+      if (a[0] < a[1]) {
         Card temp = a[0];
         a[0] = a[1];
         a[1] = temp;
       }
-      if (a[3] > a[4]) {
+      if (a[3] < a[4]) {
         Card temp = a[3];
         a[3] = a[4];
         a[4] = temp;
       }
-      if (a[2] > a[4]) {
+      if (a[2] < a[4]) {
         Card temp = a[2];
         a[2] = a[4];
         a[4] = temp;
       }
-      if (a[2] > a[3]) {
+      if (a[2] < a[3]) {
         Card temp = a[2];
         a[2] = a[3];
         a[3] = temp;
       }
-      if (a[0] > a[3]) {
+      if (a[0] < a[3]) {
         Card temp = a[0];
         a[0] = a[3];
         a[3] = temp;
       }
-      if (a[0] > a[2]) {
+      if (a[0] < a[2]) {
         Card temp = a[0];
         a[0] = a[2];
         a[2] = temp;
       }
-      if (a[1] > a[4]) {
+      if (a[1] < a[4]) {
         Card temp = a[1];
         a[1] = a[4];
         a[4] = temp;
       }
-      if (a[1] > a[3]) {
+      if (a[1] < a[3]) {
         Card temp = a[1];
         a[1] = a[3];
         a[3] = temp;
       }
-      if (a[1] > a[2]) {
+      if (a[1] < a[2]) {
         Card temp = a[1];
         a[1] = a[2];
         a[2] = temp;
       }
       break;
     case 4:
-      if (a[0] > a[1]) {
+      if (a[0] < a[1]) {
         Card temp = a[0];
         a[0] = a[1];
         a[1] = temp;
       }
-      if (a[2] > a[3]) {
+      if (a[2] < a[3]) {
         Card temp = a[2];
         a[2] = a[3];
         a[3] = temp;
       }
-      if (a[0] > a[2]) {
+      if (a[0] < a[2]) {
         Card temp = a[0];
         a[0] = a[2];
         a[2] = temp;
       }
-      if (a[1] > a[3]) {
+      if (a[1] < a[3]) {
         Card temp = a[1];
         a[1] = a[3];
         a[3] = temp;
       }
-      if (a[1] > a[2]) {
+      if (a[1] < a[2]) {
         Card temp = a[1];
         a[1] = a[2];
         a[2] = temp;
       }
       break;
     case 3:
-      if (a[1] > a[2]) {
+      if (a[1] < a[2]) {
         Card temp = a[1];
         a[1] = a[2];
         a[2] = temp;
       }
-      if (a[0] > a[2]) {
+      if (a[0] < a[2]) {
         Card temp = a[0];
         a[0] = a[2];
         a[2] = temp;
       }
-      if (a[0] > a[1]) {
+      if (a[0] < a[1]) {
         Card temp = a[0];
         a[0] = a[1];
         a[1] = temp;
       }
       break;
     case 2:
-      if (a[0] > a[1]) {
+      if (a[0] < a[1]) {
         Card temp = a[0];
         a[0] = a[1];
         a[1] = temp;

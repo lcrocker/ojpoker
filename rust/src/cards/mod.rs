@@ -22,11 +22,11 @@ pub use hashes::*;
 pub mod master_deck;
 pub use master_deck::MasterDeck;
 
-pub mod stack;
-pub use stack::*;
+pub mod hand;
+pub use hand::*;
 
-pub mod deck_hand;
-pub use deck_hand::*;
+pub mod deck;
+pub use deck::*;
 
 pub use card::{ WHITE_JOKER, BLACK_JOKER, JOKER,
     LOW_ACE_OF_CLUBS, LOW_ACE_OF_DIAMONDS, LOW_ACE_OF_HEARTS, LOW_ACE_OF_SPADES,

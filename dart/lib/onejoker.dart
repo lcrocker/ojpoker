@@ -1,6 +1,11 @@
+export 'troolean.dart';
+export 'cards/suit.dart';
+export 'cards/rank.dart';
 export 'cards/card.dart';
 export 'cards/utils.dart';
 export 'cards/hashes.dart';
 export 'cards/master_deck.dart';
-export 'cards/stack.dart';
-export 'cards/deck_hand.dart';
+export 'cards/deck.dart';
+export 'cards/hand.dart';
+export 'poker/hand_value.dart';
+export 'poker/high_hand.dart';

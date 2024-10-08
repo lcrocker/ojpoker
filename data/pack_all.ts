@@ -6,10 +6,15 @@
  */
 
 import { packHandsText } from "./pack_hands_text.ts";
+import { packHashTestData } from "./pack_hash_tests.ts";
+import { packPokerEvalHands } from "./pack_poker_hands.ts";
+
 
 export function packAll() {
     return Promise.all([
         packHandsText(),
+        packHashTestData(),
+        packPokerEvalHands(),
     ]);
 }
 
