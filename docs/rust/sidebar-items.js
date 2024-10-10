@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["cards","errors","rand"]};
+window.SIDEBAR_ITEMS = {"mod":["cards","errors","poker"]};

@@ -26,88 +26,93 @@ void main() {
 
         int j = OjRandom.rangeUniform(data['count']);
         var hand4 = OrphanHand.fromText(hands[j][0]);
+        CardHashBase hasher = FNVHash();
 
-        int h1 = FNVHash.u32(hand1);
-        int h2 = FNVHash.u32(hand2);
-        int h3 = FNVHash.u32(hand3);
-        int h4 = FNVHash.u32(hand4);
+        int h1 = hasher.u32(hand1);
+        int h2 = hasher.u32(hand2);
+        int h3 = hasher.u32(hand3);
+        int h4 = hasher.u32(hand4);
 
         expect(h1 == h2, hand1.equals(hand2));
         expect(h1 == h3, false);
         expect(h1 == h4, i == j);
 
-        h1 = BitfieldHash.u64co(hand1);
-        h2 = BitfieldHash.u64co(hand2);
-        h3 = BitfieldHash.u64co(hand3);
-        h4 = BitfieldHash.u64co(hand4);
+        hasher = BitfieldHash();
+        h1 = hasher.u64co(hand1);
+        h2 = hasher.u64co(hand2);
+        h3 = hasher.u64co(hand3);
+        h4 = hasher.u64co(hand4);
 
         expect(h1 == h2, true);
         expect(h1 == h3, false);
         expect(h1 == h4, i == j);
 
         if (hand1.length <= 16 && hand4.length <= 16) {
-          h1 = PositionalHash.u64cos(hand1);
-          h2 = PositionalHash.u64cos(hand2);
-          h3 = PositionalHash.u64cos(hand3);
+          hasher = PositionalHash();
+          h1 = hasher.u64cos(hand1);
+          h2 = hasher.u64cos(hand2);
+          h3 = hasher.u64cos(hand3);
 
           expect(h1 == h2, true);
           expect(h1 == h3, true);
         }
         if (hand1.length <= 10 && hand4.length <= 10) {
-          h1 = PositionalHash.u64c(hand1);
-          h2 = PositionalHash.u64c(hand2);
-          h3 = PositionalHash.u64c(hand3);
-          h4 = PositionalHash.u64c(hand4);
+          h1 = hasher.u64c(hand1);
+          h2 = hasher.u64c(hand2);
+          h3 = hasher.u64c(hand3);
+          h4 = hasher.u64c(hand4);
 
           expect(h1 == h2, hand1.equals(hand2));
           expect(h1 == h3, false);
           expect(h1 == h4, i == j);
 
-          h1 = PositionalHash.u64co(hand1);
-          h2 = PositionalHash.u64co(hand2);
-          h3 = PositionalHash.u64co(hand3);
-          h4 = PositionalHash.u64co(hand4);
+          h1 = hasher.u64co(hand1);
+          h2 = hasher.u64co(hand2);
+          h3 = hasher.u64co(hand3);
+          h4 = hasher.u64co(hand4);
 
           expect(h1 == h2, true);
           expect(h1 == h3, false);
           expect(h1 == h4, i == j);
 
-          h1 = PositionalHash.u64cos(hand1);
-          h2 = PositionalHash.u64cos(hand2);
-          h3 = PositionalHash.u64cos(hand3);
+          h1 = hasher.u64cos(hand1);
+          h2 = hasher.u64cos(hand2);
+          h3 = hasher.u64cos(hand3);
 
           expect(h1 == h2, true);
           expect(h1 == h3, true);
 
-          h1 = PrimeHash.u64cos(hand1);
-          h2 = PrimeHash.u64cos(hand2);
-          h3 = PrimeHash.u64cos(hand3);
+          hasher = PrimeHash();
+          h1 = hasher.u64cosr(hand1.map((c) => c.rank!));
+          h2 = hasher.u64cosr(hand2.map((c) => c.rank!));
+          h3 = hasher.u64cosr(hand3.map((c) => c.rank!));
 
           expect(h1 == h2, true);
           expect(h1 == h3, true);
         }
         if (hand1.length <= 7 && hand4.length <= 7) {
-          h1 = PrimeHash.u64co(hand1);
-          h2 = PrimeHash.u64co(hand2);
-          h3 = PrimeHash.u64co(hand3);
-          h4 = PrimeHash.u64co(hand4);
+          h1 = hasher.u64co(hand1);
+          h2 = hasher.u64co(hand2);
+          h3 = hasher.u64co(hand3);
+          h4 = hasher.u64co(hand4);
 
           expect(h1 == h2, true);
           expect(h1 == h3, false);
           expect(h1 == h4, i == j);
         }
         if (hand1.length <= 5 && hand4.length <= 5) {
-          h1 = PrimeHash.u32cos(hand1);
-          h2 = PrimeHash.u32cos(hand2);
-          h3 = PrimeHash.u32cos(hand3);
+          h1 = hasher.u32cosr(hand1.map((c) => c.rank!));
+          h2 = hasher.u32cosr(hand2.map((c) => c.rank!));
+          h3 = hasher.u32cosr(hand3.map((c) => c.rank!));
 
           expect(h1 == h2, true);
           expect(h1 == h3, true);
 
-          h1 = PositionalHash.u32c(hand1);
-          h2 = PositionalHash.u32c(hand2);
-          h3 = PositionalHash.u32c(hand3);
-          h4 = PositionalHash.u32c(hand4);
+          hasher = PositionalHash();
+          h1 = hasher.u32c(hand1);
+          h2 = hasher.u32c(hand2);
+          h3 = hasher.u32c(hand3);
+          h4 = hasher.u32c(hand4);
 
           expect(h1 == h2, hand1.equals(hand2));
           expect(h1 == h3, false);

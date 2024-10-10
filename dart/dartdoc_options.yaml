@@ -1,0 +1,14 @@
+dartdoc:
+  categories:
+    "utilities":
+      markdown: utilities.md
+      name: Utilities
+    "cards":
+      markdown: cards.md
+      name: Cards
+    "poker":
+      markdown: poker.md
+      name: Poker
+  showUndocumentedCategories: true
+  includeSource: true
+

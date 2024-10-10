@@ -5,7 +5,7 @@
  * @brief Build hand text io test file.
  */
 
-import * as json5 from "https://deno.land/x/json5@v1.0.0/mod.ts";
+import { parse as jsonParse } from "jsr:@std/jsonc";
 
 let SCRIPT_DIR: string | undefined = undefined;
 
@@ -25,10 +25,32 @@ const CARD_TEXT = [
     "Ac", "Ad", "Ah", "As"
 ];
 
+type DeckInfo = {
+    name: string;
+    dups_allowed: boolean;
+    low_aces: boolean;
+    aliases: string[];
+    card_list: number[];
+};
+function isDeckInfo(obj: unknown): obj is DeckInfo {
+    if (typeof obj !== "object" || obj === null) return false;
+    const o = obj as DeckInfo;
+    return typeof o.name === "string" &&
+        typeof o.dups_allowed === "boolean" &&
+        typeof o.low_aces === "boolean" &&
+        Array.isArray(o.aliases) &&
+        o.aliases.every((x) => typeof x === "string") &&
+        Array.isArray(o.card_list) &&
+        o.card_list.every((x) => typeof x === "number");
+} 
+
 export async function buildHandsTextData() {
-    const masterData = json5.parse(await
-        Deno.readTextFile(`${sdir()}/json/master_decks.json5`));
-    const f = await Deno.open(`${sdir()}/json/hands_text.json5`, {
+    const masterData = jsonParse(await
+        Deno.readTextFile(`${sdir()}/json/master_decks.jsonc`));
+    if (! (Array.isArray(masterData))) {
+        throw new Error("Invalid master_decks.jsonc");
+    }
+    const f = await Deno.open(`${sdir()}/json/hands_text.jsonc`, {
         write: true, create: true, truncate: true });
     const enc = new TextEncoder();
 
@@ -40,8 +62,10 @@ export async function buildHandsTextData() {
     for (let i = 0; i < 1000; i += 1) {
         const deckNo = Math.floor(Math.random() * masterData.length);
         const deckInfo = masterData[deckNo];
+        if (! isDeckInfo(deckInfo)) {
+            throw new Error("Invalid deck info");
+        }
         const handLen = 2 + Math.floor(Math.random() * Math.random() * 12);
-
         const listIn = [...deckInfo.card_list];
         const listOut = [];
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env -S deno run --allow-read=./json --allow-write=../dart/lib/cards,../rust/src/cards build_master_deck_code.ts
+#!/usr/bin/env -S deno run --allow-read=./json --allow-write=../dart/lib/src/cards,../rust/src/cards build_master_deck_code.ts
 
 /**
  * @file build_master_deck_code.ts
@@ -29,7 +29,7 @@
  * Output is code for MasterDeck object and its static data.
  */
 
-import * as json5 from "https://deno.land/x/json5@v1.0.0/mod.ts";
+import { parse as jsonParse } from "jsr:@std/jsonc";
 
 let SCRIPT_DIR: string | undefined = undefined;
 
@@ -38,6 +38,25 @@ function sdir(): string {
     SCRIPT_DIR = import.meta.dirname;
     if (SCRIPT_DIR === undefined) SCRIPT_DIR = ".";
     return SCRIPT_DIR;
+}
+
+type DeckInfo = {
+    name: string;
+    dups_allowed: boolean;
+    low_aces: boolean;
+    aliases: string[];
+    card_list: number[];
+};
+function isDeckInfo(obj: unknown): obj is DeckInfo {
+    if (typeof obj !== "object" || obj === null) return false;
+    const o = obj as DeckInfo;
+    return typeof o.name === "string" &&
+        typeof o.dups_allowed === "boolean" &&
+        typeof o.low_aces === "boolean" &&
+        Array.isArray(o.aliases) &&
+        o.aliases.every((x) => typeof x === "string") &&
+        Array.isArray(o.card_list) &&
+        o.card_list.every((x) => typeof x === "number");
 }
 
 const DART_CARD_NAMES = [ "",
@@ -59,23 +78,29 @@ const DART_CARD_NAMES = [ "",
   "AceOfClubs", "AceOfDiamonds", "AceOfHearts", "AceOfSpades", ];
 
 export async function buildMasterDeckDart() {
-    const deckDataIn = json5.parse(await Deno.readTextFile(`${sdir()}/json/master_decks.json5`));
+    const deckDataIn = jsonParse(await
+        Deno.readTextFile(`${sdir()}/json/master_decks.jsonc`));
+    if (! Array.isArray(deckDataIn)) {
+        throw new Error("Invalid master_decks.jsonc");
+    }
     const enc = new TextEncoder();
-    const f = await Deno.open(`${sdir()}/../dart/lib/cards/master_deck.dart`, {
+    const f = await Deno.open(`${sdir()}/../dart/lib/src/cards/master_deck.dart`, {
         write: true, create: true, truncate: true
     });
     await f.write(enc.encode(
 `// Do not edit: File generated with build_master_deck_code.ts
-import 'package:onejoker/cards/card.dart';
+import 'cards.dart';
 
 /// # MasterDeck | [wiki](https://github.com/lcrocker/ojpoker/wiki/MasterDeck)
 /// A static object that describes the properties of a new deck of cards for a
-/// certain game. For example, the "English" master deck has 52 cards, no
-/// jokers, aces are high, and no duplicate cards are allowed. The "Canasta"
-/// deck has 108 cards including jokers and duplicates. \\
-/// Since this is all unchanging information, \`MasterDeck.byName()\`
-/// just returns a pointer to an existing static object based on the name you
-/// pass in.
+/// certain game. 
+///
+/// For example, the "English" master deck has 52 cards, no jokers, aces are
+/// high, and no duplicate cards are allowed. The "Canasta" deck has 108 cards
+/// including jokers and duplicates. Since this is all unchanging information,
+/// \`MasterDeck.byName()\` just returns a pointer to an existing static object
+/// based on the name you pass in.
+/// {@category cards}
 class MasterDeck {
     final String name;
     final int cardSet;
@@ -110,10 +135,14 @@ class MasterDeck {
 
     const aliases: Record<string, number> = {};
     for (let i = 0; i < deckDataIn.length; i += 1) {
-        for (let j = 0; j < deckDataIn[i].aliases.length; j += 1) {
-            aliases[deckDataIn[i].aliases[j]] = i + 1;
+        const dd = deckDataIn[i];
+        if (! isDeckInfo(dd)) {
+            throw new Error("bad deck data");
         }
-        aliases[deckDataIn[i].name] = i + 1;
+        for (let j = 0; j < dd.aliases.length; j += 1) {
+            aliases[dd.aliases[j]] = i + 1;
+        }
+        aliases[dd.name] = i + 1;
     }
     await f.write(enc.encode(
 `
@@ -129,16 +158,20 @@ class MasterDeck {
     static const List<MasterDeck> decks = [
 `));
     for (let i = 0; i < deckDataIn.length; i += 1) {
+        const dd = deckDataIn[i];
+        if (! isDeckInfo(dd)) {
+            throw new Error("bad deck data");
+        }
         let cset: bigint = 0n;
-        for (let j = 0; j < deckDataIn[i].card_list.length; j += 1) {
-            cset |= (1n << BigInt(deckDataIn[i].card_list[j]));
+        for (let j = 0; j < dd.card_list.length; j += 1) {
+            cset |= (1n << BigInt(dd.card_list[j]));
         }
         await f.write(enc.encode(
-`        MasterDeck._("${deckDataIn[i].name}",
+`        MasterDeck._("${dd.name}",
             0x${cset.toString(16)},
             [
 `));
-            const cards = deckDataIn[i].card_list;
+            const cards = dd.card_list;
             for (let j = cards.length - 1; j >= 0; j -= 1) {
                 await f.write(enc.encode(
 `                Card.${DART_CARD_NAMES[cards[j]]},
@@ -146,8 +179,8 @@ class MasterDeck {
             }
             await f.write(enc.encode(
 `            ],
-            ${deckDataIn[i].dups_allowed},
-            ${deckDataIn[i].low_aces}),\n`));
+            ${dd.dups_allowed},
+            ${dd.low_aces}),\n`));
     }
     await f.write(enc.encode(
 `    ];
@@ -157,7 +190,11 @@ class MasterDeck {
 }
 
 export async function buildMasterDeckRust() {
-    const deckDataIn = json5.parse(await Deno.readTextFile(`${sdir()}/json/master_decks.json5`));
+    const deckDataIn = jsonParse(await
+        Deno.readTextFile(`${sdir()}/json/master_decks.jsonc`));
+    if (! Array.isArray(deckDataIn)) {
+        throw new Error("bad input file master_decks.jsonc");
+    }
     const enc = new TextEncoder();
     const f = await Deno.open(`${sdir()}/../rust/src/cards/master_deck.rs`, {
         write: true, create: true, truncate: true
@@ -165,7 +202,7 @@ export async function buildMasterDeckRust() {
     await f.write(enc.encode(
 `// Do not edit: File generated with build_master_deck_code.ts
 //@ cards/master_deck.rs
-//@ Lee Daniel Crocker <lee@piclab.com>
+//@ Lee Daniel Crocker <lee@onejoker.org>
 
 //! # masterdeck | [wiki](https://github.com/lcrocker/ojpoker/wiki/MasterDeck)
 
@@ -227,10 +264,14 @@ fn masterdeck_by_name(alias: &str) -> &'static MasterDeck {
     match &alias.to_lowercase()[..] {
 `));
     for (let i = 0; i < deckDataIn.length; i += 1) {
-        const aliases: string[] = [ `"${deckDataIn[i].name}"` ];
+        const dd = deckDataIn[i];
+        if (! isDeckInfo(dd)) {
+            throw new Error("bad input file");
+        }
+        const aliases: string[] = [ `"${dd.name}"` ];
 
-        for (let j = 0; j < deckDataIn[i].aliases.length; j += 1) {
-            aliases.push(`"${deckDataIn[i].aliases[j]}"`);
+        for (let j = 0; j < dd.aliases.length; j += 1) {
+            aliases.push(`"${dd.aliases[j]}"`);
         }
         f.write(enc.encode(
 `        ${aliases.join(" | ")} => &DECK_INFO[${i}],
@@ -257,18 +298,22 @@ macro_rules! masterdeck {
 const DECK_INFO: [MasterDeck; ${deckDataIn.length}] = [
 `));
     for (let i = 0; i < deckDataIn.length; i += 1) {
-        let cset: bigint = 0n;
-        for (let j = 0; j < deckDataIn[i].card_list.length; j += 1) {
-            cset |= (1n << BigInt(deckDataIn[i].card_list[j]));
+        const dd = deckDataIn[i];
+        if (! isDeckInfo(dd)) {
+            throw new Error("bad input file");
         }
-        const lname = `${deckDataIn[i].name}_cards`.toLocaleUpperCase();
+        let cset: bigint = 0n;
+        for (let j = 0; j < dd.card_list.length; j += 1) {
+            cset |= (1n << BigInt(dd.card_list[j]));
+        }
+        const lname = `${dd.name}_cards`.toLocaleUpperCase();
 
         f.write(enc.encode(
-`    masterdeck!("${deckDataIn[i].name}",
+`    masterdeck!("${dd.name}",
          0x${cset.toString(16)},
          &${lname},
-         ${deckDataIn[i].dups_allowed},
-         ${deckDataIn[i].low_aces}),
+         ${dd.dups_allowed},
+         ${dd.low_aces}),
 `));
     }
     f.write(enc.encode(
@@ -286,10 +331,14 @@ macro_rules! card_array {
 
 `));
     for (let i = 0; i < deckDataIn.length; i += 1) {
-        const lname = `${deckDataIn[i].name}_cards`.toLocaleUpperCase();
+        const dd = deckDataIn[i];
+        if (! isDeckInfo(dd)) {
+            throw new Error("bad input file");
+        }
+        const lname = `${dd.name}_cards`.toLocaleUpperCase();
         f.write(enc.encode(
-`const ${lname}: [Card; ${deckDataIn[i].card_list.length}] =
-card_array!(${deckDataIn[i].card_list.join(",")});
+`const ${lname}: [Card; ${dd.card_list.length}] =
+card_array!(${dd.card_list.join(",")});
 
 `));
     }

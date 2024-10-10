@@ -1,6 +1,6 @@
 // Do not edit: File generated with build_master_deck_code.ts
 //@ cards/master_deck.rs
-//@ Lee Daniel Crocker <lee@piclab.com>
+//@ Lee Daniel Crocker <lee@onejoker.org>
 
 //! # masterdeck | [wiki](https://github.com/lcrocker/ojpoker/wiki/MasterDeck)
 

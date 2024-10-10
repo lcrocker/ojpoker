@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["HandLevelAceToFive","HandLevelActionRazz","HandLevelBadugi","HandLevelDeuceToSeven","HandLevelHigh","HandScale"],"struct":["HandValueBase"],"trait":["HandLevelTrait"],"type":["HandLevelAceToSix","HandLevelManilla","HandLevelMexican","HandLevelPaiGow"]};

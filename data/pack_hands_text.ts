@@ -2,7 +2,7 @@
 
 /**
  * @file pack_hands_text.ts
- * @brief Build msgpack file from hands_text.json5
+ * @brief Build msgpack file from hands_text.jsonc
  * 
  * JSON input is array of 4-tuples, each containing deck name, hand,
  * length, and hash:
@@ -22,8 +22,8 @@
  * }
  */
 
-import * as json5 from "https://deno.land/x/json5@v1.0.0/mod.ts";
-import * as mp from "https://deno.land/x/msgpack@v1.2/mod.ts";
+import { parse as jsonParse } from "jsr:@std/jsonc";
+import { encode as mpEncode } from "jsr:@lambdalisue/messagepack";
 
 let SCRIPT_DIR: string | undefined = undefined;
 
@@ -34,7 +34,17 @@ function sdir(): string {
     return SCRIPT_DIR;
 }
 
-type HandTestData = {
+type HandTestDataIn = [ string, string, number, number ];
+function isHandTestDataIn(obj: unknown): obj is HandTestDataIn {
+    if (! Array.isArray(obj)) return false;
+    if (obj.length != 4) return false;
+    if ("string" != typeof (obj[0])) return false;
+    if ("string" != typeof (obj[1])) return false;
+    if ("number" != typeof (obj[2])) return false;
+    return ("number" == typeof(obj[3]));
+}
+
+type HandTestDataOut = {
     count: number,
     deck_names: string[],
     hands: [ number, string, number, number ][];
@@ -44,8 +54,12 @@ export async function packHandsText() {
     let deckNoNext = 1;
     const deckMap: Map<string, number> = new Map();
 
-    const handDataIn = json5.parse(await Deno.readTextFile(`${sdir()}/json/hands_text.json5`));
-    const handDataOut: HandTestData = {
+    const handDataIn = jsonParse(await
+        Deno.readTextFile(`${sdir()}/json/hands_text.jsonc`));
+    if (! Array.isArray(handDataIn)) {
+        throw new Error("bad input file");
+    }
+    const handDataOut: HandTestDataOut = {
         count: handDataIn.length,
         deck_names: [],
         hands: [],
@@ -53,6 +67,9 @@ export async function packHandsText() {
 
     for (let i = 0; i < handDataIn.length; i += 1) {
         const hd = handDataIn[i];
+        if (! isHandTestDataIn(hd)) {
+            throw new Error("bad input file");
+        }
         let dn = deckMap.get(hd[0]);
         if (! dn) {
             dn = deckNoNext;
@@ -64,7 +81,7 @@ export async function packHandsText() {
     }
     // console.log(handDataOut);
 
-    const pack = mp.encode(handDataOut);
+    const pack = mpEncode(handDataOut);
     await Deno.writeFile(`${sdir()}/bin/hands_text.msgpack`, pack);
     console.log("hand data packed");
 }

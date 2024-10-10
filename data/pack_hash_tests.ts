@@ -2,7 +2,7 @@
 
 /**
  * @file pack_hash_tests.ts
- * @brief Build msgpack file from hash_tests.json5
+ * @brief Build msgpack file from hash_tests.jsonc
  * 
  * JSON input is array of 3-tuples. Each is a hand of cards, the
  * second element being the same as the first but re-ordered, and the
@@ -21,8 +21,8 @@
  * }
  */
 
-import * as json5 from "https://deno.land/x/json5@v1.0.0/mod.ts";
-import * as mp from "https://deno.land/x/msgpack@v1.2/mod.ts";
+import { parse as jsonParse } from "jsr:@std/jsonc";
+import { encode as mpEncode } from "jsr:@lambdalisue/messagepack";
 
 let SCRIPT_DIR: string | undefined = undefined;
 
@@ -33,25 +33,40 @@ function sdir(): string {
     return SCRIPT_DIR;
 }
 
-type HashTestData = {
+type HashTestDataIn = [ string, string, string ];
+function isHashTestDataIn(obj: unknown): obj is HashTestDataIn {
+    if (! Array.isArray(obj)) return false;
+    if (obj.length != 3) return false;
+    if ("string" != typeof (obj[0])) return false;
+    if ("string" != typeof (obj[1])) return false;
+    return ("string" == typeof(obj[2]));
+}
+type HashTestDataOut = {
     count: number,
     hands: [ string, string, string ][];
 }
 
 export async function packHashTestData() {
-    const dataIn = json5.parse(await Deno.readTextFile(`${sdir()}/json/hash_tests.json5`));
-    const dataOut: HashTestData = {
+    const dataIn = jsonParse(await
+        Deno.readTextFile(`${sdir()}/json/hash_tests.jsonc`));
+    if (! Array.isArray(dataIn)) {
+        throw new Error("bad input file");
+    }
+    const dataOut: HashTestDataOut = {
         count: dataIn.length,
         hands: [],
     }
 
     for (let i = 0; i < dataIn.length; i += 1) {
         const d = dataIn[i];
+        if (! isHashTestDataIn(d)) {
+            throw new Error("bad input data");
+        }
         dataOut.hands.push([ d[0], d[1], d[2] ]);
     }
     // console.log(dataOut);
 
-    const pack = mp.encode(dataOut);
+    const pack = mpEncode(dataOut);
     await Deno.writeFile(`${sdir()}/bin/hash_tests.msgpack`, pack);
     console.log("hash test data packed");
 }

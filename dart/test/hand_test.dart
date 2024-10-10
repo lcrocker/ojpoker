@@ -14,6 +14,7 @@ void main() {
     test('hands text data file', () async {
       var bytes = await file.readAsBytes();
       var data = mp.deserialize(bytes);
+      var hasher = FNVHash();
 
       var hands = data['hands'];
       for (int i = 0; i < data['count']; i += 1) {
@@ -28,7 +29,7 @@ void main() {
           expect(true, deck.has(hand.cardAt(j)!));
         }
         expect(hands[i][1], hand.toString());
-        expect(hands[i][3], FNVHash.u32(hand));
+        expect(hands[i][3], hasher.u32(hand));
       }
     }, skip: skip);
   });
@@ -104,7 +105,7 @@ void main() {
       expect(out[2], Card.SevenOfSpades);
       hand.pushN(3, cardsFromText("JkKh8h"));
       expect(hand.toString(), "3dQcJkKh8h");
-      hand.popN(4).forEach((_){});  // pop and drop
+      hand.popN(4).forEach((_) {}); // pop and drop
       expect(hand.toString(), "3d");
       hand.pushN(2, [Card.FourOfSpades, Card.DeuceOfClubs]);
       expect(hand.toString(), "3d4s2c");

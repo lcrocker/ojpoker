@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["CardCombinationIter","CardIntoIter","CardIter","Hand","OrphanHand"],"trait":["HandTrait"]};

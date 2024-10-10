@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["hand_value","high_hand"]};

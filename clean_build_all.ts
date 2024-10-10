@@ -6,6 +6,7 @@
  */
 
 import { buildMasterDeckAll } from "./data/build_master_deck_code.ts";
+import { buildDocsAll } from "./build_docs_all.ts";
 import { packAll } from "./data/pack_all.ts";
 
 let SCRIPT_DIR: string | undefined = undefined;
@@ -45,4 +46,5 @@ if (import.meta.main) {
     await deleteAll();
     await buildMasterDeckAll();
     await packAll();
+    await buildDocsAll();
 }

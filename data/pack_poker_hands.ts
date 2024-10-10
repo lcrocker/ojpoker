@@ -2,7 +2,7 @@
 
 /**
  * @file pack_poker_hands.ts
- * @brief Build msgpack file from poker_hands_100k_eval.json5
+ * @brief Build msgpack file from poker_hands_100k_eval.jsonc
  * 
  * JSON input is array of 5-tuples, each containing a hand and four
  * equivalence class rankings.
@@ -20,8 +20,8 @@
  * }
  */
 
-import * as json5 from "https://deno.land/x/json5@v1.0.0/mod.ts";
-import * as mp from "https://deno.land/x/msgpack@v1.2/mod.ts";
+import { parse as jsonParse } from "jsr:@std/jsonc";
+import { encode as mpEncode } from "jsr:@lambdalisue/messagepack";
 
 let SCRIPT_DIR: string | undefined = undefined;
 
@@ -32,26 +32,43 @@ function sdir(): string {
     return SCRIPT_DIR;
 }
 
-type PokerEvalTestData = {
+type PokerEvalTestDataIn = [ string, number, number, number, number ];
+function isPokerEvalTestDataIn(obj: unknown): obj is PokerEvalTestDataIn {
+    if (! Array.isArray(obj)) return false;
+    if (obj.length != 5) return false;
+    if ("string" != typeof (obj[0])) return false;
+    if ("number" != typeof (obj[1])) return false;
+    if ("number" != typeof (obj[2])) return false;
+    if ("number" != typeof (obj[3])) return false;
+    return ("number" == typeof(obj[4]));
+}
+type PokerEvalTestDataOut = {
     count: number,
     hands: [ string, number, number, number, number ][];
 }
 
 export async function packPokerEvalHands() {
-    const dataIn = json5.parse(await Deno.readTextFile(`${sdir()}/json/poker_hands_100k_eval.json5`));
+    const dataIn = jsonParse(await
+        Deno.readTextFile(`${sdir()}/json/poker_hands_100k_eval.jsonc`));
+    if (! Array.isArray(dataIn)) {
+        throw new Error("bad input file");
+    }
     // console.log(dataIn);
-    const dataOut: PokerEvalTestData = {
+    const dataOut: PokerEvalTestDataOut = {
         count: dataIn.length,
         hands: [],
     };
 
     for (let i = 0; i < dataIn.length; i += 1) {
         const row = dataIn[i];
+        if (! isPokerEvalTestDataIn(row)) {
+            throw new Error("bad input data");
+        }
         dataOut.hands.push([ row[0], row[1], row[2], row[3], row[4] ]);
     }
     // console.log(dataOut);
 
-    const pack = mp.encode(dataOut);
+    const pack = mpEncode(dataOut);
     await Deno.writeFile(`${sdir()}/bin/poker_hands_100k_eval.msgpack`, pack);
     console.log("poker hand eval data packed");
 }

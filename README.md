@@ -1,4 +1,4 @@
-# ojpoker | Updated: October 7, 2024
+# ojpoker | Updated: October 9, 2024
 
 This is code for the [OneJoker](https://onejoker.org) project,
 aiming to create libraries and other digital tools for handling playing cards
@@ -21,7 +21,6 @@ encountered on the net:
 If you already have the Dart and Rust development environments and the Deno
 runtime running on your machine, you can jump right in and run the build and
 test scripts:
-
 ```
 ./clean_build_all.ts
 ./test_all.ts
@@ -38,15 +37,16 @@ set up Dart with or without Flutter as you prefer.
 Flutter is a good mobile development platform based on Dart, but is beyond
 the scope of this project.
 I am using Rust/Cargo 1.80.0.
-Finally, I use Deno 1.46.3 (TypeScript 5.5.2) for utility scripts.
+Finally, I use Deno 2.0.0 (TypeScript 5.6.2) for utility scripts.
 I strongly recommend it for general-purpose scripting.
 
 ## Data files
 
 I use many serialized data sets for things like test data and pre-computed
 lookup tables. The smaller and more necessary ones are checked into the repo
-in the `data` directory along with conversion scripts,
-in [JSON5](https://json5.org) format for ease of human editing and in
+in the `data` directory along with conversion scripts.
+[JSONC](https://code.visualstudio.com/docs/languages/json#_json-with-comments)
+format is used for ease of human editing and
 [MessagePack](https://msgpack.org) binary format for performance.
 The very large ones (such as the poker evaluator lookup tables) are not in
 the repo, but can be downloaded from the repo's
