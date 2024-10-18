@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["BitfieldHash","FNVHash","PositionalHash","PrimeHash"],"trait":["CardHashTrait"]};
+window.SIDEBAR_ITEMS = {"fn":["ojh_bitfield_u64co","ojh_fnv_u32","ojh_fnv_u64","ojh_mp5_english","ojh_positional_u32c","ojh_positional_u32csr","ojh_positional_u64c","ojh_positional_u64csr","ojh_prime_u32cosr","ojh_prime_u64co","ojh_prime_u64cosr"]};

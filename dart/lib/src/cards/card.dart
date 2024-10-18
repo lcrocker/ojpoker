@@ -8,10 +8,12 @@ final _brackets = RegExp(r'^\s*\[([^\]]+)\]');
 final _oneCard = RegExp(r'\s*(Jk|Jb|Jw|([1-9TJCQKA])([cdhs]))');
 
 /// Enum for cards and their basic methods.
+/// (see [Card](http://github.com/lcrocker/ojpoker/wiki/Card) @ wiki)
 /// 
 /// Numbers *very* important here,
-/// not just for compatibility but specific algorithms will fail if changed
-/// (see README).
+/// not just for compatibility but specific algorithms will fail
+/// if changed.
+/// (see [Ordinal](http://github.com/lcrocker/ojpoker/wiki/Ordinal) @ wiki)
 /// {@category cards}
 enum Card implements Comparable<Card> {
   None, // 0

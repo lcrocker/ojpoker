@@ -28,13 +28,13 @@ class HandValue {
   /// lower number equals better hand.
   ///
   /// Start with just the [HandLevel] times
-  /// 5 million. Then within each level, use `PositionalHash.u32cosr()` to
+  /// 10 million. Then within each level, use `PositionalHash.u32csr()` to
   /// express the ranks as an n-digit number in base 16 (which should be less
-  /// than 5000000). That number will be high for better hands within the
+  /// than 10000000). That number will be high for better hands within the
   /// level, so we negate it.
   static defaultValueFunction(int level, List<Rank> ranks) {
     int h = hasher.u32csr(ranks);
-    return 5000000 * level - h;
+    return 10000000 * level - h;
   }
 
   /// Implement == for [HandValue]

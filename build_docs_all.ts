@@ -57,7 +57,7 @@ async function buildDocsDart() {
 
 async function buildDocsRust() {
     const c1 = new Deno.Command("cargo", {
-        args: ["doc"],
+        args: ["doc", "--no-deps"],
         cwd: `${sdir()}/rust`,
     }).spawn();
 

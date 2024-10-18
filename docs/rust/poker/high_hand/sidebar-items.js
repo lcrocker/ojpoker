@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["HandValueHigh"]};
+window.SIDEBAR_ITEMS = {"struct":["HandEvaluatorHigh"],"type":["HandValueHigh"]};

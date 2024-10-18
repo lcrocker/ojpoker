@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Deck"],"trait":["DeckTrait"]};
+window.SIDEBAR_ITEMS = {"struct":["Deck"]};

@@ -76,9 +76,9 @@
   <p>Default function for assigning a numeric value to the <a href="../../onejoker/Hand-class.html">Hand</a> such that
 lower number equals better hand.</p>
 <p>Start with just the <code>HandLevel</code> times
-5 million. Then within each level, use <code>PositionalHash.u32cosr()</code> to
+10 million. Then within each level, use <code>PositionalHash.u32csr()</code> to
 express the ranks as an n-digit number in base 16 (which should be less
-than 5000000). That number will be high for better hands within the
+than 10000000). That number will be high for better hands within the
 level, so we negate it.</p>
 </section>
 
@@ -88,7 +88,7 @@ level, so we negate it.</p>
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">static defaultValueFunction(int level, List&lt;Rank&gt; ranks) {
   int h = hasher.u32csr(ranks);
-  return 5000000 * level - h;
+  return 10000000 * level - h;
 }</code></pre>
 </section>
 

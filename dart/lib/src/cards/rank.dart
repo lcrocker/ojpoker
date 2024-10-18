@@ -1,9 +1,16 @@
 // ignore_for_file: constant_identifier_names
 
 /// Enum for card ranks and their basic methods.
+/// (see [Rank](https://github.com/lcrocker/ojpoker/wiki/Rank) @ wiki)
 /// 
-/// As with suits, do not
-/// change the numbers.
+/// As with suits, do not change the numbers or you will break things.
+///
+/// Note that there are two slots for aces and a slot for
+/// knight/cavalier.
+/// (see [Ace](https://github.com/lcrocker/ojpoker/wiki/Ace) and
+/// [Knight](https://github.com/lcrocker/ojpoker/wiki/Knight) @ wiki
+/// for details)
+
 /// {@category cards}
 enum Rank implements Comparable<Rank> {
   None, // 0 not a valid rank

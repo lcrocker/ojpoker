@@ -1,207 +1,210 @@
-//@ cards/deck_hand.rs
+//! [wiki](https://github.com/lcrocker/ojpoker/wiki/Deck) | "Live" deck of cards for play.
 
-use std::sync::{Arc, Mutex};
-
-// use crate::errors::*;
 use crate::cards::*;
+use crate::utils::*;
+use crate::errors::*;
 
-pub trait DeckTrait {
-    fn remaining(&self) -> usize;
-    fn size(&self) -> usize;
-    fn len(&self) -> usize;
-    fn is_empty(&self) -> bool;
-    fn is_not_empty(&self) -> bool;
-    fn contains(&self, card: Card) -> bool;
-    fn new_hand(&self) -> Hand;
-    fn deal_to(&self, h: Hand) -> bool;
-    fn deal_all(&self, n: usize) -> bool;
-    fn clear_all(&self);
-    fn refill(&self);
-    fn valid_card(&self, card: Card) -> Card;
-    fn push(&mut self, card: Card);
-    fn pop(&mut self) -> Option<Card>;
-    fn push_n<I>(&mut self, n: usize, cards: I)
-        where I: IntoIterator<Item = Card>;
-    fn pop_n(&mut self, n: usize) -> impl Iterator<Item = Card>;
-    fn remove_card(&mut self, card: Card) -> bool;
-    fn shuffle(&mut self);
-    fn sort(&mut self);
-    fn combinations(&self, n: usize) -> CardCombinationIter;
-}
-
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Deck) | "Live" deck of cards for play.
+/// An array of [Card] objects with methods appropriate for a deck of cards.
+/// Note that cards are pop()'d from end of the array for speed, making
+/// that notionally the "top" of the deck. We show the [Deck] reversed
+/// when printing for this reason to bake debugging easier. Cards in the
+/// deck are not accessed randomly by index, though they can be removed
+/// by value.
 #[derive(Clone, Debug)]
 pub struct Deck {
+    /// Static pointer to associated [MasterDeck]
     pub master: &'static MasterDeck,
-    pub cards: Arc<Mutex<OrphanHand>>,
-    pub hands: Vec<Arc<Mutex<OrphanHand>>>,
+    /// Current contents of the deck
+    pub cards: Vec<Card>,
 }
 
 impl Deck {
+    /// Create a new deck from a [MasterDeck] by name.
+    /// Filled but not shuffled.
     pub fn new(dname: &str) -> Deck {
         let m = MasterDeck::by_name(dname);
         Deck {
-            cards: Arc::new(Mutex::new(
-                OrphanHand::from_iter(m.card_list.iter().cloned()))),
             master: m,
-            hands: Vec::new(),
+            cards: m.card_list.to_vec(),
         }
     }
-}
 
-impl DeckTrait for Deck {
-    fn len(&self) -> usize {
-        let s = self.cards.lock().unwrap();
-        s.len()
+    /// Create a new [Hand] associated with the same [MasterDeck],
+    /// and deal it some initial cards.
+    pub fn new_hand(&self) -> Hand {
+        Hand {
+            master: self.master,
+            cards: Vec::new(),
+        }
     }
 
-    fn remaining(&self) -> usize {
-        self.len()
+    /// Create a new [Hand] associated with the same [MasterDeck],
+    /// and deal it some initial cards.
+    pub fn new_hand_with(&mut self, n: usize) -> Hand {
+        let mut h = Hand {
+            master: self.master,
+            cards: Vec::new(),
+        };
+        if n > 0 { h.push_n(n, self.pop_n(n)); }
+        h
     }
 
-    fn is_empty(&self) -> bool {
-        let s = self.cards.lock().unwrap();
-        s.is_empty()
+    /// Export the current contents of the deck as a vector of [Card].
+    pub fn to_vec(&self) -> Vec<Card> {
+        self.cards.to_vec()
     }
 
-    fn is_not_empty(&self) -> bool {
-        let s = self.cards.lock().unwrap();
-        s.is_not_empty()
+    /// Deal `n` cards from the deck to the given [Hand].
+    pub fn deal_to(&mut self, h: &mut Hand, n: usize) -> bool {
+        if self.cards.len() < n {
+            return false;
+        }
+        h.push_n(n, self.pop_n(n));
+        true
     }
 
-    fn contains(&self, card: Card) -> bool {
-        let s = self.cards.lock().unwrap();
-        s.contains(card)
+    /// Validate that the give card is legal for this deck,
+    /// or panic if not.
+    pub fn valid_card(&self, card: Card) -> Option<Card> {
+        let cout: Card = if self.master.low_aces {
+            Card::low_ace_fix(card)
+        } else {
+            Card::high_ace_fix(card)
+        };
+        if self.master.card_list.contains(&cout) {
+            return Some(cout);
+        }
+        None
     }
 
-    fn size(&self) -> usize {
+    /// Refill the deck from the master list.
+    pub fn refill(&mut self) {
+        self.cards = self.master.card_list.to_vec();
+    }
+
+    /// Return the number of cards remaining in the deck.
+    pub fn len(&self) -> usize {
+        self.cards.len()
+    }
+
+    /// Alias for len().
+    pub fn remaining(&self) -> usize {
+        self.cards.len()
+    }
+
+    /// Return the total number of cards in the full deck.
+    pub fn size(&self) -> usize {
         self.master.size()
     }
 
-    fn new_hand(&self) -> Hand {
-        Hand {
-            master: self.master,
-            cards: Arc::new(Mutex::new(OrphanHand::new())),
-            deck: Arc::clone(&self.cards),
+    /// Is the deck empty?
+    pub fn is_empty(&self) -> bool {
+        self.cards.is_empty()
+    }
+
+    /// Is the deck not empty?
+    pub fn is_not_empty(&self) -> bool {
+        ! self.cards.is_empty()
+    }
+
+    /// Does the deck contain the given [Card]?
+    pub fn contains(&self, card: Card) -> bool {
+        if let Some(c) = self.valid_card(card) {
+            return self.cards.contains(&c);
+        }
+        false
+    }
+
+    /// Push a [Card] onto the deck. We do not generally expects cards
+    /// to go in this direction, but it is useful for testing and simulation.
+    pub fn push(&mut self, card: Card) {
+        if let Some(c) = self.valid_card(card) {
+            self.cards.push(c);
         }
     }
 
-    fn deal_to(&self, h: Hand) -> bool {
-        let mut d = self.cards.lock().unwrap();
-        if d.is_empty() {
-            return false;
-        }
-        let mut t = h.cards.lock().unwrap();
-        t.push(d.pop().unwrap());
-        true
+    /// Pop a [Card] from the deck. Return `None` if the deck is empty.
+    pub fn pop(&mut self) -> Option<Card> {
+        self.cards.pop()
     }
 
-    fn deal_all(&self, n: usize) -> bool {
-        let mut d = self.cards.lock().unwrap();
-        if d.len() < n * self.hands.len() {
-            return false;
-        }
-        for h in self.hands.iter() {
-            let mut t = h.lock().unwrap();
-            t.push_n(n, d.pop_n(n));
-        }
-        true
-    }
-
-    fn clear_all(&self) {
-        for h in self.hands.iter() {
-            let mut t = h.lock().unwrap();
-            t.clear();
-        }
-    }
-
-    fn refill(&self) {
-        let mut d = self.cards.lock().unwrap();
-        d.clear();
-        d.push_n(self.size(), self.master.card_list.iter().cloned());
-    }
-
-    fn valid_card(&self, cin: Card) -> Card {
-        let cout: Card = if self.master.low_aces {
-            Card::low_ace_fix(cin)
-        } else {
-            Card::high_ace_fix(cin)
-        };
-        assert!(self.master.has(cout));
-        cout
-    }
-
-    fn push(&mut self, card: Card) {
-        let mut s = self.cards.lock().unwrap();
-        s.push(card)
-    }
-
-    fn pop(&mut self) -> Option<Card> {
-        let mut s = self.cards.lock().unwrap();
-        s.pop()
-    }
-
-    fn push_n<I>(&mut self, n: usize, cards: I)
+    /// Push a collection of [Card]s onto the deck.
+    pub fn push_n<I>(&mut self, n: usize, cards: I)
     where I: IntoIterator<Item = Card> {
         let mut remaining = n;
-        let mut s = self.cards.lock().unwrap();
 
         for c in cards {
             if remaining == 0 {
                 break;
             }
             remaining -= 1;
-            s.push(c);
+            self.push(c);
         }
     }
 
-    fn pop_n(&mut self, n: usize) -> impl Iterator<Item = Card> {
-        let mut s = self.cards.lock().unwrap();
-        let count = if s.len() < n { s.len() } else { n };
+    /// Pop `n` cards from the deck as an iterator.
+    pub fn pop_n(&mut self, n: usize) -> impl Iterator<Item = Card> {
+        let count = if self.len() < n { self.len() } else { n };
         let mut v = Vec::new();
 
         for _ in 0..count {
-            v.push(s.pop().unwrap());
+            v.push(self.pop().expect("already checked length"));
         }
         v.into_iter()
     }
 
-    fn remove_card(&mut self, card: Card) -> bool {
-        let mut s = self.cards.lock().unwrap();
-        s.remove_card(card)
+    /// Remove a card from the deck by value. Return `true` if found.
+    pub fn remove_card(&mut self, card: Card) -> bool {
+        for i in 0..self.cards.len() {
+            if self.cards[i] == card {
+                self.cards.remove(i);
+                return true;
+            }
+        }
+        false
     }
 
-    fn shuffle(&mut self) {
-        let mut s = self.cards.lock().unwrap();
-        s.shuffle()
+    /// Shuffle the deck in place.
+    pub fn shuffle(&mut self) {
+        oj_shuffle(&mut self.cards[..]);
     }
 
-    fn sort(&mut self) {
-        let mut s = self.cards.lock().unwrap();
-        s.sort()
+    /// Sort the deck in place. This uses the same sort as the [Hand] class,
+    /// so it's technically descending by rank, but recall that [Deck]s are
+    /// printed in reverse, so it will look ascending.
+    pub fn sort(&mut self) {
+        oj_sort(&mut self.cards[..]);
     }
 
-    fn combinations(&self, n: usize) -> CardCombinationIter {
-        let s = self.cards.lock().unwrap();
-        let c = s.to_vec();
-        CardCombinationIter::new(c, n)
+    /// Iterate 
+    pub fn combinations(&self, k: usize) -> impl Iterator<Item = Hand> {
+        CardCombinationIter::new(self, k)
     }
 }
+
 
 impl Default for Deck {
     fn default() -> Self {
         let m = MasterDeck::by_name("default");
         Deck {
             master: m,
-            cards: Arc::new(Mutex::new(OrphanHand::from_iter(m.card_list.iter().cloned()))),
-            hands: Vec::new(),
+            cards: m.card_list.to_vec(),
         }
+    }
+}
+
+impl std::str::FromStr for Deck {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> aResult<Self, Self::Err> {
+        aOk(Deck::new(s))
     }
 }
 
 impl std::fmt::Display for Deck {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let s = self.cards.lock().unwrap();
-        let l = s.len();
+        let l = self.len();
         let mut max: usize = l;
         let mut tail: usize = 0;
 
@@ -211,7 +214,7 @@ impl std::fmt::Display for Deck {
         }
         write!(f, "{} [", self.master.name)?;
         for i in ((l - max)..l).rev() {
-            write!(f, "{}", s.card_at(i).unwrap())?;
+            write!(f, "{}", self.cards[i])?;
         }
         if tail > 0 {
             write!(f, "...+{}", tail)?;
@@ -219,6 +222,68 @@ impl std::fmt::Display for Deck {
         write!(f, "]")
     }
 }
+
+impl Deck {
+    /// Create a new iterator over the deck.
+    pub fn iter(&self) -> CardIter {
+        CardIter::new(self.to_vec())
+    }
+}
+
+impl IntoIterator for Deck {
+    type Item = Card;
+    type IntoIter = CardIntoIter;
+
+    fn into_iter(self) -> CardIntoIter {
+        CardIntoIter::new(self.to_vec())
+    }
+}
+
+impl<'a> IntoIterator for &'a Deck {
+    type Item = Card;
+    type IntoIter = CardIter;
+
+    fn into_iter(self) -> CardIter {
+        CardIter::new(self.to_vec())
+    }
+}
+struct CardCombinationIter {
+    source: Vec<Card>,
+    dest: Hand,
+    indices: Vec<usize>,
+    done: bool,
+}
+
+impl CardCombinationIter {
+    pub fn new(deck: &Deck, k: usize) -> CardCombinationIter {
+        let source = deck.to_vec();
+        let mut dest: Hand = deck.new_hand();
+        dest.push_n(k, source[0..k].iter().cloned());
+        debug_assert!(dest.len() == k);
+        let mut indices: Vec<usize> = Vec::with_capacity(k);
+
+        for i in 0..k {
+            indices.push(i);
+        }
+        CardCombinationIter { source, indices, dest, done: false }
+    }
+}
+
+impl Iterator for CardCombinationIter {
+    type Item = Hand;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            return None;
+        }
+        for i in 0..self.indices.len() {
+            self.dest.cards[i] = self.source[self.indices[i]];
+        }
+        self.done = oj_next_combination(&mut self.indices, self.source.len());
+        Some(self.dest.clone())
+    }
+}
+
 
 /*
  * CODE ENDS HERE
@@ -229,14 +294,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_live_deck() {
+    fn test_live_deck() -> aResult<()> {
         let mut d1 = Deck::new("english");
         let mut d2 = Deck::new("52");
 
-        let mut prev = ACE_OF_SPADES;
+        let mut prev = WHITE_JOKER;
         for _ in 0..52 {
             let c = d1.pop().unwrap();
-            assert!(c <= prev);
+            assert!(c >= prev);
             prev = c;
         }   
         assert!(d1.is_empty());
@@ -255,16 +320,18 @@ mod tests {
         d2.refill();
         d1.shuffle();
         d2.shuffle();
-        let _ = format!("{} {:?} {} {:?})", d1, d1, d2, d2);
+        let _ = format!("{} {:?} {} {:?}", d1, d1, d2, d2);
 
         let mut h1 = d1.new_hand();
-        let mut h2 = d2.new_hand();
+        let mut h2 = d2.new_hand_with(5);
     
-        h1.draw(5);
+        h1.draw(5, &mut d1);
         assert_eq!(47, d1.len());
         assert_eq!(5, h1.len());
-        h2.draw(7);
-        assert_eq!(45, d2.len());
+        assert_eq!(5, h2.len());
+        h2.clear();
+        h2.draw(7, &mut d2);
+        assert_eq!(40, d2.len());
         assert_eq!(7, h2.len());
     
         h1.clear();
@@ -282,10 +349,10 @@ mod tests {
         let v = h1.to_vec();
         assert_eq!(vec![FOUR_OF_SPADES, DEUCE_OF_DIAMONDS, TREY_OF_HEARTS], v);
         h2.clear();
-        h2.push_n(3, cards_from_text("4s2d3h"));
+        h2.push_n(3, oj_cards_from_text("4s2d3h"));
         assert!(h1.equals(&h2));
         h1.push_n(2, [JACK_OF_CLUBS, QUEEN_OF_SPADES]);
-        h2.push_n(2, cards_from_text("JcQs"));
+        h2.push_n(2, oj_cards_from_text("JcQs"));
         assert!(h1.equals(&h2));
 
         h1.push(KING_OF_HEARTS);
@@ -305,5 +372,7 @@ mod tests {
         if h1.remove_card(DEUCE_OF_DIAMONDS) { h2.push(DEUCE_OF_DIAMONDS); }
         assert_eq!(FOUR_OF_SPADES, h1.card_at(0).unwrap());
         assert_eq!(h2.len(), 5);
+
+        aOk(())
     }
 }

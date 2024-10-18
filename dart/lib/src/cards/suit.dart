@@ -1,6 +1,7 @@
 // ignore_for_file: constant_identifier_names
 
 /// Enum for card suits and their most basic methods.
+/// (see [Suit](https://github.com/lcrocker/ojpoker/wiki/Suit) @ wiki)
 /// 
 /// The actual numbers are important here: change them and you will break
 /// some tests and compatibility with the Rust code.

@@ -1,4 +1,4 @@
-# ojpoker | Updated: October 9, 2024
+# ojpoker | Updated: October 17, 2024
 
 This is code for the [OneJoker](https://onejoker.org) project,
 aiming to create libraries and other digital tools for handling playing cards
@@ -8,7 +8,8 @@ encountered on the net:
 
 - Completeness: Card-handling code covers things that others don't like
   jokers and foreign decks. Poker code handles more variants. The two
-  initial languages (Dart and Rust) cover more application areas.
+  initial languages (Dart and Rust) cover many application areas, and I
+  plan to add more languages.
 - Correctness: Many libraries do not correctly handle things like lowball
   and badugi hands, or betting limits and procedures. Author is a long-time
   poker player and casino manager with extensive knowledge of the rules,
@@ -54,7 +55,7 @@ the repo, but can be downloaded from the repo's
 
 ## Cards in text
 
-Cards are recorded to and retrieved from text (such as the JSON5 files above)
+Cards are recorded to and retrieved from text (such as the JSONC files above)
 using the popular convention:
 Each card is a 2-letter abbreviation with a one-letter uppercase rank and a
 one-letter lowercase suit. Ranks are `2`, `3`, ... `9`, `T`, `J`, `Q`, `K`,

@@ -1,237 +1,200 @@
-//! # hash | [wiki](https://github.com/lcrocker/ojpoker/wiki/Hashes) | Hash functions for cards with various properties
+//! [wiki](https://github.com/lcrocker/ojpoker/wiki/Hashes) | Various hash functions for cards
+//! 
+//! The common FNV hashes are often used for implementing hash tables and
+//! doing quick checksumming for tests. They are not collision-free, but are
+//! fast and simple.
+//!
+//! Positional hashes treat cards (or ranks) as digits of a base-64
+//! (or base-16) number. They therefore order-dependent and limited in size,
+//! but inherently collision-free and useful for ranking hands.
+//! 
+//! Bitfield hashes represent each card as a bit in a 64-bit integer.
+//! This is inherently collision-free and order-independent, and very fast,
+//! but can't handle duplicate cards and produces huge numbers.
+//! 
+//! Prime hashes based on the product of prime numbers are inherently
+//! collision-free, order-independent, handle duplicates, and produce
+//! smaller numbers, but can only handle very small sets.
+//! 
+//! The "mp" functions convert a bitfield to a minimal perfect hash,
+//! and are very specific to number of cards and type of deck.
 
-use crate::cards::utils::*;
-use crate::cards::card::*;
+use crate::errors::*;
+use crate::cards::*;
+use crate::utils::*;
 
-pub trait CardHashTrait {
-    // 32-bit standard hash
-    fn u32<I>(_cards: I) -> u32
-    where I: IntoIterator<Item = Card> {
-        panic!();
-    }
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/FNV_Hash) | 32-bit FNV-1a hash
+pub fn ojh_fnv_u32(cards: &[Card]) -> aResult<u32> {
+    let mut h: u32 = 0x811C9DC5;
 
-    // 32-bit collison-free
-    fn u32c<I>(_cards: I) -> u32
-    where I: IntoIterator<Item = Card> {
-        panic!();
+    for c in cards {
+        h ^= c.0 as u32;
+        h = h.wrapping_mul(0x01000193);
     }
-
-    // 32-bit collision-free order-independent
-    fn u32co<I>(_cards: I) -> u32
-    where I: IntoIterator<Item = Card> {
-        panic!();
-    }
-
-    // 32-bit collision-free order-independent suit-independent
-    fn u32cos<I>(_cards: I) -> u32
-    where I: IntoIterator<Item = Card> {
-        panic!();
-    }
-
-    // 64-bit standard hash
-    fn u64<I>(_cards: I) -> u64
-    where I: IntoIterator<Item = Card> {
-        panic!();
-    }
-
-    // 64-bit collision-free
-    fn u64c<I>(_cards: I) -> u64
-    where I: IntoIterator<Item = Card> {
-        panic!();
-    }
-    
-    // 64-bit collision-free order-independent
-    fn u64co<I>(_cards: I) -> u64
-    where I: IntoIterator<Item = Card> {
-        panic!();
-    }
-    
-    // 64-bit collision-free order-independent suit-independent
-    fn u64cos<I>(_cards: I) -> u64
-    where I: IntoIterator<Item = Card> {
-        panic!();
-    } 
+    aOk(h)
 }
 
-pub struct FNVHash {}
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/FNV_Hash) | 64-bit FNV-1a hash
+pub fn ojh_fnv_u64(cards: &[Card]) -> aResult<u64> {
+    let mut h: u64 = 0xCBF29CE484222325;
 
-impl CardHashTrait for FNVHash {
-    fn u32<I>(cards: I) -> u32
-    where I: IntoIterator<Item = Card> {
-        let mut h: u32 = 0x811C9DC5;
-
-        for c in cards {
-            h ^= c.0 as u32;
-            h = h.wrapping_mul(0x01000193);
-        }
-        h
+    for c in cards {
+        h ^= c.0 as u64;
+        h = h.wrapping_mul(0x100000001B3);
     }
-
-    fn u64<I>(cards: I) -> u64
-    where I: IntoIterator<Item = Card> {
-        let mut h: u64 = 0xCBF29CE484222325;
-
-        for c in cards {
-            h ^= c.0 as u64;
-            h = h.wrapping_mul(0x100000001B3);
-        }
-        h
-    }
+    aOk(h)
 }
 
-pub struct PositionalHash {}
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Positional_Hash) | 32-bit positional hash
+pub fn ojh_positional_u32c(cards: &[Card]) -> aResult<u32> {
+    let mut max = 5;
+    let mut h: u32 = 0;
 
-impl CardHashTrait for PositionalHash {
-    fn u32c<I>(cards: I) -> u32
-    where I: IntoIterator<Item = Card> {
-        let mut max = 5;
-        let mut h: u32 = 0;
-
-        for c in cards {
-            max -= 1;
-            assert!(max >= 0);
-
-            h <<= 6;
-            h += (0x3F & c.0) as u32;
+    for c in cards {
+        max -= 1;
+        if max < 0 {
+            bail!(OjError::HashDomain(String::from("5 cards max")));
         }
-        h
+        h <<= 6;
+        h += (0x3F & c.0) as u32;
     }
-
-    fn u32co<I>(cards: I) -> u32
-    where I: IntoIterator<Item = Card> {
-        let mut sorted: Vec<Card> = cards.into_iter().collect();
-        oj_sort(&mut sorted[..]);
-        PositionalHash::u32c(sorted)
-    }
-
-    fn u32cos<I>(cards: I) -> u32
-    where I: IntoIterator<Item = Card> {
-        let mut sorted: Vec<Card> = cards.into_iter().collect();
-        oj_sort(&mut sorted[..]);
-
-        let mut max = 8;
-        let mut h: u32 = 0;
-
-        for c in sorted {
-            max -= 1;
-            assert!(max >= 0);
-
-            h <<= 4;
-            h += 0x0F & (c.0 >> 2) as u32;
-        }
-        h
-    }
-
-    fn u64c<I>(cards: I) -> u64
-    where I: IntoIterator<Item = Card> {
-        let mut max = 10;
-        let mut h: u64 = 0;
-
-        for c in cards {
-            max -= 1;
-            assert!(max >= 0);
-
-            h <<= 6;
-            h += (0x3F & c.0) as u64;
-        }
-        h
-    }
-
-    fn u64co<I>(cards: I) -> u64
-    where I: IntoIterator<Item = Card> {
-        let mut sorted: Vec<Card> = cards.into_iter().collect();
-        oj_sort(&mut sorted);
-        PositionalHash::u64c(sorted)
-    }
-
-    fn u64cos<I>(cards: I) -> u64
-    where I: IntoIterator<Item = Card> {
-        let mut sorted: Vec<Card> = cards.into_iter().collect();
-        oj_sort(&mut sorted);
-
-        let mut max = 16;
-        let mut h: u64 = 0;
-
-        for c in sorted {
-            max -= 1;
-            assert!(max >= 0);
-
-            h <<= 4;
-            h += (0x0F & (c.0 >> 2)) as u64;
-        }
-        h
-    }
+    aOk(h)
 }
 
-pub struct BitfieldHash {}
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Positional_Hash) | 32-bit positional rank hash
+pub fn ojh_positional_u32csr(ranks: &[Rank]) -> aResult<u32>{
+    let mut max = 8;
+    let mut h: u32 = 0;
 
-impl CardHashTrait for BitfieldHash {
-    fn u64co<I>(cards: I) -> u64
-    where I: IntoIterator<Item = Card> {
-        let mut h: u64 = 0;
-
-        for c in cards {
-            assert!(0 == (h & (1 << (c.0 as u64))));
-            h |= 1 << (c.0 as u64);
+    for r in ranks {
+        max -= 1;
+        if max < 0 {
+            bail!(OjError::HashDomain(String::from("8 ranks max")));
         }
-        h
+        h <<= 4;
+        h += 0x0F & (*r as u32);
     }
+    aOk(h)
 }
 
-pub struct PrimeHash {}
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Positional_Hash) | 64-bit positional hash
+pub fn ojh_positional_u64c(cards: &[Card]) -> aResult<u64> {
+    let mut max = 10;
+    let mut h: u64 = 0;
 
-impl CardHashTrait for PrimeHash {
-    fn u32cos<I>(cards: I) -> u32
-    where I: IntoIterator<Item = Card> {
-        let mut max = 5;
-        let mut h: u32 = 1;
-
-        for c in cards {
-            max -= 1;
-            assert!(max >= 0);
-        
-            h *= PRIMES[0x0F & ((c.0 >> 2) as usize)];
+    for c in cards {
+        max -= 1;
+        if max < 0 {
+            bail!(OjError::HashDomain(String::from("10 cards max")));
         }
-        h
+        h <<= 6;
+        h += (0x3F & c.0) as u64;
     }
+    aOk(h)
+}
 
-    fn u64co<I>(cards: I) -> u64
-    where I: IntoIterator<Item = Card> {
-        let mut max = 7;
-        let mut h: u64 = 1;
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Positional_Hash) | 64-bit positional rank hash
+pub fn ojh_positional_u64csr(ranks: &[Rank]) -> aResult<u64> {
+    let mut max = 16;
+    let mut h: u64 = 0;
 
-        for c in cards {
-            max -= 1;
-            assert!(max >= 0);
-        
-            h *= PRIMES[0x3F & (c.0 as usize)] as u64;
+    for r in ranks {
+        max -= 1;
+        if max < 0 {
+            bail!(OjError::HashDomain(String::from("16 ranks max")));
         }
-        h
+        h <<= 4;
+        h += (0x0F & (*r as u8)) as u64;
     }
+    aOk(h)
+}
 
-    fn u64cos<I>(cards: I) -> u64
-    where I: IntoIterator<Item = Card> {
-        let mut max = 10;
-        let mut h: u64 = 1;
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Bitfield_Hash) | 64-bit bitfield hash
+pub fn ojh_bitfield_u64co(cards: &[Card]) -> aResult<u64> {
+    let mut h: u64 = 0;
 
-        for c in cards {
-            max -= 1;
-            assert!(max >= 0);
-        
-            h *= PRIMES[0x0F & ((c.0 >> 2) as usize)] as u64;
+    for c in cards {
+        #[cfg(debug_assertions)]
+        if 0 != (h & (1 << (c.0 as u64))) {
+            bail!(OjError::HashDomain(String::from("duplicate card")));
         }
-        h
+        h |= 1 << (c.0 as u64);
     }
+    aOk(h)
+}
+
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Perfect_Hash) | Convert bitfield to MPH
+/// Given a bitfield with exactly 5 bits set, return the lexicographic
+/// index of that particular set of bits for minimal perfect hash.
+pub fn ojh_mp5_english(f: u64) -> u32 {
+    // make ranks contiguous
+    let mut b = f >> 8;
+    b = (b & 0xFFFFFFFFFF) | ((b & 0x00FFF00000000000) >> 4);
+
+    let mut h: u64 = oj_binomial(52, 5);
+    let mut mask = 0x0008000000000000;
+    let mut m = 1;
+
+    for j in 0..52 {
+        if 0 != (b & mask) {
+            h -= oj_binomial(j, m);
+            m += 1;
+            if m > 5 { break; }
+        }
+        mask >>= 1;
+    }
+    debug_assert!(h < 0x100000000);
+    h as u32
+}
+
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Prime_Hash) | 32-bit prime rank hash
+pub fn ojh_prime_u32cosr(ranks: &[Rank]) -> aResult<u32> {
+    let mut max = 5;
+    let mut h: u32 = 1;
+
+    for r in ranks {
+        max -= 1;
+        if max < 0 {
+            bail!(OjError::HashDomain(String::from("5 ranks max")));
+        }
+        h *= PRIMES[0x0F & (*r as usize)];
+    }
+    aOk(h)
+}
+
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Prime_Hash) | 64-bit prime hash
+pub fn ojh_prime_u64co(cards: &[Card]) -> aResult<u64> {
+    let mut max = 7;
+    let mut h: u64 = 1;
+
+    for c in cards {
+        max -= 1;
+        if max < 0 {
+            bail!(OjError::HashDomain(String::from("7 cards max")));
+        }
+        h *= PRIMES[0x3F & (c.0 as usize)] as u64;
+    }
+    aOk(h)
+}
+
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Prime_Hash) | 64-bit prime rank hash
+pub fn ojh_prime_u64cosr(ranks: &[Rank]) -> aResult<u64> {
+    let mut max = 10;
+    let mut h: u64 = 1;
+
+    for r in ranks {
+        max -= 1;
+        if max < 0 {
+            bail!(OjError::HashDomain(String::from("10 ranks max")));
+        }      
+        h *= PRIMES[0x0F & (*r as usize)] as u64;
+    }
+    aOk(h)
 }
 
 const PRIMES: [u32; 64] = [
-    3, 5, 7, 11, 13, 17, 19, 23,
-    29, 31, 37, 41, 43, 47, 53, 59,
-    61, 67, 71, 73, 79, 83, 89, 97,
-    101, 103, 107, 109, 113, 127, 131, 137,
-    139, 149, 151, 157, 163, 167, 173, 179,
-    181, 191, 193, 197, 199, 211, 223, 227,
-    229, 233, 239, 241, 251, 257, 263, 269,
-    271, 277, 281, 283, 293, 307, 311, 313,
+    3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59,
+    61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137,
+    139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227,
+    229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307, 311, 313,
 ];
-

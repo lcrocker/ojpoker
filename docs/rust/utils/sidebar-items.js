@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["COEFFICIENTS"],"fn":["oj_binomial","oj_next_combination","oj_rand_next32","oj_rand_range","oj_shuffle","oj_sort"]};

@@ -201,37 +201,39 @@ export async function buildMasterDeckRust() {
     });
     await f.write(enc.encode(
 `// Do not edit: File generated with build_master_deck_code.ts
-//@ cards/master_deck.rs
-//@ Lee Daniel Crocker <lee@onejoker.org>
-
-//! # masterdeck | [wiki](https://github.com/lcrocker/ojpoker/wiki/MasterDeck)
+//! [wiki](https://github.com/lcrocker/ojpoker/wiki/MasterDeck) | Represents a new, full deck
 
 use crate::cards::*;
 
-// # MasterDeck | [wiki](https://github.com/lcrocker/tspoker/wiki/MasterDeck)
+/// [wiki](https://github.com/lcrocker/tspoker/wiki/MasterDeck) | A new full deck of cards
+///
 /// A static object that describes the properties of a new deck of cards for a
-/// certain game. For example, the "English" base deck has 52 cards, no jokers,
-/// aces are high, and no duplicate cards are allowed. The "Canasta" deck has
-/// 108 cards including jokers and duplicates. \\
+/// certain game or set of games.
+/// For example, the "English" master deck has 52 cards, no jokers, aces are high,
+/// and no duplicate cards are allowed.
+/// The "Canasta" deck has 108 cards including jokers and duplicates.
+///
 /// Since this is all unchanging information, \`MasterDeck::new()\`
 /// just returns a pointer to an existing static object based on the name you
-/// pass in. The Default trait doesn't allow this, so we provide
-/// \`default_as_ptr()\`.
+/// pass in.
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct MasterDeck {
+    /// Canonical name of deck
     pub name: &'static str,
+    /// Bitset of cards in deck for quick lookup
     pub card_set: u64,
+    /// List of cards in full deck
     pub card_list: &'static [Card],
+    /// Are duplicate cards allowed?
     pub dups_allowed: bool,
+    /// Are aces low?
     pub low_aces: bool,
 }
 
 impl MasterDeck {
+    /// Retrieve pointer to [MasterDeck] by name (or alias).
     pub fn by_name(dname: &str) -> &'static Self { masterdeck_by_name(dname) }
-
-    /// Rust won't let us implement \`Default\` as a pointer, so we roll our own.
-    pub fn default_as_ptr() -> &'static MasterDeck { &DECK_INFO[0] }
 
     /// Does this deck contain the given card?
     pub fn has(&self, c: Card) -> bool { 0 != (self.card_set & (1 << c.0)) }
@@ -338,7 +340,7 @@ macro_rules! card_array {
         const lname = `${dd.name}_cards`.toLocaleUpperCase();
         f.write(enc.encode(
 `const ${lname}: [Card; ${dd.card_list.length}] =
-card_array!(${dd.card_list.join(",")});
+card_array!(${dd.card_list.reverse().join(",")});
 
 `));
     }

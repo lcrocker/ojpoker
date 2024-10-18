@@ -1,9 +1,10 @@
-//@ master_deck_test.rs
+//@ tests/master_deck_test.rs
 
+use onejoker::errors::*;
 use onejoker::cards::*;
 
 #[test]
-fn test_masterdecks() {
+fn test_masterdecks() -> aResult<()> {
     for name in ["poker", "bug", "54", "razz", "lowball", "40", "48",
         "pan", "skat", "durak", "24", "bezique", "canasta", "pinochle"].iter() {
 
@@ -138,4 +139,6 @@ fn test_masterdecks() {
             _ => panic!(),
         }
     }
+
+    aOk(())
 }
