@@ -1,6 +1,6 @@
 # [wiki](https://github.com/lcrocker/ojpoker/wiki/Rust_Libraries) | A library for handling playing cards and card games.
 
-Last updated October 13, 2024 \
+Last updated October 17, 2024 \
 \
 This crate is part of the [OneJoker](https://onejoker.org) project
 to create free software for handling playing cards and card games

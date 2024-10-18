@@ -27,7 +27,8 @@ test scripts:
 ./test_all.ts
 ```
 This codebase produces two separate libraries in [Rust](https://rust-lang.org)
-and [Dart](https://dart.dev).
+and [Dart](https://dart.dev) (library documentation
+[here](https://lcrocker.github.io/ojpoker/)).
 I also use TypeScript ([Deno](https://deno.com)) for utility scripts, but
 those aren't strictly necessary to build the libraries unless you want
 to change something.
