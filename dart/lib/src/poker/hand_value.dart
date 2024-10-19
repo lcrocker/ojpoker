@@ -1,41 +1,227 @@
 // ignore_for_file: constant_identifier_names
-import 'dart:io';
-import 'package:msgpack_dart/msgpack_dart.dart' as mp;
 import '../cards/cards.dart';
 import '../poker/high_hand.dart';
+
+abstract class HandLevelInterface {
+  int get index;
+  HandLevelInterface fromIndex(int x);
+  HandLevelInterface get best;
+  HandLevelInterface get worst;
+}
+
+enum HandLevelHigh implements HandLevelInterface {
+  None, // 0
+  FiveOfAKind, // 1
+  StraightFlush, // 2
+  Quads, // 3
+  FullHouse, // 4
+  Flush, // 5
+  Straight, // 6
+  Trips, // 7
+  TwoPair, // 8
+  Pair, // 9
+  NoPair; // 10
+
+  @override
+  HandLevelHigh fromIndex(int x) {
+    return values[x];
+  }
+
+  @override
+  HandLevelHigh get best {
+    return FiveOfAKind;
+  }
+
+  @override
+  HandLevelHigh get worst {
+    return NoPair;
+  }
+}
+
+typedef HandLevelPaiGow = HandLevelHigh;
+
+enum HandLevelStripped implements HandLevelInterface {
+  None, // 0
+  FiveOfAKind, // 1
+  StraightFlush, // 2
+  Quads, // 3
+  Flush, // 4
+  FullHouse, // 5
+  Straight, // 6
+  Trips, // 7
+  TwoPair, // 8
+  Pair, // 9
+  NoPair; // 10
+
+  @override
+  HandLevelStripped fromIndex(int x) {
+    return values[x];
+  }
+
+  @override
+  HandLevelStripped get best {
+    return FiveOfAKind;
+  }
+
+  @override
+  HandLevelStripped get worst {
+    return NoPair;
+  }
+}
+
+typedef HandLevelManilla = HandLevelStripped;
+typedef HandLevelMexican = HandLevelStripped;
+
+enum HandLevelAceToFive implements HandLevelInterface {
+  None, // 0
+  NoPair, // 1
+  Pair, // 2
+  TwoPair, // 3
+  Trips, // 4
+  FullHouse, // 5
+  Quads; // 6
+
+  @override
+  HandLevelAceToFive fromIndex(int x) {
+    return values[x];
+  }
+
+  @override
+  HandLevelAceToFive get best {
+    return NoPair;
+  }
+
+  @override
+  HandLevelAceToFive get worst {
+    return Quads;
+  }
+}
+
+enum HandLevelDeuceToSeven implements HandLevelInterface {
+  None, // 0
+  NoPair, // 1
+  Pair, // 2
+  TwoPair, // 3
+  Trips, // 4
+  Straight, // 5
+  Flush, // 6
+  FullHouse, // 7
+  Quads, // 8
+  StraightFlush; // 9
+
+  @override
+  HandLevelDeuceToSeven fromIndex(int x) {
+    return values[x];
+  }
+
+  @override
+  HandLevelDeuceToSeven get best {
+    return NoPair;
+  }
+
+  @override
+  HandLevelDeuceToSeven get worst {
+    return Quads;
+  }
+}
+
+typedef HandLevelAceToSix = HandLevelDeuceToSeven;
+
+enum HandLevelBadugi implements HandLevelInterface {
+  None, // 0
+  FourCard, // 1
+  ThreeCard, // 2
+  TwoCard, // 3
+  OneCard; // 4
+
+  @override
+  HandLevelBadugi fromIndex(int x) {
+    return values[x];
+  }
+
+  @override
+  HandLevelBadugi get best {
+    return FourCard;
+  }
+
+  @override
+  HandLevelBadugi get worst {
+    return OneCard;
+  }
+}
+
+enum HandLevelActionRazz implements HandLevelInterface {
+  None, // 0
+  QualifiedNoPair, // 1
+  QualifiedPair, // 2
+  QualifiedTwoPair, // 3
+  QualifiedTrips, // 4
+  QualifiedFullHouse, // 5
+  QualifiedQuads, // 6
+  UnqualifiedNoPair, // 7
+  UnqualifiedPair, // 8
+  UnqualifiedTwoPair, // 9
+  UnqualifiedTrips, // 10
+  UnqualifiedFullHouse, // 11
+  UnqualifiedQuads; // 12
+
+  @override
+  HandLevelActionRazz fromIndex(int x) {
+    return values[x];
+  }
+
+  @override
+  HandLevelActionRazz get best {
+    return QualifiedNoPair;
+  }
+
+  @override
+  HandLevelActionRazz get worst {
+    return UnqualifiedQuads;
+  }
+}
+
+/// Default function for assigning a numeric value to the [Hand] such that
+/// lower number equals better hand.
+///
+/// Start with just the level times 10 million.
+/// Then within each level, use `PositionalHash.u32csr()` to
+/// express the ranks as an n-digit number in base 16 (which should be less
+/// than 10000000). That number will be high for better hands within the
+/// level, so we negate it.
+int ojHighHandValueFunction(HandLevelInterface level, List<Rank> ranks) {
+  return 10000000 * level.index - ojhPositional32cr(ranks);
+}
+
+int ojLowHandValueFunction(HandLevelInterface level, List<Rank> ranks) {
+  return 10000000 * level.index + ojhPositional32cr(ranks);
+}
 
 /// All the information resulting from the evaluation of a poker hand.
 ///
 /// This is used for comparing hands to determine a winner, and also for
 /// displaying the hand appropriately.
 /// Poker hands are typically evaluated into one of a small set of
-/// categories we call [HandLevel]s (e.g. Pair, Flush, Straight) and then
+/// categories we call "levels" (e.g. Pair, Flush, Straight) and then
 /// within that category, the ranks of the cards are compared.
 /// All the numbers here are such that lower number means better hand.
 /// {@category poker}
-class HandValue {
-  static PositionalHash hasher = PositionalHash();
-
-  final int level;
+class HandValue<L extends HandLevelInterface> {
+  final L level;
   final List<Rank> ranks;
   final int value;
 
   /// Constructor for internal use
-  HandValue(this.level, this.ranks, int? v)
-      : value = v ?? HandValue.defaultValueFunction(level, ranks);
+  HandValue(this.level, this.ranks, int v)
+      : value = ((v >= 0) ? v : 
+          ((-1 == v) ? ojHighHandValueFunction(level, ranks) :
+           ojLowHandValueFunction(level, ranks)));
 
-  /// Default function for assigning a numeric value to the [Hand] such that
-  /// lower number equals better hand.
-  ///
-  /// Start with just the [HandLevel] times
-  /// 10 million. Then within each level, use `PositionalHash.u32csr()` to
-  /// express the ranks as an n-digit number in base 16 (which should be less
-  /// than 10000000). That number will be high for better hands within the
-  /// level, so we negate it.
-  static defaultValueFunction(int level, List<Rank> ranks) {
-    int h = hasher.u32csr(ranks);
-    return 10000000 * level - h;
-  }
+  // Another ugly hack to work around Dart's broken generics
+  HandValue.best()
+      : level = HandLevelHigh.StraightFlush as L,
+        ranks = [],
+        value = 1;
 
   /// Implement == for [HandValue]
   @override
@@ -49,7 +235,7 @@ class HandValue {
   /// Overriding == requires overriding hashCode as well
   @override
   int get hashCode {
-    return HandValue.defaultValueFunction(level, ranks);
+    return ojHighHandValueFunction(level, ranks);
   }
 
   /// Describe the [Hand] (we expect every implementor to override this).
@@ -91,25 +277,7 @@ class HandValue {
   }
 }
 
-typedef HandValueFactory<V> = V Function(
-    int level, List<Rank> ranks, int value);
-
-/// Standard format for lookup tables for fast evaluation of poker hands.
-/// {@category poker}
-class HandEvaluationTables {
-  int hashCount;
-  int eclassCount;
-  Map<int, int> hashes;
-  List<int> ecLevels;
-  List<List<Rank>> ecRanks;
-
-  HandEvaluationTables()
-      : hashCount = 0,
-        eclassCount = 0,
-        hashes = {},
-        ecLevels = [],
-        ecRanks = [];
-}
+typedef HandValueFactory<V> = V Function();
 
 /// Base class for poker hand evaluation.
 ///
@@ -117,57 +285,24 @@ class HandEvaluationTables {
 /// implementations.
 /// {@category poker}
 abstract class HandEvaluator<V extends HandValue> {
-  static CardHashBase hasher = PrimeHash();
-  static bool tablesLoaded = false;
-  static HandEvaluationTables tables = HandEvaluationTables();
-
   // This abomination is to work around the problem that Dart generics
   // are broken, and do not allow the creation of a generic object in
   // any sensible way.
   HandValueFactory<V> get valueFactory {
-    return (int level, List<Rank> ranks, int value) =>
-        HandValue(level, ranks, value) as V;
-  }
-
-  static bool loadMsgPackTables(String fname) {
-    if (tablesLoaded) {
-      return true;
-    }
-    var file = File('../data/bin/$fname.msgpack');
-    if (!file.existsSync()) {
-      return false;
-    }
-    var bytes = file.readAsBytesSync();
-    var data = mp.deserialize(bytes);
-
-    tables.hashCount = data['hash_count'];
-    tables.eclassCount = data['eclass_count'];
-    tables.hashes.addEntries(data['hashes']);
-    tables.ecLevels = data['eclasses'].map((e) => e[0]).toList();
-    tables.ecRanks = data['eclasses']
-        .map((e) => e[1].map((r) => Rank.values[r]).toList())
-        .toList();
-    return true;
+    return () => HandValue.best() as V;
   }
 
   V referenceEvaluator(HandInterface h);
 
-  V partialEvaluator(HandInterface h);
+  V partialEvaluator(HandInterface h) {
+    return referenceEvaluator(h);
+  }
 
   V lookupEvaluator(HandInterface h) {
-    if (!tablesLoaded) {
-      return referenceEvaluator(h);
-    }
-    int hv = hasher.u64co(h);
-    int ec = tables.hashes[hv]!;
-
-    return valueFactory(tables.ecLevels[ec - 1], tables.ecRanks[ec - 1], ec);
+    return referenceEvaluator(h);
   }
 
   int fastValue(HandInterface h) {
-    if (tablesLoaded) {
-      return tables.hashes[hasher.u64co(h)]!;
-    }
     return referenceEvaluator(h).value;
   }
 
@@ -182,7 +317,7 @@ abstract class HandEvaluator<V extends HandValue> {
   }
 
   V bestOf(HandInterface h) {
-    V best = valueFactory(99, [], 0x7FFFFFFFFFFFFFFF);
+    V best = valueFactory();
 
     for (HandInterface sub in h.combinations(5)) {
       V subV = lookupEvaluator(sub);
@@ -198,10 +333,10 @@ abstract class HandEvaluator<V extends HandValue> {
 /// {@category poker}
 HandEvaluator pokerEvaluator(String name) {
   switch (name) {
-    case 'standard':
-    case 'default':
-    case 'high':
-      return HighHandEvaluator();
+    case "standard":
+    case "default":
+    case "high":
+      return HandEvaluatorHigh();
     default:
       throw ArgumentError('Unknown poker evaluator: $name');
   }

@@ -30,7 +30,7 @@
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../index.html">onejoker</a></li>
     <li><a href="../onejoker/onejoker-library.html">onejoker.dart</a></li>
-    <li class="self-crumb">HandValue class</li>
+    <li class="self-crumb">HandValue<span class="signature">&lt;<wbr><span class="type-parameter">L extends <a href="../onejoker/HandLevelInterface-class.html">HandLevelInterface</a></span>&gt;</span> class</li>
   </ol>
   <div class="self-name">HandValue</div>
   <form class="search navbar-right" role="search">
@@ -56,7 +56,7 @@
     data-above-sidebar="onejoker&#47;onejoker-library-sidebar.html"
     data-below-sidebar="onejoker&#47;HandValue-class-sidebar.html">
     <div>
-<h1><span class="kind-class">HandValue</span> class 
+<h1><span class="kind-class">HandValue&lt;<wbr><span class="type-parameter">L extends HandLevelInterface</span>&gt;</span> class 
  
     <span class="category poker cp-2 linked" title="This is part of the poker topic."><a href="../topics/poker-topic.html">poker</a></span>
 </h1></div>
@@ -67,7 +67,7 @@
 <p>This is used for comparing hands to determine a winner, and also for
 displaying the hand appropriately.
 Poker hands are typically evaluated into one of a small set of
-categories we call <code>HandLevel</code>s (e.g. Pair, Flush, Straight) and then
+categories we call "levels" (e.g. Pair, Flush, Straight) and then
 within that category, the ranks of the cards are compared.
 All the numbers here are such that lower number means better hand.</p>
 </section>
@@ -82,7 +82,7 @@ All the numbers here are such that lower number means better hand.</p>
 
           <dt>Implementers</dt>
           <dd><ul class="comma-separated clazz-relationships">
-              <li><a href="../onejoker/HighHandValue-class.html">HighHandValue</a></li>
+              <li><a href="../onejoker/HandValueHigh-class.html">HandValueHigh</a></li>
           </ul></dd>
 
 
@@ -98,10 +98,16 @@ All the numbers here are such that lower number means better hand.</p>
 
     <dl class="constructor-summary-list">
         <dt id="HandValue" class="callable">
-          <span class="name"><a href="../onejoker/HandValue/HandValue.html">HandValue</a></span><span class="signature">(<span class="parameter" id="-param-level"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">level</span>, </span><span class="parameter" id="-param-ranks"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Rank.html">Rank</a></span>&gt;</span></span> <span class="parameter-name">ranks</span>, </span><span class="parameter" id="-param-v"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a>?</span> <span class="parameter-name">v</span></span>)</span>
+          <span class="name"><a href="../onejoker/HandValue/HandValue.html">HandValue</a></span><span class="signature">(<span class="parameter" id="-param-level"><span class="type-annotation">L</span> <span class="parameter-name">level</span>, </span><span class="parameter" id="-param-ranks"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Rank.html">Rank</a></span>&gt;</span></span> <span class="parameter-name">ranks</span>, </span><span class="parameter" id="-param-v"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">v</span></span>)</span>
         </dt>
         <dd>
           Constructor for internal use
+        </dd>
+        <dt id="HandValue.best" class="callable">
+          <span class="name"><a href="../onejoker/HandValue/HandValue.best.html">HandValue.best</a></span><span class="signature">()</span>
+        </dt>
+        <dd>
+          
         </dd>
     </dl>
   </section>
@@ -125,7 +131,7 @@ All the numbers here are such that lower number means better hand.</p>
 
         <dt id="level" class="property">
   <span class="name"><a href="../onejoker/HandValue/level.html">level</a></span>
-  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
+  <span class="signature">&#8594; L</span>
   
 
 </dt>
@@ -256,44 +262,7 @@ All the numbers here are such that lower number means better hand.</p>
     </dl>
   </section>
     
-  <section class="summary offset-anchor" id="static-properties">
-    <h2>Static Properties</h2>
-
-    <dl class="properties">
-        <dt id="hasher" class="property">
-  <span class="name"><a href="../onejoker/HandValue/hasher.html">hasher</a></span>
-  <span class="signature">&#8596; <a href="../onejoker/PositionalHash-class.html">PositionalHash</a></span>
-  
-
-</dt>
-<dd>
-  
-  <div class="features"><span class="feature">getter/setter pair</span></div>
-
-</dd>
-
-    </dl>
-  </section>
     
-  <section class="summary offset-anchor" id="static-methods">
-    <h2>Static Methods</h2>
-    <dl class="callables">
-        <dt id="defaultValueFunction" class="callable">
-  <span class="name"><a href="../onejoker/HandValue/defaultValueFunction.html">defaultValueFunction</a></span><span class="signature">(<wbr><span class="parameter" id="defaultValueFunction-param-level"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">level</span>, </span><span class="parameter" id="defaultValueFunction-param-ranks"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Rank.html">Rank</a></span>&gt;</span></span> <span class="parameter-name">ranks</span></span>)
-    <span class="returntype parameter">&#8594; dynamic</span>
-  </span>
-  
-
-</dt>
-<dd>
-  Default function for assigning a numeric value to the <a href="../onejoker/Hand-class.html">Hand</a> such that
-lower number equals better hand.
-  
-
-</dd>
-
-    </dl>
-  </section>
     
 
 
@@ -310,7 +279,7 @@ lower number equals better hand.
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../index.html">onejoker</a></li>
     <li><a href="../onejoker/onejoker-library.html">onejoker</a></li>
-    <li class="self-crumb">HandValue class</li>
+    <li class="self-crumb">HandValue<span class="signature">&lt;<wbr><span class="type-parameter">L extends <a href="../onejoker/HandLevelInterface-class.html">HandLevelInterface</a></span>&gt;</span> class</li>
 </ol>
 
 

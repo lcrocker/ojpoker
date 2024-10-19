@@ -64,17 +64,8 @@ for more information.</p>
     <h2>Classes</h2>
 
     <dl>
-      <dt id="HandEvaluationTables">
-  <span class="name "><a href="../onejoker/HandEvaluationTables-class.html">HandEvaluationTables</a></span> 
-    <span class="category poker cp-2 linked" title="This is part of the poker topic."><a href="../topics/poker-topic.html">poker</a></span>
-
-</dt>
-<dd>
-  Standard format for lookup tables for fast evaluation of poker hands.
-</dd>
-
       <dt id="HandEvaluator">
-  <span class="name "><a href="../onejoker/HandEvaluator-class.html">HandEvaluator</a><span class="signature">&lt;<wbr><span class="type-parameter">V extends <a href="../onejoker/HandValue-class.html">HandValue</a></span>&gt;</span></span> 
+  <span class="name "><a href="../onejoker/HandEvaluator-class.html">HandEvaluator</a><span class="signature">&lt;<wbr><span class="type-parameter">V extends <a href="../onejoker/HandValue-class.html">HandValue</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/HandLevelInterface-class.html">HandLevelInterface</a></span>&gt;</span></span>&gt;</span></span> 
     <span class="category poker cp-2 linked" title="This is part of the poker topic."><a href="../topics/poker-topic.html">poker</a></span>
 
 </dt>
@@ -82,17 +73,8 @@ for more information.</p>
   Base class for poker hand evaluation.
 </dd>
 
-      <dt id="HandValue">
-  <span class="name "><a href="../onejoker/HandValue-class.html">HandValue</a></span> 
-    <span class="category poker cp-2 linked" title="This is part of the poker topic."><a href="../topics/poker-topic.html">poker</a></span>
-
-</dt>
-<dd>
-  All the information resulting from the evaluation of a poker hand.
-</dd>
-
-      <dt id="HighHandEvaluator">
-  <span class="name "><a href="../onejoker/HighHandEvaluator-class.html">HighHandEvaluator</a></span> 
+      <dt id="HandEvaluatorHigh">
+  <span class="name "><a href="../onejoker/HandEvaluatorHigh-class.html">HandEvaluatorHigh</a></span> 
     <span class="category poker cp-2 linked" title="This is part of the poker topic."><a href="../topics/poker-topic.html">poker</a></span>
 
 </dt>
@@ -100,8 +82,17 @@ for more information.</p>
   Evaluation functions for traditional "high" poker hands.
 </dd>
 
-      <dt id="HighHandValue">
-  <span class="name "><a href="../onejoker/HighHandValue-class.html">HighHandValue</a></span> 
+      <dt id="HandValue">
+  <span class="name "><a href="../onejoker/HandValue-class.html">HandValue</a><span class="signature">&lt;<wbr><span class="type-parameter">L extends <a href="../onejoker/HandLevelInterface-class.html">HandLevelInterface</a></span>&gt;</span></span> 
+    <span class="category poker cp-2 linked" title="This is part of the poker topic."><a href="../topics/poker-topic.html">poker</a></span>
+
+</dt>
+<dd>
+  All the information resulting from the evaluation of a poker hand.
+</dd>
+
+      <dt id="HandValueHigh">
+  <span class="name "><a href="../onejoker/HandValueHigh-class.html">HandValueHigh</a></span> 
     <span class="category poker cp-2 linked" title="This is part of the poker topic."><a href="../topics/poker-topic.html">poker</a></span>
 
 </dt>
@@ -122,7 +113,7 @@ for more information.</p>
     <dl class="callables">
       <dt id="pokerEvaluator" class="callable">
   <span class="name"><a href="../onejoker/pokerEvaluator.html">pokerEvaluator</a></span><span class="signature">(<wbr><span class="parameter" id="pokerEvaluator-param-name"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">name</span></span>)
-    <span class="returntype parameter">&#8594; <a href="../onejoker/HandEvaluator-class.html">HandEvaluator</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/HandValue-class.html">HandValue</a></span>&gt;</span></span>
+    <span class="returntype parameter">&#8594; <a href="../onejoker/HandEvaluator-class.html">HandEvaluator</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/HandValue-class.html">HandValue</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/HandLevelInterface-class.html">HandLevelInterface</a></span>&gt;</span></span>&gt;</span></span>
   </span>
   
     <span class="category poker cp-2 linked" title="This is part of the poker topic."><a href="../topics/poker-topic.html">poker</a></span>
@@ -173,11 +164,10 @@ for more information.</p>
   <ol>
 
     <li class="section-title"><a href="../topics/poker-topic.html#classes">Classes</a></li>
-      <li><a href="../onejoker/HandEvaluationTables-class.html">HandEvaluationTables</a></li>
       <li><a href="../onejoker/HandEvaluator-class.html">HandEvaluator</a></li>
+      <li><a href="../onejoker/HandEvaluatorHigh-class.html">HandEvaluatorHigh</a></li>
       <li><a href="../onejoker/HandValue-class.html">HandValue</a></li>
-      <li><a href="../onejoker/HighHandEvaluator-class.html">HighHandEvaluator</a></li>
-      <li><a href="../onejoker/HighHandValue-class.html">HighHandValue</a></li>
+      <li><a href="../onejoker/HandValueHigh-class.html">HandValueHigh</a></li>
 
 
 

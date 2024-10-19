@@ -30,7 +30,7 @@
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">onejoker</a></li>
     <li><a href="../../onejoker/onejoker-library.html">onejoker.dart</a></li>
-    <li><a href="../../onejoker/HandValue-class.html">HandValue</a></li>
+    <li><a href="../../onejoker/HandValue-class.html">HandValue<span class="signature">&lt;<wbr><span class="type-parameter">L extends HandLevelInterface</span>&gt;</span></a></li>
     <li class="self-crumb">HandValue constructor</li>
   </ol>
   <div class="self-name">HandValue</div>
@@ -57,14 +57,14 @@
       data-above-sidebar="onejoker&#47;HandValue-class-sidebar.html"
       data-below-sidebar="">
       <div>
-<h1><span class="kind-constructor">HandValue</span> constructor 
+<h1><span class="kind-constructor">HandValue&lt;<wbr><span class="type-parameter">L extends HandLevelInterface</span>&gt;</span> constructor 
 </h1></div>
 
     <section class="multi-line-signature">
       
-      <span class="name ">HandValue</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="-param-level"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">level</span>, </span></li>
+      <span class="name ">HandValue&lt;<wbr><span class="type-parameter">L extends HandLevelInterface</span>&gt;</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="-param-level"><span class="type-annotation">L</span> <span class="parameter-name">level</span>, </span></li>
 <li><span class="parameter" id="-param-ranks"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../../onejoker/Rank.html">Rank</a></span>&gt;</span></span> <span class="parameter-name">ranks</span>, </span></li>
-<li><span class="parameter" id="-param-v"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a>?</span> <span class="parameter-name">v</span></span></li>
+<li><span class="parameter" id="-param-v"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">v</span></span></li>
 </ol>)
     </section>
 
@@ -77,8 +77,10 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">HandValue(this.level, this.ranks, int? v)
-    : value = v ?? HandValue.defaultValueFunction(level, ranks);</code></pre>
+  <pre class="language-dart"><code class="language-dart">HandValue(this.level, this.ranks, int v)
+    : value = ((v &gt;= 0) ? v :
+        ((-1 == v) ? ojHighHandValueFunction(level, ranks) :
+         ojLowHandValueFunction(level, ranks)));</code></pre>
 </section>
 
 
@@ -95,7 +97,7 @@
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../../index.html">onejoker</a></li>
     <li><a href="../../onejoker/onejoker-library.html">onejoker</a></li>
-    <li><a href="../../onejoker/HandValue-class.html">HandValue</a></li>
+    <li><a href="../../onejoker/HandValue-class.html">HandValue<span class="signature">&lt;<wbr><span class="type-parameter">L extends HandLevelInterface</span>&gt;</span></a></li>
     <li class="self-crumb">HandValue constructor</li>
 </ol>
 

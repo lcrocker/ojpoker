@@ -87,7 +87,7 @@
   <pre class="language-dart"><code class="language-dart">@override
 Card? removeAt(int index) {
   if (index &lt; 0 || index &gt;= _cards.length) return null;
-  return _cards.removeAt(_cards.length - 1 - index);
+  return _cards.removeAt(index);
 }</code></pre>
 </section>
 

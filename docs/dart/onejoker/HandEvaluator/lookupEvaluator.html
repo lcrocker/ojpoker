@@ -30,7 +30,7 @@
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">onejoker</a></li>
     <li><a href="../../onejoker/onejoker-library.html">onejoker.dart</a></li>
-    <li><a href="../../onejoker/HandEvaluator-class.html">HandEvaluator<span class="signature">&lt;<wbr><span class="type-parameter">V extends HandValue</span>&gt;</span></a></li>
+    <li><a href="../../onejoker/HandEvaluator-class.html">HandEvaluator<span class="signature">&lt;<wbr><span class="type-parameter">V extends HandValue&lt;<wbr><span class="type-parameter">HandLevelInterface</span>&gt;</span>&gt;</span></a></li>
     <li class="self-crumb">lookupEvaluator method</li>
   </ol>
   <div class="self-name">lookupEvaluator</div>
@@ -77,13 +77,7 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">V lookupEvaluator(HandInterface h) {
-  if (!tablesLoaded) {
-    return referenceEvaluator(h);
-  }
-  int hv = hasher.u64co(h);
-  int ec = tables.hashes[hv]!;
-
-  return valueFactory(tables.ecLevels[ec - 1], tables.ecRanks[ec - 1], ec);
+  return referenceEvaluator(h);
 }</code></pre>
 </section>
 
@@ -101,7 +95,7 @@
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../../index.html">onejoker</a></li>
     <li><a href="../../onejoker/onejoker-library.html">onejoker</a></li>
-    <li><a href="../../onejoker/HandEvaluator-class.html">HandEvaluator<span class="signature">&lt;<wbr><span class="type-parameter">V extends HandValue</span>&gt;</span></a></li>
+    <li><a href="../../onejoker/HandEvaluator-class.html">HandEvaluator<span class="signature">&lt;<wbr><span class="type-parameter">V extends HandValue&lt;<wbr><span class="type-parameter">HandLevelInterface</span>&gt;</span>&gt;</span></a></li>
     <li class="self-crumb">lookupEvaluator method</li>
 </ol>
 

@@ -30,7 +30,7 @@
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">onejoker</a></li>
     <li><a href="../../onejoker/onejoker-library.html">onejoker.dart</a></li>
-    <li><a href="../../onejoker/HandValueHigh-class.html">HandValueHigh<span class="signature">&lt;<wbr><span class="type-parameter">H extends HandInterface&lt;<wbr><span class="type-parameter">H</span>&gt;</span>&gt;</span></a></li>
+    <li><a href="../../onejoker/HandValueHigh-class.html">HandValueHigh</a></li>
     <li class="self-crumb">fullName method</li>
   </ol>
   <div class="self-name">fullName</div>
@@ -76,8 +76,7 @@
     </section>
     
 <section class="desc markdown">
-  <p>Full description of hand value in English text.
-E.g. "jacks and fours with an ace".</p>
+  <p>Describe the <a href="../../onejoker/Hand-class.html">Hand</a> (we expect every implementor to override this).</p>
 </section>
 
 
@@ -110,10 +109,9 @@ String fullName() {
       return &quot;${r2[0]} and ${r2[2]} with ${r3[4]} ${r1[4]}&quot;;
     case HandLevelHigh.Pair:
       return &quot;pair of ${r2[0]}, ${r1[2]}, ${r1[3]}, ${r1[4]}&quot;;
-    case HandLevelHigh.NoPair:
-      return &quot;no pair: ${r1[0]}, ${r1[1]}, ${r1[2]}, ${r1[3]}, ${r1[4]}&quot;;
     default:
-      return &quot;unknown hand&quot;;
+      assert(level == HandLevelHigh.NoPair);
+      return &quot;no pair: ${r1[0]}, ${r1[1]}, ${r1[2]}, ${r1[3]}, ${r1[4]}&quot;;
   }
 }</code></pre>
 </section>
@@ -132,7 +130,7 @@ String fullName() {
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../../index.html">onejoker</a></li>
     <li><a href="../../onejoker/onejoker-library.html">onejoker</a></li>
-    <li><a href="../../onejoker/HandValueHigh-class.html">HandValueHigh<span class="signature">&lt;<wbr><span class="type-parameter">H extends HandInterface&lt;<wbr><span class="type-parameter">H</span>&gt;</span>&gt;</span></a></li>
+    <li><a href="../../onejoker/HandValueHigh-class.html">HandValueHigh</a></li>
     <li class="self-crumb">fullName method</li>
 </ol>
 

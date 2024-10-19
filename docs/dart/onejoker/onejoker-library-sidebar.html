@@ -1,26 +1,27 @@
 <ol>
       <li class="section-title"><a href="onejoker/onejoker-library.html#classes">Classes</a></li>
-        <li><a href="onejoker/BitfieldHash-class.html">BitfieldHash</a></li>
-        <li><a href="onejoker/CardHashBase-class.html">CardHashBase</a></li>
         <li><a href="onejoker/Deck-class.html">Deck</a></li>
         <li><a href="onejoker/DeckInterface-class.html">DeckInterface</a></li>
-        <li><a href="onejoker/FNVHash-class.html">FNVHash</a></li>
         <li><a href="onejoker/Hand-class.html">Hand</a></li>
-        <li><a href="onejoker/HandEvaluationTables-class.html">HandEvaluationTables</a></li>
         <li><a href="onejoker/HandEvaluator-class.html">HandEvaluator</a></li>
+        <li><a href="onejoker/HandEvaluatorHigh-class.html">HandEvaluatorHigh</a></li>
         <li><a href="onejoker/HandInterface-class.html">HandInterface</a></li>
         <li><a href="onejoker/HandIterator-class.html">HandIterator</a></li>
+        <li><a href="onejoker/HandLevelInterface-class.html">HandLevelInterface</a></li>
         <li><a href="onejoker/HandValue-class.html">HandValue</a></li>
-        <li><a href="onejoker/HighHandEvaluator-class.html">HighHandEvaluator</a></li>
-        <li><a href="onejoker/HighHandValue-class.html">HighHandValue</a></li>
+        <li><a href="onejoker/HandValueHigh-class.html">HandValueHigh</a></li>
         <li><a href="onejoker/MasterDeck-class.html">MasterDeck</a></li>
         <li><a href="onejoker/OjRandom-class.html">OjRandom</a></li>
         <li><a href="onejoker/OrphanHand-class.html">OrphanHand</a></li>
-        <li><a href="onejoker/PositionalHash-class.html">PositionalHash</a></li>
-        <li><a href="onejoker/PrimeHash-class.html">PrimeHash</a></li>
 
       <li class="section-title"><a href="onejoker/onejoker-library.html#enums">Enums</a></li>
         <li><a href="onejoker/Card.html">Card</a></li>
+        <li><a href="onejoker/HandLevelAceToFive.html">HandLevelAceToFive</a></li>
+        <li><a href="onejoker/HandLevelActionRazz.html">HandLevelActionRazz</a></li>
+        <li><a href="onejoker/HandLevelBadugi.html">HandLevelBadugi</a></li>
+        <li><a href="onejoker/HandLevelDeuceToSeven.html">HandLevelDeuceToSeven</a></li>
+        <li><a href="onejoker/HandLevelHigh.html">HandLevelHigh</a></li>
+        <li><a href="onejoker/HandLevelStripped.html">HandLevelStripped</a></li>
         <li><a href="onejoker/Rank.html">Rank</a></li>
         <li><a href="onejoker/Suit.html">Suit</a></li>
         <li><a href="onejoker/Troolean.html">Troolean</a></li>
@@ -28,6 +29,7 @@
 
 
       <li class="section-title"><a href="onejoker/onejoker-library.html#constants">Constants</a></li>
+        <li><a href="onejoker/coefficients-constant.html">coefficients</a></li>
         <li><a href="onejoker/TFALSE-constant.html">TFALSE</a></li>
         <li><a href="onejoker/TTRUE-constant.html">TTRUE</a></li>
         <li><a href="onejoker/TUNKNOWN-constant.html">TUNKNOWN</a></li>
@@ -35,12 +37,32 @@
 
       <li class="section-title"><a href="onejoker/onejoker-library.html#functions">Functions</a></li>
         <li><a href="onejoker/cardsFromText.html">cardsFromText</a></li>
+        <li><a href="onejoker/ojBinomial.html">ojBinomial</a></li>
+        <li><a href="onejoker/ojhBitfield64co.html">ojhBitfield64co</a></li>
+        <li><a href="onejoker/ojhFNV32.html">ojhFNV32</a></li>
+        <li><a href="onejoker/ojhFNV64.html">ojhFNV64</a></li>
+        <li><a href="onejoker/ojHighHandValueFunction.html">ojHighHandValueFunction</a></li>
+        <li><a href="onejoker/ojhMp5English.html">ojhMp5English</a></li>
+        <li><a href="onejoker/ojhPositional32c.html">ojhPositional32c</a></li>
+        <li><a href="onejoker/ojhPositional32cr.html">ojhPositional32cr</a></li>
+        <li><a href="onejoker/ojhPositional32cs.html">ojhPositional32cs</a></li>
+        <li><a href="onejoker/ojhPositional64c.html">ojhPositional64c</a></li>
+        <li><a href="onejoker/ojhPositional64cr.html">ojhPositional64cr</a></li>
+        <li><a href="onejoker/ojhPositional64cs.html">ojhPositional64cs</a></li>
+        <li><a href="onejoker/ojhPrime32cor.html">ojhPrime32cor</a></li>
+        <li><a href="onejoker/ojhPrime64co.html">ojhPrime64co</a></li>
+        <li><a href="onejoker/ojhPrime64cor.html">ojhPrime64cor</a></li>
+        <li><a href="onejoker/ojLowHandValueFunction.html">ojLowHandValueFunction</a></li>
         <li><a href="onejoker/ojNextCombination.html">ojNextCombination</a></li>
         <li><a href="onejoker/ojShuffle.html">ojShuffle</a></li>
         <li><a href="onejoker/ojSort.html">ojSort</a></li>
         <li><a href="onejoker/pokerEvaluator.html">pokerEvaluator</a></li>
 
       <li class="section-title"><a href="onejoker/onejoker-library.html#typedefs">Typedefs</a></li>
+        <li><a href="onejoker/HandLevelAceToSix.html">HandLevelAceToSix</a></li>
+        <li><a href="onejoker/HandLevelManilla.html">HandLevelManilla</a></li>
+        <li><a href="onejoker/HandLevelMexican.html">HandLevelMexican</a></li>
+        <li><a href="onejoker/HandLevelPaiGow.html">HandLevelPaiGow</a></li>
         <li><a href="onejoker/HandValueFactory.html">HandValueFactory</a></li>
 
 

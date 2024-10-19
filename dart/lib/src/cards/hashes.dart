@@ -1,249 +1,225 @@
-//
-import '../utilities.dart';
+//! [wiki](https://github.com/lcrocker/ojpoker/wiki/Hashes) | Various hash functions for cards
+//!
+//! The common FNV hashes are often used for implementing hash tables and
+//! doing quick checksumming for tests. They are not collision-free, but are
+//! fast and simple.
+//!
+//! Positional hashes treat cards (or ranks) as digits of a base-64
+//! (or base-16) number. They therefore order-dependent and limited in size,
+//! but inherently collision-free and useful for ranking hands.
+//!
+//! Bitfield hashes represent each card as a bit in a 64-bit integer.
+//! This is inherently collision-free and order-independent, and very fast,
+//! but can't handle duplicate cards and produces huge numbers.
+//!
+//! Prime hashes based on the product of prime numbers are inherently
+//! collision-free, order-independent, handle duplicates, and produce
+//! smaller numbers, but can only handle very small sets.
+//!
+//! The "mp" functions convert a bitfield to a minimal perfect hash,
+//! and are very specific to number of cards and type of deck.
+
+import 'package:onejoker/src/utilities.dart';
+
 import 'cards.dart';
 
-/// Base class for a group of hash functions based on related algorithms.
+/// 32-bit FNV-1a
 /// {@category hashes}
-class CardHashBase {
-  /// 32-bit standard hash
-  int u32(Iterable<Card> cards) {
-    return 0;
+int ojhFNV32(Iterable<Card> cards) {
+  int h = 0x811c9dc5;
+  for (Card c in cards) {
+    h ^= c.index;
+    h *= 0x01000193;
   }
-
-  /// 32-bit collison-free
-  int u32c(Iterable<Card> cards) {
-    return 0;
-  }
-
-  /// 32-bit collision-free order-independent
-  int u32co(Iterable<Card> cards) {
-    List<Card> sorted = cards.toList();
-    ojSort(sorted);
-    return u32c(sorted);
-  }
-
-  /// 32-bit collision-free suit-independent
-  int u32csr(Iterable<Rank> ranks) {
-    return 0;
-  }
-
-  /// 32-bit collision-free order-independent suit-independent
-  int u32cos(Iterable<Card> cards) {
-    return u32cosr(cards.map((c) => c.rank!));
-  }
-
-  /// 32-bit collision-free order-independent suit-independent
-  int u32cosr(Iterable<Rank> ranks) {
-    List<Rank> sorted = ranks.toList();
-    ojSort(sorted);
-    return u32csr(sorted);
-  }
-
-  /// 64-bit standard hash
-  int u64(Iterable<Card> cards) {
-    return 0;
-  }
-
-  /// 64-bit collision-free
-  int u64c(Iterable<Card> cards) {
-    return 0;
-  }
-
-  /// 64-bit collision-free order-independent
-  int u64co(Iterable<Card> cards) {
-    List<Card> sorted = cards.toList();
-    ojSort(sorted);
-    return u64c(sorted);
-  }
-
-  /// 64-bit collision-free order-independent suit-independent
-  int u64csr(Iterable<Rank> ranks) {
-    return 0;
-  }
-
-  /// 64-bit collision-free order-independent suit-independent
-  int u64cos(Iterable<Card> cards) {
-    return u64cosr(cards.map((c) => c.rank!));
-  }
-
-  /// 64-bit collision-free order-independent suit-independent
-  int u64cosr(Iterable<Rank> ranks) {
-    List<Rank> sorted = ranks.toList();
-    ojSort(sorted);
-    return u64csr(sorted);
-  }
+  return h & 0xFFFFFFFF;
 }
 
-/// Standard Fowler-Knoll-Vo.
-///
-/// May be useful for traditional hash tables,
-/// but there are no collision-free variants.
+/// 64-bit FNV-1a
 /// {@category hashes}
-class FNVHash extends CardHashBase {
-  /// 32-bit standard hash
-  @override
-  int u32(Iterable<Card> cards) {
-    int h = 0x811c9dc5;
-    for (Card c in cards) {
-      h ^= c.index;
-      h *= 0x01000193;
-    }
-    return h & 0xFFFFFFFF;
+int ojhFNV64(Iterable<Card> cards) {
+  int h = 0xcbf29ce484222325;
+  for (Card c in cards) {
+    h ^= c.index;
+    h *= 0x100000001b3;
   }
-
-  /// 64-bit standard hash
-  @override
-  int u64(Iterable<Card> cards) {
-    int h = 0xcbf29ce484222325;
-    for (Card c in cards) {
-      h ^= c.index;
-      h *= 0x100000001b3;
-    }
-    return h;
-  }
+  return h;
 }
 
-/// Hash functions based on treating each card as a base-64 (or base-16)
-/// digit in a multi-digit integer.
-///
-/// No collisions, but limited to small sets of cards.
+/// 32-bit Positional hash
 /// {@category hashes}
-class PositionalHash extends CardHashBase {
-  /// 32-bit collision-free
-  @override
-  int u32c(Iterable<Card> cards) {
-    int max = 5;
-    int h = 0;
+int ojhPositional32c(Iterable<Card> cards) {
+  int max = 5;
+  int h = 0;
 
-    for (Card c in cards) {
-      max -= 1;
-      assert(max >= 0);
+  for (Card c in cards) {
+    max -= 1;
+    assert(max >= 0);
 
-      h <<= 6;
-      h += (0x3F & c.index);
-    }
-    return h & 0xFFFFFFFF;
+    h <<= 6;
+    h += (0x3F & c.index);
   }
-
-  /// 32-bit collision-free suit-independent
-  @override
-  int u32csr(Iterable<Rank> ranks) {
-    int max = 8;
-    int h = 0;
-
-    for (Rank r in ranks) {
-      max -= 1;
-      assert(max >= 0);
-
-      h <<= 4;
-      h += (0x0F & r.index);
-    }
-    return h & 0xFFFFFFFF;
-  }
-
-  /// 64-bit collision-free
-  @override
-  int u64c(Iterable<Card> cards) {
-    int max = 10;
-    int h = 0;
-
-    for (Card c in cards) {
-      max -= 1;
-      assert(max >= 0);
-
-      h <<= 6;
-      h += (0x3F & c.index);
-    }
-    return h;
-  }
-
-  /// 64-bit collision-free order-independent suit-independent
-  @override
-  int u64csr(Iterable<Rank> ranks) {
-    int max = 16;
-    int h = 0;
-
-    for (Rank r in ranks) {
-      max -= 1;
-      assert(max >= 0);
-
-      h <<= 4;
-      h += (0x0F & r.index);
-    }
-    return h;
-  }
+  return h & 0xFFFFFFFF;
 }
 
-/// Hash function based on a 64-bit integer where each bit indicates the
-/// presence or absence of card in the set.
-///
-/// Inherently order-independent, cannot be used on decks with duplicate
-/// cards (Pinochle, Canasta, et al.)
+/// 32-bit Positional suit-independent
 /// {@category hashes}
-class BitfieldHash extends CardHashBase {
-  /// 64-bit collision-free order-independent
-  @override
-  int u64co(Iterable<Card> cards) {
-    int h = 0;
+int ojhPositional32cs(Iterable<Card> cards) {
+  int max = 8;
+  int h = 0;
 
-    for (Card c in cards) {
-      assert(0 == (h & (1 << (0x3F & c.index))));
-      h |= (1 << (0x3F & c.index));
-    }
-    return h;
+  for (Card c in cards) {
+    max -= 1;
+    assert(max >= 0);
+    int r = (c.rank == null) ? c.rank!.index : 0;
+
+    h <<= 4;
+    h += (0x0F & r);
   }
+  return h & 0xFFFFFFFF;
 }
 
-/// Hash functions based on multiplication of primes.
-///
-/// Inherently order-independent, can be used with duplicate cards,
-/// but limited to hands with a small number of cards.
+/// 32-bit Positional ranks only
 /// {@category hashes}
-class PrimeHash extends CardHashBase {
-  /// 32-bit collision-free order-independent suit-independent
-  @override
-  int u32cosr(Iterable<Rank> ranks) {
-    int max = 5;
-    int h = 1;
+int ojhPositional32cr(Iterable<Rank> ranks) {
+  int max = 8;
+  int h = 0;
 
-    for (Rank r in ranks) {
-      max -= 1;
-      assert(max >= 0);
+  for (Rank r in ranks) {
+    max -= 1;
+    assert(max >= 0);
 
-      h *= _primes[0x0F & r.index];
-    }
-    return h & 0xFFFFFFFF;
+    h <<= 4;
+    h += (0x0F & r.index);
   }
+  return h & 0xFFFFFFFF;
+}
 
-  /// 64-bit collision-free order-independent
-  @override
-  int u64co(Iterable<Card> cards) {
-    int max = 7;
-    int h = 1;
+/// 64-bit Positional hash
+/// {@category hashes}
+int ojhPositional64c(Iterable<Card> cards) {
+  int max = 10;
+  int h = 0;
 
-    for (Card c in cards) {
-      max -= 1;
-      assert(max >= 0);
+  for (Card c in cards) {
+    max -= 1;
+    assert(max >= 0);
 
-      h *= _primes[0x3F & c.index];
-    }
-    return h;
+    h <<= 6;
+    h += (0x3F & c.index);
   }
+  return h;
+}
 
-  /// 64-bit collision-free order-independent suit-independent
-  @override
-  int u64cosr(Iterable<Rank> ranks) {
-    int max = 10;
-    int h = 1;
+/// 64-bit Positional hash
+/// {@category hashes}
+int ojhPositional64cs(Iterable<Card> cards) {
+  int max = 10;
+  int h = 0;
 
-    for (Rank r in ranks) {
-      max -= 1;
-      assert(max >= 0);
+  for (Card c in cards) {
+    max -= 1;
+    assert(max >= 0);
+    int r = (c.rank == null) ? c.rank!.index : 0;
 
-      h *= _primes[0x0F & r.index];
-    }
-    return h;
+    h <<= 4;
+    h += (0x0F & r);
   }
+  return h;
+}
+
+/// 64-bit Positional ranks only
+/// {@category hashes}
+int ojhPositional64cr(Iterable<Rank> ranks) {
+  int max = 16;
+  int h = 0;
+
+  for (Rank r in ranks) {
+    max -= 1;
+    assert(max >= 0);
+
+    h <<= 4;
+    h += (0x0F & r.index);
+  }
+  return h;
+}
+
+/// 64-bit Bitfield hash
+/// {@category hashes}
+int ojhBitfield64co(Iterable<Card> cards) {
+  int h = 0;
+
+  for (Card c in cards) {
+    assert(0 == (h & (1 << (0x3F & c.index))));
+    h |= (1 << (0x3F & c.index));
+  }
+  return h;
+}
+
+/// Convert bitfiled into minimal perfect hash
+/// {@category hashes}
+int ojhMp5English(int f) {
+  // make ranks contiguous
+  int b = f >> 8;
+  b = (b & 0x000000FFFFFFFFFF) | ((b & 0x00FFF00000000000) >> 8);
+
+  int h = ojBinomial(52, 5);
+  int mask = 0x0008000000000000;
+  int m = 1;
+
+  for (int j = 0; j < 52; j += 1) {
+    if (0 != (b & mask)) {
+      h -= ojBinomial(j, m);
+      m += 1;
+      if (m > 5) break;
+    }
+    mask >>= 1;
+  }
+  return h;
+}
+
+/// 32-bit Prime hash
+/// {@category hashes}
+int ojhPrime32cor(Iterable<Rank> ranks) {
+  int max = 5;
+  int h = 1;
+
+  for (Rank r in ranks) {
+    max -= 1;
+    assert(max >= 0);
+
+    h *= _primes[0x0F & r.index];
+  }
+  return h & 0xFFFFFFFF;
+}
+
+/// 64-bit Prime hash
+/// {@category hashes}
+int ojhPrime64co(Iterable<Card> cards) {
+  int max = 7;
+  int h = 1;
+
+  for (Card c in cards) {
+    max -= 1;
+    assert(max >= 0);
+
+    h *= _primes[0x3F & c.index];
+  }
+  return h;
+}
+
+/// 64-bit Prime ranks hash
+/// {@category hashes}
+int ojhPrime64cor(Iterable<Rank> ranks) {
+  int max = 10;
+  int h = 1;
+
+  for (Rank r in ranks) {
+    max -= 1;
+    assert(max >= 0);
+
+    h *= _primes[0x0F & r.index];
+  }
+  return h;
 }
 
 const List<int> _primes = [

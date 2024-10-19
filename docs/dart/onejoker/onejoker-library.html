@@ -73,25 +73,6 @@
       <h2>Classes</h2>
 
       <dl>
-          <dt id="BitfieldHash">
-  <span class="name "><a href="../onejoker/BitfieldHash-class.html">BitfieldHash</a></span> 
-    <span class="category hashes cp-1" title="This is part of the hashes topic.">hashes</span>
-
-</dt>
-<dd>
-  Hash function based on a 64-bit integer where each bit indicates the
-presence or absence of card in the set.
-</dd>
-
-          <dt id="CardHashBase">
-  <span class="name "><a href="../onejoker/CardHashBase-class.html">CardHashBase</a></span> 
-    <span class="category hashes cp-1" title="This is part of the hashes topic.">hashes</span>
-
-</dt>
-<dd>
-  Base class for a group of hash functions based on related algorithms.
-</dd>
-
           <dt id="Deck">
   <span class="name "><a href="../onejoker/Deck-class.html">Deck</a></span> 
     <span class="category cards cp-0 linked" title="This is part of the cards topic."><a href="../topics/cards-topic.html">cards</a></span>
@@ -110,15 +91,6 @@ presence or absence of card in the set.
   Common behavior for <a href="../onejoker/Deck-class.html">Deck</a>-like objects.
 </dd>
 
-          <dt id="FNVHash">
-  <span class="name "><a href="../onejoker/FNVHash-class.html">FNVHash</a></span> 
-    <span class="category hashes cp-1" title="This is part of the hashes topic.">hashes</span>
-
-</dt>
-<dd>
-  Standard Fowler-Knoll-Vo.
-</dd>
-
           <dt id="Hand">
   <span class="name "><a href="../onejoker/Hand-class.html">Hand</a></span> 
     <span class="category cards cp-0 linked" title="This is part of the cards topic."><a href="../topics/cards-topic.html">cards</a></span>
@@ -128,22 +100,22 @@ presence or absence of card in the set.
   Hand of cards associated with (and created from) a <a href="../onejoker/Deck-class.html">Deck</a>.
 </dd>
 
-          <dt id="HandEvaluationTables">
-  <span class="name "><a href="../onejoker/HandEvaluationTables-class.html">HandEvaluationTables</a></span> 
-    <span class="category poker cp-2 linked" title="This is part of the poker topic."><a href="../topics/poker-topic.html">poker</a></span>
-
-</dt>
-<dd>
-  Standard format for lookup tables for fast evaluation of poker hands.
-</dd>
-
           <dt id="HandEvaluator">
-  <span class="name "><a href="../onejoker/HandEvaluator-class.html">HandEvaluator</a><span class="signature">&lt;<wbr><span class="type-parameter">V extends <a href="../onejoker/HandValue-class.html">HandValue</a></span>&gt;</span></span> 
+  <span class="name "><a href="../onejoker/HandEvaluator-class.html">HandEvaluator</a><span class="signature">&lt;<wbr><span class="type-parameter">V extends <a href="../onejoker/HandValue-class.html">HandValue</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/HandLevelInterface-class.html">HandLevelInterface</a></span>&gt;</span></span>&gt;</span></span> 
     <span class="category poker cp-2 linked" title="This is part of the poker topic."><a href="../topics/poker-topic.html">poker</a></span>
 
 </dt>
 <dd>
   Base class for poker hand evaluation.
+</dd>
+
+          <dt id="HandEvaluatorHigh">
+  <span class="name "><a href="../onejoker/HandEvaluatorHigh-class.html">HandEvaluatorHigh</a></span> 
+    <span class="category poker cp-2 linked" title="This is part of the poker topic."><a href="../topics/poker-topic.html">poker</a></span>
+
+</dt>
+<dd>
+  Evaluation functions for traditional "high" poker hands.
 </dd>
 
           <dt id="HandInterface">
@@ -163,8 +135,16 @@ presence or absence of card in the set.
   
 </dd>
 
+          <dt id="HandLevelInterface">
+  <span class="name "><a href="../onejoker/HandLevelInterface-class.html">HandLevelInterface</a></span> 
+
+</dt>
+<dd>
+  
+</dd>
+
           <dt id="HandValue">
-  <span class="name "><a href="../onejoker/HandValue-class.html">HandValue</a></span> 
+  <span class="name "><a href="../onejoker/HandValue-class.html">HandValue</a><span class="signature">&lt;<wbr><span class="type-parameter">L extends <a href="../onejoker/HandLevelInterface-class.html">HandLevelInterface</a></span>&gt;</span></span> 
     <span class="category poker cp-2 linked" title="This is part of the poker topic."><a href="../topics/poker-topic.html">poker</a></span>
 
 </dt>
@@ -172,17 +152,8 @@ presence or absence of card in the set.
   All the information resulting from the evaluation of a poker hand.
 </dd>
 
-          <dt id="HighHandEvaluator">
-  <span class="name "><a href="../onejoker/HighHandEvaluator-class.html">HighHandEvaluator</a></span> 
-    <span class="category poker cp-2 linked" title="This is part of the poker topic."><a href="../topics/poker-topic.html">poker</a></span>
-
-</dt>
-<dd>
-  Evaluation functions for traditional "high" poker hands.
-</dd>
-
-          <dt id="HighHandValue">
-  <span class="name "><a href="../onejoker/HighHandValue-class.html">HighHandValue</a></span> 
+          <dt id="HandValueHigh">
+  <span class="name "><a href="../onejoker/HandValueHigh-class.html">HandValueHigh</a></span> 
     <span class="category poker cp-2 linked" title="This is part of the poker topic."><a href="../topics/poker-topic.html">poker</a></span>
 
 </dt>
@@ -217,25 +188,6 @@ presence or absence of card in the set.
   Hand of cards not associated with a <a href="../onejoker/Deck-class.html">Deck</a>.
 </dd>
 
-          <dt id="PositionalHash">
-  <span class="name "><a href="../onejoker/PositionalHash-class.html">PositionalHash</a></span> 
-    <span class="category hashes cp-1" title="This is part of the hashes topic.">hashes</span>
-
-</dt>
-<dd>
-  Hash functions based on treating each card as a base-64 (or base-16)
-digit in a multi-digit integer.
-</dd>
-
-          <dt id="PrimeHash">
-  <span class="name "><a href="../onejoker/PrimeHash-class.html">PrimeHash</a></span> 
-    <span class="category hashes cp-1" title="This is part of the hashes topic.">hashes</span>
-
-</dt>
-<dd>
-  Hash functions based on multiplication of primes.
-</dd>
-
       </dl>
     </section>
 
@@ -253,14 +205,61 @@ digit in a multi-digit integer.
 (see <a href="http://github.com/lcrocker/ojpoker/wiki/Card">Card</a> @ wiki)
 </dd>
 
+          <dt id="HandLevelAceToFive">
+  <span class="name "><a href="../onejoker/HandLevelAceToFive.html">HandLevelAceToFive</a></span> 
+
+</dt>
+<dd>
+  
+</dd>
+
+          <dt id="HandLevelActionRazz">
+  <span class="name "><a href="../onejoker/HandLevelActionRazz.html">HandLevelActionRazz</a></span> 
+
+</dt>
+<dd>
+  
+</dd>
+
+          <dt id="HandLevelBadugi">
+  <span class="name "><a href="../onejoker/HandLevelBadugi.html">HandLevelBadugi</a></span> 
+
+</dt>
+<dd>
+  
+</dd>
+
+          <dt id="HandLevelDeuceToSeven">
+  <span class="name "><a href="../onejoker/HandLevelDeuceToSeven.html">HandLevelDeuceToSeven</a></span> 
+
+</dt>
+<dd>
+  
+</dd>
+
+          <dt id="HandLevelHigh">
+  <span class="name "><a href="../onejoker/HandLevelHigh.html">HandLevelHigh</a></span> 
+
+</dt>
+<dd>
+  
+</dd>
+
+          <dt id="HandLevelStripped">
+  <span class="name "><a href="../onejoker/HandLevelStripped.html">HandLevelStripped</a></span> 
+
+</dt>
+<dd>
+  
+</dd>
+
           <dt id="Rank">
   <span class="name "><a href="../onejoker/Rank.html">Rank</a></span> 
     <span class="category cards cp-0 linked" title="This is part of the cards topic."><a href="../topics/cards-topic.html">cards</a></span>
 
 </dt>
 <dd>
-  Enum for card ranks and their basic methods.
-(see <a href="https://github.com/lcrocker/ojpoker/wiki/Rank">Rank</a> @ wiki)
+  
 </dd>
 
           <dt id="Suit">
@@ -292,6 +291,18 @@ digit in a multi-digit integer.
       <h2>Constants</h2>
 
       <dl class="properties">
+          <dt id="coefficients" class="constant">
+    <span class="name "><a href="../onejoker/coefficients-constant.html">coefficients</a></span>
+  <span class="signature">&#8594; const <a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>&gt;</span></span>
+  
+
+</dt>
+<dd>
+  
+  
+
+</dd>
+
           <dt id="TFALSE" class="constant">
     <span class="name "><a href="../onejoker/TFALSE-constant.html">TFALSE</a></span>
   <span class="signature">&#8594; const <a href="../onejoker/Troolean.html">Troolean</a></span>
@@ -351,6 +362,229 @@ Cards may be enclosed in square brackets.
 
 </dd>
 
+          <dt id="ojBinomial" class="callable">
+  <span class="name"><a href="../onejoker/ojBinomial.html">ojBinomial</a></span><span class="signature">(<wbr><span class="parameter" id="ojBinomial-param-n"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">n</span>, </span><span class="parameter" id="ojBinomial-param-k"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">k</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
+  </span>
+  
+    <span class="category utilities cp-3 linked" title="This is part of the utilities topic."><a href="../topics/utilities-topic.html">utilities</a></span>
+
+</dt>
+<dd>
+  Binomial coefficient for 0 &lt;= n &lt;= 64, 0 &lt;= k &lt;= 64 using lookup table
+  
+
+</dd>
+
+          <dt id="ojhBitfield64co" class="callable">
+  <span class="name"><a href="../onejoker/ojhBitfield64co.html">ojhBitfield64co</a></span><span class="signature">(<wbr><span class="parameter" id="ojhBitfield64co-param-cards"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Card.html">Card</a></span>&gt;</span></span> <span class="parameter-name">cards</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
+  </span>
+  
+    <span class="category hashes cp-1" title="This is part of the hashes topic.">hashes</span>
+
+</dt>
+<dd>
+  64-bit Bitfield hash
+  
+
+</dd>
+
+          <dt id="ojhFNV32" class="callable">
+  <span class="name"><a href="../onejoker/ojhFNV32.html">ojhFNV32</a></span><span class="signature">(<wbr><span class="parameter" id="ojhFNV32-param-cards"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Card.html">Card</a></span>&gt;</span></span> <span class="parameter-name">cards</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
+  </span>
+  
+    <span class="category hashes cp-1" title="This is part of the hashes topic.">hashes</span>
+
+</dt>
+<dd>
+  32-bit FNV-1a
+  
+
+</dd>
+
+          <dt id="ojhFNV64" class="callable">
+  <span class="name"><a href="../onejoker/ojhFNV64.html">ojhFNV64</a></span><span class="signature">(<wbr><span class="parameter" id="ojhFNV64-param-cards"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Card.html">Card</a></span>&gt;</span></span> <span class="parameter-name">cards</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
+  </span>
+  
+    <span class="category hashes cp-1" title="This is part of the hashes topic.">hashes</span>
+
+</dt>
+<dd>
+  64-bit FNV-1a
+  
+
+</dd>
+
+          <dt id="ojHighHandValueFunction" class="callable">
+  <span class="name"><a href="../onejoker/ojHighHandValueFunction.html">ojHighHandValueFunction</a></span><span class="signature">(<wbr><span class="parameter" id="ojHighHandValueFunction-param-level"><span class="type-annotation"><a href="../onejoker/HandLevelInterface-class.html">HandLevelInterface</a></span> <span class="parameter-name">level</span>, </span><span class="parameter" id="ojHighHandValueFunction-param-ranks"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Rank.html">Rank</a></span>&gt;</span></span> <span class="parameter-name">ranks</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Default function for assigning a numeric value to the <a href="../onejoker/Hand-class.html">Hand</a> such that
+lower number equals better hand.
+  
+
+</dd>
+
+          <dt id="ojhMp5English" class="callable">
+  <span class="name"><a href="../onejoker/ojhMp5English.html">ojhMp5English</a></span><span class="signature">(<wbr><span class="parameter" id="ojhMp5English-param-f"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">f</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
+  </span>
+  
+    <span class="category hashes cp-1" title="This is part of the hashes topic.">hashes</span>
+
+</dt>
+<dd>
+  Convert bitfiled into minimal perfect hash
+  
+
+</dd>
+
+          <dt id="ojhPositional32c" class="callable">
+  <span class="name"><a href="../onejoker/ojhPositional32c.html">ojhPositional32c</a></span><span class="signature">(<wbr><span class="parameter" id="ojhPositional32c-param-cards"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Card.html">Card</a></span>&gt;</span></span> <span class="parameter-name">cards</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
+  </span>
+  
+    <span class="category hashes cp-1" title="This is part of the hashes topic.">hashes</span>
+
+</dt>
+<dd>
+  32-bit Positional hash
+  
+
+</dd>
+
+          <dt id="ojhPositional32cr" class="callable">
+  <span class="name"><a href="../onejoker/ojhPositional32cr.html">ojhPositional32cr</a></span><span class="signature">(<wbr><span class="parameter" id="ojhPositional32cr-param-ranks"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Rank.html">Rank</a></span>&gt;</span></span> <span class="parameter-name">ranks</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
+  </span>
+  
+    <span class="category hashes cp-1" title="This is part of the hashes topic.">hashes</span>
+
+</dt>
+<dd>
+  32-bit Positional ranks only
+  
+
+</dd>
+
+          <dt id="ojhPositional32cs" class="callable">
+  <span class="name"><a href="../onejoker/ojhPositional32cs.html">ojhPositional32cs</a></span><span class="signature">(<wbr><span class="parameter" id="ojhPositional32cs-param-cards"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Card.html">Card</a></span>&gt;</span></span> <span class="parameter-name">cards</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
+  </span>
+  
+    <span class="category hashes cp-1" title="This is part of the hashes topic.">hashes</span>
+
+</dt>
+<dd>
+  32-bit Positional suit-independent
+  
+
+</dd>
+
+          <dt id="ojhPositional64c" class="callable">
+  <span class="name"><a href="../onejoker/ojhPositional64c.html">ojhPositional64c</a></span><span class="signature">(<wbr><span class="parameter" id="ojhPositional64c-param-cards"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Card.html">Card</a></span>&gt;</span></span> <span class="parameter-name">cards</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
+  </span>
+  
+    <span class="category hashes cp-1" title="This is part of the hashes topic.">hashes</span>
+
+</dt>
+<dd>
+  64-bit Positional hash
+  
+
+</dd>
+
+          <dt id="ojhPositional64cr" class="callable">
+  <span class="name"><a href="../onejoker/ojhPositional64cr.html">ojhPositional64cr</a></span><span class="signature">(<wbr><span class="parameter" id="ojhPositional64cr-param-ranks"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Rank.html">Rank</a></span>&gt;</span></span> <span class="parameter-name">ranks</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
+  </span>
+  
+    <span class="category hashes cp-1" title="This is part of the hashes topic.">hashes</span>
+
+</dt>
+<dd>
+  64-bit Positional ranks only
+  
+
+</dd>
+
+          <dt id="ojhPositional64cs" class="callable">
+  <span class="name"><a href="../onejoker/ojhPositional64cs.html">ojhPositional64cs</a></span><span class="signature">(<wbr><span class="parameter" id="ojhPositional64cs-param-cards"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Card.html">Card</a></span>&gt;</span></span> <span class="parameter-name">cards</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
+  </span>
+  
+    <span class="category hashes cp-1" title="This is part of the hashes topic.">hashes</span>
+
+</dt>
+<dd>
+  64-bit Positional hash
+  
+
+</dd>
+
+          <dt id="ojhPrime32cor" class="callable">
+  <span class="name"><a href="../onejoker/ojhPrime32cor.html">ojhPrime32cor</a></span><span class="signature">(<wbr><span class="parameter" id="ojhPrime32cor-param-ranks"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Rank.html">Rank</a></span>&gt;</span></span> <span class="parameter-name">ranks</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
+  </span>
+  
+    <span class="category hashes cp-1" title="This is part of the hashes topic.">hashes</span>
+
+</dt>
+<dd>
+  32-bit Prime hash
+  
+
+</dd>
+
+          <dt id="ojhPrime64co" class="callable">
+  <span class="name"><a href="../onejoker/ojhPrime64co.html">ojhPrime64co</a></span><span class="signature">(<wbr><span class="parameter" id="ojhPrime64co-param-cards"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Card.html">Card</a></span>&gt;</span></span> <span class="parameter-name">cards</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
+  </span>
+  
+    <span class="category hashes cp-1" title="This is part of the hashes topic.">hashes</span>
+
+</dt>
+<dd>
+  64-bit Prime hash
+  
+
+</dd>
+
+          <dt id="ojhPrime64cor" class="callable">
+  <span class="name"><a href="../onejoker/ojhPrime64cor.html">ojhPrime64cor</a></span><span class="signature">(<wbr><span class="parameter" id="ojhPrime64cor-param-ranks"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Rank.html">Rank</a></span>&gt;</span></span> <span class="parameter-name">ranks</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
+  </span>
+  
+    <span class="category hashes cp-1" title="This is part of the hashes topic.">hashes</span>
+
+</dt>
+<dd>
+  64-bit Prime ranks hash
+  
+
+</dd>
+
+          <dt id="ojLowHandValueFunction" class="callable">
+  <span class="name"><a href="../onejoker/ojLowHandValueFunction.html">ojLowHandValueFunction</a></span><span class="signature">(<wbr><span class="parameter" id="ojLowHandValueFunction-param-level"><span class="type-annotation"><a href="../onejoker/HandLevelInterface-class.html">HandLevelInterface</a></span> <span class="parameter-name">level</span>, </span><span class="parameter" id="ojLowHandValueFunction-param-ranks"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Rank.html">Rank</a></span>&gt;</span></span> <span class="parameter-name">ranks</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
+
+</dd>
+
           <dt id="ojNextCombination" class="callable">
   <span class="name"><a href="../onejoker/ojNextCombination.html">ojNextCombination</a></span><span class="signature">(<wbr><span class="parameter" id="ojNextCombination-param-a"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>&gt;</span></span> <span class="parameter-name">a</span>, </span><span class="parameter" id="ojNextCombination-param-n"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">n</span></span>)
     <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
@@ -395,7 +629,7 @@ Cards may be enclosed in square brackets.
 
           <dt id="pokerEvaluator" class="callable">
   <span class="name"><a href="../onejoker/pokerEvaluator.html">pokerEvaluator</a></span><span class="signature">(<wbr><span class="parameter" id="pokerEvaluator-param-name"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">name</span></span>)
-    <span class="returntype parameter">&#8594; <a href="../onejoker/HandEvaluator-class.html">HandEvaluator</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/HandValue-class.html">HandValue</a></span>&gt;</span></span>
+    <span class="returntype parameter">&#8594; <a href="../onejoker/HandEvaluator-class.html">HandEvaluator</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/HandValue-class.html">HandValue</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/HandLevelInterface-class.html">HandLevelInterface</a></span>&gt;</span></span>&gt;</span></span>
   </span>
   
     <span class="category poker cp-2 linked" title="This is part of the poker topic."><a href="../topics/poker-topic.html">poker</a></span>
@@ -415,9 +649,69 @@ Cards may be enclosed in square brackets.
 
       <dl>
           
+  <dt id="HandLevelAceToSix" class="">
+  <span class="name"><a href="../onejoker/HandLevelAceToSix.html">HandLevelAceToSix</a></span>
+    = <a href="../onejoker/HandLevelDeuceToSeven.html">HandLevelDeuceToSeven</a>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
+
+</dd>
+
+
+          
+  <dt id="HandLevelManilla" class="">
+  <span class="name"><a href="../onejoker/HandLevelManilla.html">HandLevelManilla</a></span>
+    = <a href="../onejoker/HandLevelStripped.html">HandLevelStripped</a>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
+
+</dd>
+
+
+          
+  <dt id="HandLevelMexican" class="">
+  <span class="name"><a href="../onejoker/HandLevelMexican.html">HandLevelMexican</a></span>
+    = <a href="../onejoker/HandLevelStripped.html">HandLevelStripped</a>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
+
+</dd>
+
+
+          
+  <dt id="HandLevelPaiGow" class="">
+  <span class="name"><a href="../onejoker/HandLevelPaiGow.html">HandLevelPaiGow</a></span>
+    = <a href="../onejoker/HandLevelHigh.html">HandLevelHigh</a>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
+
+</dd>
+
+
+          
   <dt id="HandValueFactory" class="callable">
     <span class="name"><a href="../onejoker/HandValueFactory.html">HandValueFactory</a></span>&lt;<wbr><span class="type-parameter">V</span>&gt;<span class="signature">
-      <span class="returntype parameter">= V Function<span class="signature">(<span class="parameter" id="param-level"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">level</span>, </span><span class="parameter" id="param-ranks"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Rank.html">Rank</a></span>&gt;</span></span> <span class="parameter-name">ranks</span>, </span><span class="parameter" id="param-value"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">value</span></span>)</span></span>
+      <span class="returntype parameter">= V Function<span class="signature">()</span></span>
     </span>
     
 

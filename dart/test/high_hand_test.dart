@@ -16,7 +16,7 @@ void main() {
       var bytes = await file.readAsBytes();
       var data = mp.deserialize(bytes);
       var hands = data['hands'];
-      var high = HighHandEvaluator();
+      var high = HandEvaluatorHigh();
 
       for (int i = 0; i < data['count']; i += 1) {
         var irow = hands[i];
@@ -27,8 +27,8 @@ void main() {
 
         expect(ihand.length, 5);
         expect(jhand.length, 5);
-        HighHandValue iv = high.referenceEvaluator(ihand);
-        HighHandValue jv = high.referenceEvaluator(jhand);
+        HandValueHigh iv = high.referenceEvaluator(ihand);
+        HandValueHigh jv = high.referenceEvaluator(jhand);
 
         if (irow[1] < jrow[1]) {
           expect(iv.value < jv.value, true);

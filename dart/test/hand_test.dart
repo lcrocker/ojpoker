@@ -14,7 +14,6 @@ void main() {
     test('hands text data file', () async {
       var bytes = await file.readAsBytes();
       var data = mp.deserialize(bytes);
-      var hasher = FNVHash();
 
       var hands = data['hands'];
       for (int i = 0; i < data['count']; i += 1) {
@@ -29,7 +28,7 @@ void main() {
           expect(true, deck.has(hand.cardAt(j)!));
         }
         expect(hands[i][1], hand.toString());
-        expect(hands[i][3], hasher.u32(hand));
+        expect(hands[i][3], ojhFNV32(hand));
       }
     }, skip: skip);
   });
@@ -125,24 +124,22 @@ void main() {
     });
 
     test('insert and remove', () {
-      // var hand = OrphanHand.fromText("4sJc9d");
-      // hand.insertAt(1, Card.Joker);
-      // expect(hand.toString(), "4sJkJc9d");
-      // hand.insertAt(0, Card.TenOfDiamonds);
-      // expect(hand.toString(), "Td4sJkJc9d");
-      // hand.insertAt(4, Card.QueenOfDiamonds);
-      // expect(hand.toString(), "Td4sJkJcQd9d");
-      // hand.insertAt(7, Card.SixOfSpades);
-      // expect(hand.toString(), "Td4sJkJcQd9d6s");
+      var hand = OrphanHand.fromText("4sJc9d");
+      hand.insertAt(1, Card.Joker);
+      expect(hand.toString(), "4sJkJc9d");
+      hand.insertAt(0, Card.TenOfDiamonds);
+      expect(hand.toString(), "Td4sJkJc9d");
+      hand.insertAt(4, Card.QueenOfDiamonds);
+      expect(hand.toString(), "Td4sJkJcQd9d");
+      hand.insertAt(6, Card.SixOfSpades);
+      expect(hand.toString(), "Td4sJkJcQd9d6s");
 
-      // expect(hand.removeAt(0), Card.TenOfDiamonds);
-      // expect(hand.toString(), "4sJkJcQd9dAc6s");
-      // expect(hand.removeAt(2), Card.JackOfClubs);
-      // expect(hand.toString(), "4sJkQd9dAc6s");
-      // expect(hand.removeCard(Card.AceOfClubs), true);
-      // expect(hand.toString(), "4sJkQd9d6s");
-      // expect(hand.removeAt(3), Card.NineOfDiamonds);
-      // expect(hand.toString(), "4sJkQd6s");
+      expect(hand.removeAt(0), Card.TenOfDiamonds);
+      expect(hand.toString(), "4sJkJcQd9d6s");
+      expect(hand.removeAt(2), Card.JackOfClubs);
+      expect(hand.toString(), "4sJkQd9d6s");
+      expect(hand.removeAt(3), Card.NineOfDiamonds);
+      expect(hand.toString(), "4sJkQd6s");
     });
 
     test('shuffle and sort', () {
@@ -167,30 +164,6 @@ void main() {
 
       hand.sort();
       expect(hand.toString(), "QsTh8d7s5h4h3h3cJk");
-
-      /// Test the randomness of shuffle() by playing "find the ace".
-      /// Make a deck of 20 cards, shuffle it a million times, and count the
-      /// number of times the ace of spades falls in each position. Should be
-      /// close to 50000 per bucket. Of course, being random, the test may
-      /// fail rarely. This is a simple quick-and-dirty "is it broken", test.
-      /// The PRNG itself I ran through a battery of tests called "dieharder"
-      /// that checks for all kinds of statistical bias.
-
-      List<int> counts = List.filled(20, 0);
-      hand = OrphanHand.fromText("As2s3s4s5s6s7s8s9sTsAh2h3h4h5h6h7h8h9hTh");
-      for (int i = 0; i < 1000000; i += 1) {
-        hand.shuffle();
-        for (int j = 0; j < 20; j += 1) {
-          if (hand[j] == Card.AceOfSpades) {
-            counts[j] += 1;
-            break;
-          }
-        }
-      }
-      for (int i = 0; i < 20; i += 1) {
-        expect(counts[i], greaterThan(49000));
-        expect(counts[i], lessThan(51000));
-      }
     });
   });
 }

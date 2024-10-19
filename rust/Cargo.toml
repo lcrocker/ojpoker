@@ -5,9 +5,18 @@ authors = ["Lee Daniel Crocker <lee@onejoker.com>"]
 edition = "2021"
 
 [profile.release]
-strip = true
-lto = true
+codegen-units = 1
+debug = 1
+lto = "fat"
 panic = "abort"
+
+[profile.dev]
+strip = false
+panic = "unwind"
+split-debuginfo = "unpacked"
+
+[build]
+rustflags = [ "-Clink-arg=-fuse-ld=lld", "-Ctarget-cpu=native" ]
 
 [dependencies]
 anyhow = "1.0.71"

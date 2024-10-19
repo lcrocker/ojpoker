@@ -174,7 +174,7 @@ class OrphanHand extends Iterable<Card> implements HandInterface {
   @override
   Card? removeAt(int index) {
     if (index < 0 || index >= _cards.length) return null;
-    return _cards.removeAt(_cards.length - 1 - index);
+    return _cards.removeAt(index);
   }
 
   /// Remove top-most specific card from list.

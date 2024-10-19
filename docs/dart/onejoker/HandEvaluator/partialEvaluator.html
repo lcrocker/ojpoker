@@ -30,8 +30,8 @@
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">onejoker</a></li>
     <li><a href="../../onejoker/onejoker-library.html">onejoker.dart</a></li>
-    <li><a href="../../onejoker/HandEvaluator-class.html">HandEvaluator<span class="signature">&lt;<wbr><span class="type-parameter">V extends HandValue</span>&gt;</span></a></li>
-    <li class="self-crumb">partialEvaluator abstract method</li>
+    <li><a href="../../onejoker/HandEvaluator-class.html">HandEvaluator<span class="signature">&lt;<wbr><span class="type-parameter">V extends HandValue&lt;<wbr><span class="type-parameter">HandLevelInterface</span>&gt;</span>&gt;</span></a></li>
+    <li class="self-crumb">partialEvaluator method</li>
   </ol>
   <div class="self-name">partialEvaluator</div>
   <form class="search navbar-right" role="search">
@@ -57,7 +57,7 @@
     data-above-sidebar="onejoker&#47;HandEvaluator-class-sidebar.html"
     data-below-sidebar="">
     <div>
-<h1><span class="kind-method">partialEvaluator</span> abstract method 
+<h1><span class="kind-method">partialEvaluator</span> method 
 </h1></div>
 
     <section class="multi-line-signature">
@@ -76,7 +76,9 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">V partialEvaluator(HandInterface h);</code></pre>
+  <pre class="language-dart"><code class="language-dart">V partialEvaluator(HandInterface h) {
+  return referenceEvaluator(h);
+}</code></pre>
 </section>
 
 
@@ -93,8 +95,8 @@
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../../index.html">onejoker</a></li>
     <li><a href="../../onejoker/onejoker-library.html">onejoker</a></li>
-    <li><a href="../../onejoker/HandEvaluator-class.html">HandEvaluator<span class="signature">&lt;<wbr><span class="type-parameter">V extends HandValue</span>&gt;</span></a></li>
-    <li class="self-crumb">partialEvaluator abstract method</li>
+    <li><a href="../../onejoker/HandEvaluator-class.html">HandEvaluator<span class="signature">&lt;<wbr><span class="type-parameter">V extends HandValue&lt;<wbr><span class="type-parameter">HandLevelInterface</span>&gt;</span>&gt;</span></a></li>
+    <li class="self-crumb">partialEvaluator method</li>
 </ol>
 
 

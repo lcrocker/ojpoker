@@ -102,11 +102,11 @@ impl HandLevelTrait for HandLevelStripped {
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/HandLevelStripped) | Manilla poker hand levels
 /// Manilla uses stripped deck high hands.
-pub type HandLevelManilla = HandLevelHigh;
+pub type HandLevelManilla = HandLevelStripped;
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/HandLevelStripped) | Mexican poker hand levels
 /// Mexican poker uses stripped deck high hands.
-pub type HandLevelMexican = HandLevelHigh;
+pub type HandLevelMexican = HandLevelStripped;
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/HandLevelAceToFive) | Ace-to-five lowball hand levels
 /// Ace-to-five lowball hands, e.g. Razz, California lowball, Stud/8, etc.

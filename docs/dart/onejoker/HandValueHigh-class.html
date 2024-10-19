@@ -30,7 +30,7 @@
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../index.html">onejoker</a></li>
     <li><a href="../onejoker/onejoker-library.html">onejoker.dart</a></li>
-    <li class="self-crumb">HandValueHigh<span class="signature">&lt;<wbr><span class="type-parameter">H extends <a href="../onejoker/HandInterface-class.html">HandInterface</a><span class="signature">&lt;<wbr><span class="type-parameter">H</span>&gt;</span></span>&gt;</span> class</li>
+    <li class="self-crumb">HandValueHigh class</li>
   </ol>
   <div class="self-name">HandValueHigh</div>
   <form class="search navbar-right" role="search">
@@ -56,14 +56,14 @@
     data-above-sidebar="onejoker&#47;onejoker-library-sidebar.html"
     data-below-sidebar="onejoker&#47;HandValueHigh-class-sidebar.html">
     <div>
-<h1><span class="kind-class">HandValueHigh&lt;<wbr><span class="type-parameter">H extends HandInterface&lt;<wbr><span class="type-parameter">H</span>&gt;</span>&gt;</span> class 
+<h1><span class="kind-class">HandValueHigh</span> class 
  
     <span class="category poker cp-2 linked" title="This is part of the poker topic."><a href="../topics/poker-topic.html">poker</a></span>
 </h1></div>
 
     
 <section class="desc markdown">
-  <p>Evaluation functions for traditional "high" poker hands.</p>
+  <p><a href="../onejoker/HandValue-class.html">HandValue</a> for traditional "high" poker hands.</p>
 </section>
 
 
@@ -74,7 +74,7 @@
   <dd>
     <ul class="gt-separated dark clazz-relationships">
       <li><a href="https://api.flutter.dev/flutter/dart-core/Object-class.html">Object</a></li>
-        <li><a href="../onejoker/HandValue-class.html">HandValue</a><span class="signature">&lt;<wbr><span class="type-parameter">H</span>, <span class="type-parameter"><a href="../onejoker/HandLevelHigh.html">HandLevelHigh</a></span>&gt;</span></li>
+        <li><a href="../onejoker/HandValue-class.html">HandValue</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/HandLevelHigh.html">HandLevelHigh</a></span>&gt;</span></li>
       <li>HandValueHigh</li>
     </ul>
   </dd>
@@ -99,46 +99,7 @@
           <span class="name"><a href="../onejoker/HandValueHigh/HandValueHigh.html">HandValueHigh</a></span><span class="signature">(<span class="parameter" id="-param-level"><span class="type-annotation"><a href="../onejoker/HandLevelHigh.html">HandLevelHigh</a></span> <span class="parameter-name">level</span>, </span><span class="parameter" id="-param-ranks"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Rank.html">Rank</a></span>&gt;</span></span> <span class="parameter-name">ranks</span></span>)</span>
         </dt>
         <dd>
-          Constructor internal use. Users of the class should use one of
-the factory methods that takes a <a href="../onejoker/Hand-class.html">Hand</a>.
-        </dd>
-        <dt id="HandValueHigh.eval" class="callable">
-          <span class="name"><a href="../onejoker/HandValueHigh/HandValueHigh.eval.html">HandValueHigh.eval</a></span><span class="signature">(<span class="parameter" id="eval-param-hand"><span class="type-annotation">H</span> <span class="parameter-name">hand</span></span>)</span>
-        </dt>
-        <dd>
-          General-purpose evaluator that delegates where needed.
-            <div class="constructor-modifier features">factory</div>
-        </dd>
-        <dt id="HandValueHigh.lookupEvaluator" class="callable">
-          <span class="name"><a href="../onejoker/HandValueHigh/HandValueHigh.lookupEvaluator.html">HandValueHigh.lookupEvaluator</a></span><span class="signature">(<span class="parameter" id="lookupEvaluator-param-hand"><span class="type-annotation">H</span> <span class="parameter-name">hand</span></span>)</span>
-        </dt>
-        <dd>
-          Evaluator using lookup tables created with the reference evaluator.
-Lazily loads tables, and falls back if not found.
-            <div class="constructor-modifier features">factory</div>
-        </dd>
-        <dt id="HandValueHigh.partialEvaluator" class="callable">
-          <span class="name"><a href="../onejoker/HandValueHigh/HandValueHigh.partialEvaluator.html">HandValueHigh.partialEvaluator</a></span><span class="signature">(<span class="parameter" id="partialEvaluator-param-hand"><span class="type-annotation">H</span> <span class="parameter-name">hand</span></span>)</span>
-        </dt>
-        <dd>
-          Evaluate partial hand, e.g. for determining first bet in stud.
-            <div class="constructor-modifier features">factory</div>
-        </dd>
-        <dt id="HandValueHigh.referenceEvaluator" class="callable">
-          <span class="name"><a href="../onejoker/HandValueHigh/HandValueHigh.referenceEvaluator.html">HandValueHigh.referenceEvaluator</a></span><span class="signature">(<span class="parameter" id="referenceEvaluator-param-hand"><span class="type-annotation">H</span> <span class="parameter-name">hand</span></span>)</span>
-        </dt>
-        <dd>
-          "Reference" evaluator optimized for accuracy and robustness, not
-performance. Most of the actual work is done in the methods of
-the internal _EvaluatorState that must be called in the proper order,
-which is strictly enforced with three-state-logic.
-            <div class="constructor-modifier features">factory</div>
-        </dd>
-        <dt id="HandValueHigh.withValue" class="callable">
-          <span class="name"><a href="../onejoker/HandValueHigh/HandValueHigh.withValue.html">HandValueHigh.withValue</a></span><span class="signature">(<span class="parameter" id="withValue-param-level"><span class="type-annotation"><a href="../onejoker/HandLevelHigh.html">HandLevelHigh</a></span> <span class="parameter-name">level</span>, </span><span class="parameter" id="withValue-param-ranks"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Rank.html">Rank</a></span>&gt;</span></span> <span class="parameter-name">ranks</span>, </span><span class="parameter" id="withValue-param-v"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a>?</span> <span class="parameter-name">v</span></span>)</span>
-        </dt>
-        <dd>
-          Another constructor for internal use, and overriding value calculation.
+          
         </dd>
     </dl>
   </section>
@@ -224,8 +185,7 @@ which is strictly enforced with three-state-logic.
 
 </dt>
 <dd>
-  Full description of hand value in English text.
-E.g. "jacks and fours with an ace".
+  Describe the <a href="../onejoker/Hand-class.html">Hand</a> (we expect every implementor to override this).
   <div class="features"><span class="feature">override</span></div>
 
 </dd>
@@ -244,8 +204,8 @@ E.g. "jacks and fours with an ace".
 </dd>
 
         <dt id="orderedForDisplay" class="callable inherited">
-  <span class="name"><a href="../onejoker/HandValue/orderedForDisplay.html">orderedForDisplay</a></span><span class="signature">(<wbr><span class="parameter" id="orderedForDisplay-param-h"><span class="type-annotation">H</span> <span class="parameter-name">h</span></span>)
-    <span class="returntype parameter">&#8594; H</span>
+  <span class="name"><a href="../onejoker/HandValue/orderedForDisplay.html">orderedForDisplay</a></span><span class="signature">(<wbr><span class="parameter" id="orderedForDisplay-param-h"><span class="type-annotation"><a href="../onejoker/HandInterface-class.html">HandInterface</a></span> <span class="parameter-name">h</span></span>)
+    <span class="returntype parameter">&#8594; <a href="../onejoker/OrphanHand-class.html">OrphanHand</a></span>
   </span>
   
 
@@ -257,16 +217,16 @@ E.g. "jacks and fours with an ace".
 
 </dd>
 
-        <dt id="toString" class="callable">
-  <span class="name"><a href="../onejoker/HandValueHigh/toString.html">toString</a></span><span class="signature">(<wbr>)
+        <dt id="toString" class="callable inherited">
+  <span class="name"><a href="../onejoker/HandValue/toString.html">toString</a></span><span class="signature">(<wbr>)
     <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
   </span>
   
 
 </dt>
-<dd>
-  Quick diagnostic string value
-  <div class="features"><span class="feature">override</span></div>
+<dd class="inherited">
+  Implementors will override this with something short for debugging.
+  <div class="features"><span class="feature">inherited</span></div>
 
 </dd>
 
@@ -295,26 +255,6 @@ E.g. "jacks and fours with an ace".
   </section>
     
     
-  <section class="summary offset-anchor" id="static-methods">
-    <h2>Static Methods</h2>
-    <dl class="callables">
-        <dt id="fastValue" class="callable">
-  <span class="name"><a href="../onejoker/HandValueHigh/fastValue.html">fastValue</a></span><span class="signature">&lt;<wbr><span class="type-parameter">T extends <a href="../onejoker/HandInterface-class.html">HandInterface</a><span class="signature">&lt;<wbr><span class="type-parameter">T</span>&gt;</span></span>&gt;</span><span class="signature">(<wbr><span class="parameter" id="fastValue-param-hand"><span class="type-annotation">T</span> <span class="parameter-name">hand</span></span>)
-    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
-  </span>
-  
-
-</dt>
-<dd>
-  Static function that just returns the comparison number without
-all the other info, for when you just want to know who wins and
-don't care how or why.
-  
-
-</dd>
-
-    </dl>
-  </section>
     
 
 
@@ -331,7 +271,7 @@ don't care how or why.
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../index.html">onejoker</a></li>
     <li><a href="../onejoker/onejoker-library.html">onejoker</a></li>
-    <li class="self-crumb">HandValueHigh<span class="signature">&lt;<wbr><span class="type-parameter">H extends <a href="../onejoker/HandInterface-class.html">HandInterface</a><span class="signature">&lt;<wbr><span class="type-parameter">H</span>&gt;</span></span>&gt;</span> class</li>
+    <li class="self-crumb">HandValueHigh class</li>
 </ol>
 
 

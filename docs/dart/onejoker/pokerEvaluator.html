@@ -64,7 +64,7 @@
     <section class="multi-line-signature">
         
 
-<span class="returntype"><a href="../onejoker/HandEvaluator-class.html">HandEvaluator</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/HandValue-class.html">HandValue</a></span>&gt;</span></span>
+<span class="returntype"><a href="../onejoker/HandEvaluator-class.html">HandEvaluator</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/HandValue-class.html">HandValue</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/HandLevelInterface-class.html">HandLevelInterface</a></span>&gt;</span></span>&gt;</span></span>
 <span class="name ">pokerEvaluator</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="pokerEvaluator-param-name"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">name</span></span></li>
 </ol>)
 
@@ -82,10 +82,10 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">HandEvaluator pokerEvaluator(String name) {
   switch (name) {
-    case &#39;standard&#39;:
-    case &#39;default&#39;:
-    case &#39;high&#39;:
-      return HighHandEvaluator();
+    case &quot;standard&quot;:
+    case &quot;default&quot;:
+    case &quot;high&quot;:
+      return HandEvaluatorHigh();
     default:
       throw ArgumentError(&#39;Unknown poker evaluator: $name&#39;);
   }
