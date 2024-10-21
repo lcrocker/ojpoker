@@ -1,9 +1,9 @@
 /*
  * Paths for card suits. I began with the Unicode suit symbols (from
- * Noto Sans I believe), then tweaked with Inkscape into a 50x50 box, and
- * some hand-editing of the SVG.
+ * Noto Sans I believe), then tweaked with Inkscape into a 50x50 box
+ * and did some hand-editing of the SVG.
  * 
- * Running as a script will output an SVG file you can examine in a browser.
+ * Running as a script will output an SVG file you can see in a browser.
  */
 
 export const SUITS = {

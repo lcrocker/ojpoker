@@ -3,7 +3,7 @@
  * tweaked with Inkscape into a 240x320 box aligned at center of the top edge,
  * plus some special surgery on the 10 and some hand-editing of the SVG.
  * 
- * Running as a script will output an SVG file you can examine in a browser.
+ * Running as a script will output an SVG file you can see in a browser.
  */
 
 export const RANKS = {

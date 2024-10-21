@@ -1,4 +1,4 @@
-# ojpoker | Updated: October 19, 2024
+# ojpoker | Updated: October 20, 2024
 
 This is code for the [OneJoker](https://onejoker.org) project,
 aiming to create libraries and other digital tools for handling playing cards
@@ -55,7 +55,7 @@ you'll have to install Deno to rebuild them.
 
 ## TypeScript
 
-I am using Deno 2.0.0 (TypeScript 5.6.2) for the scripts, though
+I am using Deno 2.0.2 (TypeScript 5.6.2) for the scripts, though
 most older versions should work.
 Deno scripts are used for automating build tasks, building and
 converting data files, and building some source files.
