@@ -21,10 +21,6 @@ This codebase produces two separate libraries in [Rust](https://rust-lang.org)
 and [Dart](https://dart.dev) (library documentation
 [here](https://lcrocker.github.io/ojpoker/)).
 
-![rust](https://lcrocker.github.io/ojpoker/img/rust-logo-blk.svg)
-![dart](https://lcrocker.github.io/ojpoker/img/dart-logo.svg)
-![deno](https://lcrocker.github.io/ojpoker/img/deno-circle.svg)
-
 # Requirements
 
 If you already have the Dart and Rust development environments and the
