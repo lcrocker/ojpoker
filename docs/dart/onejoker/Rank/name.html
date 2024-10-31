@@ -81,8 +81,9 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">String get name {
-  assert(index &gt;= Rank.LowAce.index &amp;&amp; index &lt;= Rank.Ace.index);
+  assert(index &gt;= Rank.None.index &amp;&amp; index &lt;= Rank.Ace.index);
   return [
+    &quot;?&quot;,
     &quot;ace&quot;,
     &quot;deuce&quot;,
     &quot;trey&quot;,
@@ -98,7 +99,7 @@
     &quot;queen&quot;,
     &quot;king&quot;,
     &quot;ace&quot;,
-  ][index - 1];
+  ][index];
 }</code></pre>
 </section>
 

@@ -94,7 +94,11 @@ a hundred elements.</p>
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 String toString() {
-  return _cards.toString();
+  List&lt;String&gt; a = [];
+  for (int i = 0; i &lt; cards.length; i += 1) {
+    a.add(cards[i].toString());
+  }
+  return a.join(&#39;&#39;);
 }</code></pre>
 </section>
 

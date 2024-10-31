@@ -88,7 +88,7 @@ i.e., from the end of the list to the front.</p>
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 String toString() {
-  int l = _cards.length;
+  int l = cards.length;
   int max = l;
   int tail = 0;
 
@@ -99,7 +99,7 @@ String toString() {
   StringBuffer sb = StringBuffer();
   sb.write(&quot;${master.name} [&quot;);
   for (int i = l - 1; i &gt;= l - max; i -= 1) {
-    sb.write(_cards[i].toString());
+    sb.write(cards[i].toString());
   }
   if (tail &gt; 0) {
     sb.write(&quot;...+$tail&quot;);

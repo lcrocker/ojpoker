@@ -133,8 +133,8 @@
 
 </dd>
 
-        <dt id="valueFactory" class="property">
-  <span class="name"><a href="../onejoker/HandEvaluatorHigh/valueFactory.html">valueFactory</a></span>
+        <dt id="worstHandValue" class="property">
+  <span class="name"><a href="../onejoker/HandEvaluatorHigh/worstHandValue.html">worstHandValue</a></span>
   <span class="signature">&#8594; <a href="../onejoker/HandValueFactory.html">HandValueFactory</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/HandValueHigh-class.html">HandValueHigh</a></span>&gt;</span></span>
   
 
@@ -154,7 +154,7 @@
     <h2>Methods</h2>
     <dl class="callables">
         <dt id="bestOf" class="callable inherited">
-  <span class="name"><a href="../onejoker/HandEvaluator/bestOf.html">bestOf</a></span><span class="signature">(<wbr><span class="parameter" id="bestOf-param-h"><span class="type-annotation"><a href="../onejoker/HandInterface-class.html">HandInterface</a></span> <span class="parameter-name">h</span></span>)
+  <span class="name"><a href="../onejoker/HandEvaluator/bestOf.html">bestOf</a></span><span class="signature">(<wbr><span class="parameter" id="bestOf-param-h"><span class="type-annotation"><a href="../onejoker/Hand-class.html">Hand</a></span> <span class="parameter-name">h</span></span>)
     <span class="returntype parameter">&#8594; <a href="../onejoker/HandValueHigh-class.html">HandValueHigh</a></span>
   </span>
   
@@ -166,8 +166,21 @@
 
 </dd>
 
+        <dt id="completeHand" class="callable inherited">
+  <span class="name"><a href="../onejoker/HandEvaluator/completeHand.html">completeHand</a></span><span class="signature">(<wbr>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
+  </span>
+  
+
+</dt>
+<dd class="inherited">
+  
+  <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
         <dt id="fastValue" class="callable inherited">
-  <span class="name"><a href="../onejoker/HandEvaluator/fastValue.html">fastValue</a></span><span class="signature">(<wbr><span class="parameter" id="fastValue-param-h"><span class="type-annotation"><a href="../onejoker/HandInterface-class.html">HandInterface</a></span> <span class="parameter-name">h</span></span>)
+  <span class="name"><a href="../onejoker/HandEvaluator/fastValue.html">fastValue</a></span><span class="signature">(<wbr><span class="parameter" id="fastValue-param-h"><span class="type-annotation"><a href="../onejoker/Hand-class.html">Hand</a></span> <span class="parameter-name">h</span></span>)
     <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
   </span>
   
@@ -180,7 +193,7 @@
 </dd>
 
         <dt id="lookupEvaluator" class="callable inherited">
-  <span class="name"><a href="../onejoker/HandEvaluator/lookupEvaluator.html">lookupEvaluator</a></span><span class="signature">(<wbr><span class="parameter" id="lookupEvaluator-param-h"><span class="type-annotation"><a href="../onejoker/HandInterface-class.html">HandInterface</a></span> <span class="parameter-name">h</span></span>)
+  <span class="name"><a href="../onejoker/HandEvaluator/lookupEvaluator.html">lookupEvaluator</a></span><span class="signature">(<wbr><span class="parameter" id="lookupEvaluator-param-h"><span class="type-annotation"><a href="../onejoker/Hand-class.html">Hand</a></span> <span class="parameter-name">h</span></span>)
     <span class="returntype parameter">&#8594; <a href="../onejoker/HandValueHigh-class.html">HandValueHigh</a></span>
   </span>
   
@@ -206,7 +219,7 @@
 </dd>
 
         <dt id="partialEvaluator" class="callable inherited">
-  <span class="name"><a href="../onejoker/HandEvaluator/partialEvaluator.html">partialEvaluator</a></span><span class="signature">(<wbr><span class="parameter" id="partialEvaluator-param-h"><span class="type-annotation"><a href="../onejoker/HandInterface-class.html">HandInterface</a></span> <span class="parameter-name">h</span></span>)
+  <span class="name"><a href="../onejoker/HandEvaluator/partialEvaluator.html">partialEvaluator</a></span><span class="signature">(<wbr><span class="parameter" id="partialEvaluator-param-h"><span class="type-annotation"><a href="../onejoker/Hand-class.html">Hand</a></span> <span class="parameter-name">h</span></span>)
     <span class="returntype parameter">&#8594; <a href="../onejoker/HandValueHigh-class.html">HandValueHigh</a></span>
   </span>
   
@@ -219,7 +232,7 @@
 </dd>
 
         <dt id="referenceEvaluator" class="callable">
-  <span class="name"><a href="../onejoker/HandEvaluatorHigh/referenceEvaluator.html">referenceEvaluator</a></span><span class="signature">(<wbr><span class="parameter" id="referenceEvaluator-param-h"><span class="type-annotation"><a href="../onejoker/HandInterface-class.html">HandInterface</a></span> <span class="parameter-name">h</span></span>)
+  <span class="name"><a href="../onejoker/HandEvaluatorHigh/referenceEvaluator.html">referenceEvaluator</a></span><span class="signature">(<wbr><span class="parameter" id="referenceEvaluator-param-h"><span class="type-annotation"><a href="../onejoker/Hand-class.html">Hand</a></span> <span class="parameter-name">h</span></span>)
     <span class="returntype parameter">&#8594; <a href="../onejoker/HandValueHigh-class.html">HandValueHigh</a></span>
   </span>
   
@@ -245,7 +258,7 @@
 </dd>
 
         <dt id="valueOf" class="callable inherited">
-  <span class="name"><a href="../onejoker/HandEvaluator/valueOf.html">valueOf</a></span><span class="signature">(<wbr><span class="parameter" id="valueOf-param-h"><span class="type-annotation"><a href="../onejoker/HandInterface-class.html">HandInterface</a></span> <span class="parameter-name">h</span></span>)
+  <span class="name"><a href="../onejoker/HandEvaluator/valueOf.html">valueOf</a></span><span class="signature">(<wbr><span class="parameter" id="valueOf-param-h"><span class="type-annotation"><a href="../onejoker/Hand-class.html">Hand</a></span> <span class="parameter-name">h</span></span>)
     <span class="returntype parameter">&#8594; <a href="../onejoker/HandValueHigh-class.html">HandValueHigh</a></span>
   </span>
   

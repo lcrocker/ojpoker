@@ -81,8 +81,8 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">String get name {
-  assert(index &gt;= Suit.Club.index &amp;&amp; index &lt;= Suit.Spade.index);
-  return [&quot;club&quot;, &quot;diamond&quot;, &quot;heart&quot;, &quot;spade&quot;][index - 1];
+  assert(index &gt;= Suit.None.index &amp;&amp; index &lt;= Suit.Spade.index);
+  return [&quot;?&quot;, &quot;club&quot;, &quot;diamond&quot;, &quot;heart&quot;, &quot;spade&quot;][index];
 }</code></pre>
 </section>
 

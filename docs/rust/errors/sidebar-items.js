@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["OjError","StdResult"],"fn":["aOk"],"macro":["anyhow","bail"],"struct":["Chain","Error"],"trait":["Context"],"type":["aResult"]};
+window.SIDEBAR_ITEMS = {"enum":["OjError"]};

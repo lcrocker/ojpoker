@@ -62,17 +62,12 @@
 
     <section class="multi-line-signature">
       
-  <div>
-    <ol class="annotation-list">
-        <li>@<a href="https://api.flutter.dev/flutter/dart-core/override-constant.html">override</a></li>
-    </ol>
-  </div>
 
 <span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../../onejoker/Hand-class.html">Hand</a></span>&gt;</span></span>
 <span class="name ">combinations</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="combinations-param-count"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">count</span></span></li>
 </ol>)
 
-      <div class="features"><span class="feature">override</span></div>
+      
 
     </section>
     
@@ -87,27 +82,26 @@ considered "distinct". For example, on a fresh 52-card deck,
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">@override
-Iterable&lt;Hand&gt; combinations(int count) sync* {
-  if (count &gt; _cards.length) return;
+  <pre class="language-dart"><code class="language-dart">Iterable&lt;Hand&gt; combinations(int count) sync* {
+  if (count &gt; cards.length) return;
 
-  if (0 == count || _cards.isEmpty) {
+  if (0 == count || cards.isEmpty) {
     yield newHand();
     return;
   }
-  List&lt;Card&gt; cs = _cards.toList();
+  List&lt;Card&gt; cs = cards.toList();
   ojSort(cs);
 
   if (cs.length == count) {
-    Hand res = Hand(this);
-    res.pushN(cs.length, cs);
+    Hand res = newHand();
+    res.pushN(cs);
     yield res;
     return;
   }
   List&lt;int&gt; a = List&lt;int&gt;.generate(count, (i) =&gt; i + 1);
 
   do {
-    Hand res = Hand(this);
+    Hand res = newHand();
     for (int i = 0; i &lt; count; i += 1) {
       res.push(cs[a[i] - 1]);
     }

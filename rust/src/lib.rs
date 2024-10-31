@@ -3,9 +3,7 @@
 #![doc = include_str!("../doc/onejoker_crate.md")]
 
 pub mod errors;
-pub use errors::{
-    OjError, anyhow, bail, Error, Chain, Context, aResult, aOk
-};
+pub use errors::OjError;
 
 pub mod utils;
 pub use utils::{
@@ -35,13 +33,15 @@ pub use cards::card::{
     KING_OF_CLUBS, KING_OF_DIAMONDS, KING_OF_HEARTS, KING_OF_SPADES,
     ACE_OF_CLUBS, ACE_OF_DIAMONDS, ACE_OF_HEARTS, ACE_OF_SPADES,
 };
+pub use cards::card_parse::parse_cards;
+
 pub use cards::hashes::{
-    ojh_fnv_u32, ojh_fnv_u64, ojh_positional_u32c, ojh_positional_u32csr,
-    ojh_positional_u64c, ojh_positional_u64csr, ojh_bitfield_u64co,
-    ojh_mp5_english,
+    ojh_fnv_32, ojh_fnv_64, ojh_positional_32c, ojh_positional_32cs,
+    ojh_positional_32cr, ojh_positional_64c, ojh_positional_64cs,
+    ojh_positional_64cr, ojh_bitfield_64co, ojh_prime_32cor,
+    ojh_prime_64co, ojh_prime_64cor, ojh_mp5_english,
 };
 
-// pub use cards::master_deck::MasterDeck; ?
 pub use cards::hand::Hand;
 pub use cards::deck::Deck;
 
@@ -54,3 +54,7 @@ pub use poker::hand_value::{
     HandValueTrait, HandValue, HandEvaluatorTrait,
 };
 pub use poker::high_hand::{ HandValueHigh, HandEvaluatorHigh };
+pub use poker::ace_to_five::{ HandValueAceToFive, HandEvaluatorAceToFive };
+pub use poker::deuce_to_seven::{ HandValueDeuceToSeven, HandEvaluatorDeuceToSeven };
+pub use poker::ace_to_six::{ HandValueAceToSix, HandEvaluatorAceToSix };
+pub use poker::badugi::{ HandValueBadugi, HandEvaluatorBadugi };

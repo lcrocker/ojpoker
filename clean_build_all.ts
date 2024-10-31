@@ -7,7 +7,6 @@
 
 import { buildMasterDeckAll } from "./data/build_master_deck_code.ts";
 import { buildDocsAll } from "./build_docs_all.ts";
-import { packAll } from "./data/pack_all.ts";
 
 let SCRIPT_DIR: string | undefined = undefined;
 
@@ -28,23 +27,16 @@ function rm(fname: string): Promise<void> {
     });
 }
 
-async function deleteAll() {
+function deleteAll() {
     const promises = [];
 
     promises.push(rm(`${sdir()}/dart/lib/master_deck.dart`));
     promises.push(rm(`${sdir()}/rust/src/cards/master_deck.rs`));
-
-    for await(const f of Deno.readDir(`${sdir()}/data/bin`)) {
-        if (! f.isFile) continue;
-        if (! f.name.match(/.*\.msgpack$/)) continue;
-        promises.push(rm(`${sdir()}/data/bin/${f.name}`));
-    }
     return Promise.all(promises);
 }
 
 if (import.meta.main) {
     await deleteAll();
     await buildMasterDeckAll();
-    await packAll();
     await buildDocsAll();
 }

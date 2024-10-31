@@ -77,8 +77,9 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">bool draw(int n) {
-  if (deck.length &lt; n) return false;
-  _cards.pushN(n, deck.popN(n));
+  if (parent == null) return false;
+  if (parent!.remaining &lt; n) return false;
+  pushN(parent!.popN(n));
   return true;
 }</code></pre>
 </section>

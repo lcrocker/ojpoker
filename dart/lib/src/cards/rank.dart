@@ -14,7 +14,7 @@ library;
 
 /// {@category cards}
 enum Rank implements Comparable<Rank> {
-  None, // 0 not a valid rank
+  None, // 0
   LowAce, // 1
   Deuce, // 2
   Trey, // 3
@@ -31,8 +31,12 @@ enum Rank implements Comparable<Rank> {
   King, // 14
   Ace; // 15
 
+  static Rank fromInt(int i) {
+    return Rank.values[i < 16 ? i : 0];
+  }
+
   /// Create one from text character.
-  static Rank? fromChar(String c) {
+  static Rank fromChar(String c) {
     switch (c) {
       case '1':
         return LowAce;
@@ -65,14 +69,15 @@ enum Rank implements Comparable<Rank> {
       case 'A':
         return Ace;
       default:
-        return null;
+        return None;
     }
   }
 
   /// Render as text
   String toChar() {
-    assert(index >= Rank.LowAce.index && index <= Rank.Ace.index);
+    assert(index >= Rank.None.index && index <= Rank.Ace.index);
     return [
+      '?',
       'A',
       '2',
       '3',
@@ -88,13 +93,14 @@ enum Rank implements Comparable<Rank> {
       'Q',
       'K',
       'A',
-    ][index - 1];
+    ][index];
   }
 
   /// Full English name
   String get name {
-    assert(index >= Rank.LowAce.index && index <= Rank.Ace.index);
+    assert(index >= Rank.None.index && index <= Rank.Ace.index);
     return [
+      "?",
       "ace",
       "deuce",
       "trey",
@@ -110,13 +116,14 @@ enum Rank implements Comparable<Rank> {
       "queen",
       "king",
       "ace",
-    ][index - 1];
+    ][index];
   }
 
   /// Full English plural name (to deal with "sixes")
   String get plural {
-    assert(index >= Rank.LowAce.index && index <= Rank.Ace.index);
+    assert(index >= Rank.None.index && index <= Rank.Ace.index);
     return [
+      "?",
       "aces",
       "deuces",
       "treys",
@@ -132,7 +139,7 @@ enum Rank implements Comparable<Rank> {
       "queens",
       "kings",
       "aces",
-    ][index - 1];
+    ][index];
   }
 
   /// Indefinite article (to deal with "an eight, an ace")

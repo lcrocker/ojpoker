@@ -81,16 +81,15 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">int ojhPositional64cs(Iterable&lt;Card&gt; cards) {
-  int max = 10;
+  int max = 16;
   int h = 0;
 
   for (Card c in cards) {
     max -= 1;
     assert(max &gt;= 0);
-    int r = (c.rank == null) ? c.rank!.index : 0;
 
     h &lt;&lt;= 4;
-    h += (0x0F &amp; r);
+    h += (0x0F &amp; c.rank.index);
   }
   return h;
 }</code></pre>

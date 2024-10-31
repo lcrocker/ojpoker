@@ -174,9 +174,41 @@ impl HandLevelTrait for HandLevelDeuceToSeven {
     fn worst() -> HandLevelDeuceToSeven { HandLevelDeuceToSeven::StraightFlush }
 }
 
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/HandLevelDeuceToSeven) | Ace-to-six lowball hand levels
-/// Ace-to-six lowball hands, e.g. London lowball, etc. Same as Deuce-to-seven.
-pub type HandLevelAceToSix = HandLevelDeuceToSeven;
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/HandLevelAceToSix) | Ace-to-six lowball hand levels
+/// Ace-to-six "London" lowball hands
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+#[allow(missing_docs)]
+pub enum HandLevelAceToSix {
+    NoPair = 1,
+    Pair = 2,
+    TwoPair = 3,
+    Trips = 4,
+    Straight = 5,
+    Flush = 6,
+    FullHouse = 7,
+    Quads = 8,
+    StraightFlush = 9,
+}
+
+impl HandLevelTrait for HandLevelAceToSix {
+    fn index(&self) -> u32 { *self as u32 }
+    fn from_index(i: u32) -> Self {
+        match i {
+            1 => HandLevelAceToSix::NoPair,
+            2 => HandLevelAceToSix::Pair,
+            3 => HandLevelAceToSix::TwoPair,
+            4 => HandLevelAceToSix::Trips,
+            5 => HandLevelAceToSix::Straight,
+            6 => HandLevelAceToSix::Flush,
+            7 => HandLevelAceToSix::FullHouse,
+            8 => HandLevelAceToSix::Quads,
+            9 => HandLevelAceToSix::StraightFlush,
+            _ => panic!("invalid HandLevelAceToSix index"),
+        }
+    }
+    fn best() -> HandLevelAceToSix { HandLevelAceToSix::NoPair }
+    fn worst() -> HandLevelAceToSix { HandLevelAceToSix::StraightFlush }
+}
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/HandLevelBadugi) | Badugi hand levels
 /// Badugi: any four-card hand beats any 3-card, etc.
@@ -248,20 +280,20 @@ impl HandLevelTrait for HandLevelActionRazz {
 
 /// Hand value calculation that works for many high-hand games.
 pub fn oj_high_hand_value_function(lvl: u32, r: &[Rank]) -> u64 {
-    let h: u64 = ojh_positional_u64csr(r).expect("should be checked earlier");
+    let h: u64 = ojh_positional_64cr(r).expect("should be checked earlier");
     10000000 * (lvl as u64) - h
 }
 /// Hand value calculation that works for many low-hand games.
 pub fn oj_low_hand_value_function(lvl: u32, r: &[Rank]) -> u64 {
-    let h: u64 = ojh_positional_u64csr(r).expect("should be checked earlier");
+    let h: u64 = ojh_positional_64cr(r).expect("should be checked earlier");
     10000000 * (lvl as u64) + h
 }
 
 /// Arrange the hand for display. E.g. "9d3h3cKs3s" -> "3s3h3cKs9d".
-pub fn oj_default_ordered_for_display(h: &Hand, r: &[Rank]) -> aResult<Hand> {
+pub fn oj_default_ordered_for_display(h: &Hand, r: &[Rank]) -> Result<Hand, OjError> {
     let mut h_in = h.clone();
     if r.len() != 5 || h_in.len() != 5 {
-        bail!(OjError::BadHand(format!("{} {}", r.len(), h_in.len())));
+        return Err(OjError::BadHand(format!("{} {}", r.len(), h_in.len())));
     }
     let mut h_out = h.clone();
     h_out.clear();
@@ -272,7 +304,7 @@ pub fn oj_default_ordered_for_display(h: &Hand, r: &[Rank]) -> aResult<Hand> {
         let mut f_index: i32 = -1;
 
         for j in 0..h_in.len() {
-            if h_in[j].rank()? == r && h_in[j] > found {
+            if h_in[j].rank() == r && h_in[j] > found {
                 found = h_in[j];
                 f_index = j as i32;
             }
@@ -283,7 +315,7 @@ pub fn oj_default_ordered_for_display(h: &Hand, r: &[Rank]) -> aResult<Hand> {
         h_out.push(found);
     }
     debug_assert!(h_out.len() == 5);
-    aOk(h_out)
+    Ok(h_out)
 }
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/HandValueTrait) | Hand value common code
@@ -298,7 +330,7 @@ pub trait HandValueTrait {
     /// Full English name of hand, e.g. "aces and fours with a nine"
     fn full_name(&self) -> String;
     /// Return a new hand re-ordered for more meaningful display.
-    fn ordered_for_display(&self, h: &Hand) -> aResult<Hand>;
+    fn ordered_for_display(&self, h: &Hand) -> Result<Hand, OjError>;
 }
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/HandValue) | Hand value information structure
@@ -339,16 +371,19 @@ impl<T: HandLevelTrait> Ord for HandValue<T> {
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/HandEvaluatorTrait) | Common layout of hand evaluators
 /// All specific game hand evaluators must implement this trait.
 pub trait HandEvaluatorTrait<V: HandValueTrait> {
+    /// Number of cards in a complete hand.
+    const COMPLETE_HAND: usize = 5;
+
     /// Default evaluator, must implement.
-    fn reference_evaluator(&self, _h: &Hand) -> aResult<V>;
+    fn reference_evaluator(&self, _h: &Hand) -> Result<V, OjError>;
 
     /// Evaluator for partial hands, for determining stud betting, etc.
-    fn partial_evaluator(&self, h: &Hand) -> aResult<V> {
+    fn partial_evaluator(&self, h: &Hand) -> Result<V, OjError> {
         self.reference_evaluator(h)
     }
 
     /// Fast lookup-table based evaluator.
-    fn lookup_evaluator(&self, h: &Hand) -> aResult<V> {
+    fn lookup_evaluator(&self, h: &Hand) -> Result<V, OjError> {
         self.reference_evaluator(h)
     }
 
@@ -360,21 +395,20 @@ pub trait HandEvaluatorTrait<V: HandValueTrait> {
     }
 
     /// General-use entry point that picks the right evaluator.
-    fn value_of(&self, h: &Hand) -> aResult<V> {
-        match h.len() {
-            1..=4 => self.partial_evaluator(h),
-            5 => self.lookup_evaluator(h),
-            6..=13 => {
-                let mut best = V::worst();
-                for sub in h.combinations(5) {
-                    let v = self.lookup_evaluator(&sub)?;
-                    if v.value() < best.value() {
-                        best = v;
-                    }
+    fn value_of(&self, h: &Hand) -> Result<V, OjError> {
+        if h.len() == Self::COMPLETE_HAND {
+            self.lookup_evaluator(h)
+        } else if h.len() < Self::COMPLETE_HAND {
+            self.partial_evaluator(h)
+        } else {
+            let mut best = V::worst();
+            for sub in h.combinations(Self::COMPLETE_HAND) {
+                let v = self.lookup_evaluator(&sub)?;
+                if v.value() < best.value() {
+                    best = v;
                 }
-                aOk(best)
             }
-            _ => bail!(OjError::BadHand(format!("{} cards", h.len()))),
+            Ok(best)
         }
     }
 }
@@ -388,16 +422,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_hand_level() -> aResult<()> {
+    fn test_hand_level() -> Result<(), OjError> {
         assert_eq!(HandLevelHigh::best(), HandLevelHigh::FiveOfAKind);
         assert_eq!(HandLevelHigh::worst(), HandLevelHigh::NoPair);
         assert_eq!(HandLevelHigh::from_index(1), HandLevelHigh::FiveOfAKind);
         assert_eq!(HandLevelHigh::from_index(10), HandLevelHigh::NoPair);
-        aOk(())
+        Ok(())
     }
 
     #[test]
-    fn test_hand_value() -> aResult<()> {
+    fn test_hand_value() -> Result<(), OjError> {
         let hv = HandValue::<HandLevelHigh> {
             level: HandLevelHigh::NoPair,
             ranks: vec![Rank::Ace, Rank::King, Rank::Queen, Rank::Jack, Rank::Ten],
@@ -406,6 +440,6 @@ mod tests {
         assert_eq!(hv.value, 10000000 * HandLevelHigh::NoPair.index() as u64 + 0x1FEDCBA987654321);
         assert_eq!(hv.level, HandLevelHigh::NoPair);
         assert_eq!(hv.ranks, vec![Rank::Ace, Rank::King, Rank::Queen, Rank::Jack, Rank::Ten]);
-        aOk(())
+        Ok(())
     }
 }

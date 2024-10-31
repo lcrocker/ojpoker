@@ -1,24 +1,31 @@
 import 'package:onejoker/onejoker.dart';
 
 void main(List<String> arguments) {
-  var d = Deck('poker');
+  print("// 100000 random hands over varying lengths from all decks");
+  print("{\n\"decks\":[");
 
-  print("$d");
-  d.shuffle();
-  print("$d");
-  var h = d.newHand(5);
-  print("$h ${h[0]} ${h[1]} ${h[2]} ${h[3]} ${h[4]}");
-  print("$d");
-
-  h.sort();
-  print("$h ${h[0]} ${h[1]} ${h[2]} ${h[3]} ${h[4]}");
-  for (Card c in h) {
-    print(c);
+  for (int i = 0; i < MasterDeck.deckCount; i += 1) {
+    var d = MasterDeck.byIndex(i + 1);
+    print("\"${d.name}\",");
   }
+  print("],\n\"hands\":[");
 
-  print(cardsFromText("9c2dTs6h4s"));
-  print(cardsFromText("9c2dTs6h4s").toList());
+  for (int i = 0; i < 100000; i += 1) {
+    int dnum = 1 + OjRandom.rangeUniform(MasterDeck.deckCount);
+    MasterDeck md = MasterDeck.byIndex(dnum);
+    Deck d = Deck(md.name);
+    d.shuffle();
 
-  print(OrphanHand.fromIterable([Card.AceOfClubs, Card.TenOfSpades, Card.SixOfHearts]));
-  print(OrphanHand.fromText("AcTs6h"));
+    int len = 1 + // 3d4 - 2: nice bell curve
+      OjRandom.rangeUniform(4) +
+      OjRandom.rangeUniform(4) +
+      OjRandom.rangeUniform(4);
+
+    var h = d.newHand();
+    h.draw(len);
+    var hash = ojhFNV32(h.cards);
+
+    print("[${dnum},\"${h}\",${hash}],");
+  }
+  print("]\n}");
 }

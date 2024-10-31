@@ -1,8 +1,7 @@
 //! [wiki](https://github.com/lcrocker/ojpoker/wiki/Hashes) | Various hash functions for cards
 //!
 //! The common FNV hashes are often used for implementing hash tables and
-//! doing quick checksumming for tests. They are not collision-free, but are
-//! fast and simple.
+//! doing quick checksumming for tests. They are not collision-free.
 //!
 //! Positional hashes treat cards (or ranks) as digits of a base-64
 //! (or base-16) number. They therefore order-dependent and limited in size,
@@ -10,7 +9,8 @@
 //!
 //! Bitfield hashes represent each card as a bit in a 64-bit integer.
 //! This is inherently collision-free and order-independent, and very fast,
-//! but can't handle duplicate cards and produces huge numbers.
+//! but can't handle duplicate cards and produces huge numbers. Also can't
+//! be compiled to JavaScript.
 //!
 //! Prime hashes based on the product of prime numbers are inherently
 //! collision-free, order-independent, handle duplicates, and produce
@@ -70,10 +70,9 @@ int ojhPositional32cs(Iterable<Card> cards) {
   for (Card c in cards) {
     max -= 1;
     assert(max >= 0);
-    int r = (c.rank == null) ? c.rank!.index : 0;
 
     h <<= 4;
-    h += (0x0F & r);
+    h += (0x0F & c.rank.index);
   }
   return h & 0xFFFFFFFF;
 }
@@ -113,16 +112,15 @@ int ojhPositional64c(Iterable<Card> cards) {
 /// 64-bit Positional hash
 /// {@category hashes}
 int ojhPositional64cs(Iterable<Card> cards) {
-  int max = 10;
+  int max = 16;
   int h = 0;
 
   for (Card c in cards) {
     max -= 1;
     assert(max >= 0);
-    int r = (c.rank == null) ? c.rank!.index : 0;
 
     h <<= 4;
-    h += (0x0F & r);
+    h += (0x0F & c.rank.index);
   }
   return h;
 }

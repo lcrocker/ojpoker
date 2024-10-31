@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["ojh_bitfield_u64co","ojh_fnv_u32","ojh_fnv_u64","ojh_mp5_english","ojh_positional_u32c","ojh_positional_u32csr","ojh_positional_u64c","ojh_positional_u64csr","ojh_prime_u32cosr","ojh_prime_u64co","ojh_prime_u64cosr"]};
+window.SIDEBAR_ITEMS = {"constant":["PRIMES"],"fn":["ojh_bitfield_64co","ojh_fnv_32","ojh_fnv_64","ojh_mp5_english","ojh_positional_32c","ojh_positional_32cr","ojh_positional_32cs","ojh_positional_64c","ojh_positional_64cr","ojh_positional_64cs","ojh_prime_32cor","ojh_prime_64co","ojh_prime_64cor"]};

@@ -63,7 +63,7 @@
     <section class="multi-line-signature">
       
 
-<span class="returntype"><a href="../../onejoker/Card.html">Card</a>?</span>
+<span class="returntype"><a href="../../onejoker/Card.html">Card</a></span>
 <span class="name ">fromText</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="fromText-param-text"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">text</span></span></li>
 </ol>)
 
@@ -79,9 +79,9 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">static Card? fromText(String text) {
+  <pre class="language-dart"><code class="language-dart">static Card fromText(String text) {
   var match = _oneCard.firstMatch(text);
-  if (match == null) return null;
+  if (match == null) return None;
 
   if (match.group(1) != null) {
     switch (match.group(1)) {
@@ -95,12 +95,11 @@
         if (match.group(2) != null &amp;&amp; match.group(3) != null) {
           var r = Rank.fromChar(match.group(2)!);
           var s = Suit.fromChar(match.group(3)!);
-          assert(r != null &amp;&amp; s != null);
-          return fromRankSuit(r!, s!);
+          return fromRankSuit(r, s);
         }
     }
   }
-  return null;
+  return None;
 }</code></pre>
 </section>
 

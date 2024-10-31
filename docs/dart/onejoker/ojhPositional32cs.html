@@ -87,10 +87,9 @@
   for (Card c in cards) {
     max -= 1;
     assert(max &gt;= 0);
-    int r = (c.rank == null) ? c.rank!.index : 0;
 
     h &lt;&lt;= 4;
-    h += (0x0F &amp; r);
+    h += (0x0F &amp; c.rank.index);
   }
   return h &amp; 0xFFFFFFFF;
 }</code></pre>

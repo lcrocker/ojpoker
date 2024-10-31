@@ -62,29 +62,28 @@
 
     <section class="multi-line-signature">
       
-  <div>
-    <ol class="annotation-list">
-        <li>@<a href="https://api.flutter.dev/flutter/dart-core/override-constant.html">override</a></li>
-    </ol>
-  </div>
 
 <span class="returntype">void</span>
 <span class="name ">insertAt</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="insertAt-param-index"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">index</span>, </span></li>
 <li><span class="parameter" id="insertAt-param-card"><span class="type-annotation"><a href="../../onejoker/Card.html">Card</a></span> <span class="parameter-name">card</span></span></li>
 </ol>)
 
-      <div class="features"><span class="feature">override</span></div>
+      
 
     </section>
     
+<section class="desc markdown">
+  <p>Insert card at position <code>index</code>.</p>
+</section>
 
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">@override
-void insertAt(int index, Card card) {
-  _cards.insertAt(index, deck.validCard(card));
+  <pre class="language-dart"><code class="language-dart">void insertAt(int index, Card card) {
+  if (index &lt; 0 || index &gt; cards.length) return;
+  var (v, c) = validCard(card);
+  if (v) cards.insert(index, card);
 }</code></pre>
 </section>
 

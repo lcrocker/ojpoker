@@ -79,20 +79,16 @@
 
     
 <section class="desc markdown">
-  <p>Whether this collection has no elements.</p>
-<p>May be computed by checking if <code>iterator.moveNext()</code> returns <code>false</code>.</p>
-<p>Example:</p>
-<pre class="language-dart"><code class="language-dart">final emptyList = &lt;int&gt;[];
-print(emptyList.isEmpty); // true;
-print(emptyList.iterator.moveNext()); // false
-</code></pre>
+  <p>Is list empty?</p>
 </section>
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
-bool get isEmpty =&gt; _cards.isEmpty;</code></pre>
+bool get isEmpty {
+  return cards.isEmpty;
+}</code></pre>
 </section>
 
   </section>

@@ -81,6 +81,9 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">static Card fromRankSuit(Rank r, Suit s) {
+  if (r == Rank.None || s == Suit.None) {
+    return None;
+  }
   return Card.values[(r.index &lt;&lt; 2) | (s.index - 1)];
 }</code></pre>
 </section>

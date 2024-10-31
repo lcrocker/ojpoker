@@ -206,22 +206,21 @@ int ojLowHandValueFunction(HandLevelInterface level, List<Rank> ranks) {
 /// within that category, the ranks of the cards are compared.
 /// All the numbers here are such that lower number means better hand.
 /// {@category poker}
-class HandValue<L extends HandLevelInterface> {
+class HandValue<L extends HandLevelInterface>
+    implements Comparable<HandValue<L>> {
   final L level;
   final List<Rank> ranks;
   final int value;
 
   /// Constructor for internal use
-  HandValue(this.level, this.ranks, int v)
-      : value = ((v >= 0) ? v : 
-          ((-1 == v) ? ojHighHandValueFunction(level, ranks) :
-           ojLowHandValueFunction(level, ranks)));
+  HandValue(this.level, this.ranks, this.value);
 
-  // Another ugly hack to work around Dart's broken generics
-  HandValue.best()
-      : level = HandLevelHigh.StraightFlush as L,
+  // Another ugly hack to work around Dart's broken generics.
+  // Should be able to just use L.worst here.
+  HandValue.worst()
+      : level = HandLevelActionRazz.UnqualifiedQuads as L,
         ranks = [],
-        value = 1;
+        value = 0x7FFFFFFFFFFFFFFF;
 
   /// Implement == for [HandValue]
   @override
@@ -238,6 +237,27 @@ class HandValue<L extends HandLevelInterface> {
     return ojHighHandValueFunction(level, ranks);
   }
 
+  @override
+  int compareTo(HandValue<L> other) {
+    return value - other.value;
+  }
+
+  bool operator <(HandValue<L> other) {
+    return value < other.value;
+  }
+
+  bool operator <=(HandValue<L> other) {
+    return value <= other.value;
+  }
+
+  bool operator >(HandValue<L> other) {
+    return value > other.value;
+  }
+
+  bool operator >=(HandValue<L> other) {
+    return value >= other.value;
+  }
+
   /// Describe the [Hand] (we expect every implementor to override this).
   fullName() {
     return "$level $value";
@@ -245,11 +265,11 @@ class HandValue<L extends HandLevelInterface> {
 
   /// Re-order the [Card]s for value-appropriate display
   /// (e.g. the hand "5h3cAc3h3d" will display as "3h3d3cAc5h").
-  OrphanHand orderedForDisplay(HandInterface h) {
+  Hand orderedForDisplay(Hand h) {
     List<Card> hIn = h.toList();
     assert(hIn.length == 5);
     assert(ranks.length == 5);
-    OrphanHand hOut = OrphanHand();
+    Hand hOut = h.copyFromIter([]);
 
     for (int i = 0; i < ranks.length; i += 1) {
       Rank r = ranks[i];
@@ -263,7 +283,7 @@ class HandValue<L extends HandLevelInterface> {
         }
       }
       assert(fIndex >= 0);
-      assert(found == hIn.removeAt(fIndex));
+      hIn.removeAt(fIndex);
       hOut.push(found);
     }
     assert(hOut.length == 5);
@@ -288,38 +308,39 @@ abstract class HandEvaluator<V extends HandValue> {
   // This abomination is to work around the problem that Dart generics
   // are broken, and do not allow the creation of a generic object in
   // any sensible way.
-  HandValueFactory<V> get valueFactory {
-    return () => HandValue.best() as V;
+  HandValueFactory<V> get worstHandValue {
+    return () => HandValue.worst() as V;
   }
+  int completeHand() { return 5; } 
 
-  V referenceEvaluator(HandInterface h);
+  V referenceEvaluator(Hand h);
 
-  V partialEvaluator(HandInterface h) {
+  V partialEvaluator(Hand h) {
     return referenceEvaluator(h);
   }
 
-  V lookupEvaluator(HandInterface h) {
+  V lookupEvaluator(Hand h) {
     return referenceEvaluator(h);
   }
 
-  int fastValue(HandInterface h) {
+  int fastValue(Hand h) {
     return referenceEvaluator(h).value;
   }
 
-  V valueOf(HandInterface h) {
-    if (h.length < 5) {
+  V valueOf(Hand h) {
+    if (h.length < completeHand()) {
       return partialEvaluator(h);
-    } else if (h.length == 5) {
+    } else if (h.length == completeHand()) {
       return lookupEvaluator(h);
     } else {
       return bestOf(h);
     }
   }
 
-  V bestOf(HandInterface h) {
-    V best = valueFactory();
+  V bestOf(Hand h) {
+    V best = worstHandValue();
 
-    for (HandInterface sub in h.combinations(5)) {
+    for (Hand sub in h.combinations(completeHand())) {
       V subV = lookupEvaluator(sub);
       if (subV.value < best.value) {
         best = subV;

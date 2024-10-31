@@ -62,28 +62,33 @@
 
     <section class="multi-line-signature">
       
-  <div>
-    <ol class="annotation-list">
-        <li>@<a href="https://api.flutter.dev/flutter/dart-core/override-constant.html">override</a></li>
-    </ol>
-  </div>
 
 <span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
 <span class="name ">removeCard</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="removeCard-param-card"><span class="type-annotation"><a href="../../onejoker/Card.html">Card</a></span> <span class="parameter-name">card</span></span></li>
 </ol>)
 
-      <div class="features"><span class="feature">override</span></div>
+      
 
     </section>
     
+<section class="desc markdown">
+  <p>Remove top-most specific card from list.</p>
+</section>
 
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">@override
-bool removeCard(Card card) {
-  return _cards.removeCard(card);
+  <pre class="language-dart"><code class="language-dart">bool removeCard(Card card) {
+  for (var i = 0; i &lt; cards.length; i += 1) {
+    var (v, c) = validCard(card);
+
+    if (v &amp;&amp; cards[i] == c) {
+      cards.removeAt(i);
+      return true;
+    }
+  }
+  return false;
 }</code></pre>
 </section>
 

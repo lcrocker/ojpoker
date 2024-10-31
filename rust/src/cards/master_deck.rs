@@ -62,8 +62,8 @@ impl std::fmt::Display for MasterDeck {
 
 fn masterdeck_by_name(alias: &str) -> &'static MasterDeck {
     match &alias.to_lowercase()[..] {
-        "english" | "default" | "french" | "poker" | "bridge" | "52" | "deucetoseven" | "tienlen" | "gin" | "spades" | "hearts" | "boure" => &DECK_INFO[0],
-        "allcards" => &DECK_INFO[1],
+        "english" | "french" | "poker" | "bridge" | "52" | "deucetoseven" | "tienlen" | "gin" | "spades" | "hearts" | "boure" => &DECK_INFO[0],
+        "allcards" | "default" => &DECK_INFO[1],
         "onejoker" | "joker" | "53" | "bug" | "paigow" => &DECK_INFO[2],
         "twojokers" | "54" | "doudizhu" => &DECK_INFO[3],
         "low" | "low52" | "razz" | "badugi" | "acetofive" | "blackjack" | "cribbage" | "baccarat" => &DECK_INFO[4],
@@ -84,6 +84,13 @@ fn masterdeck_by_name(alias: &str) -> &'static MasterDeck {
         _ => &DECK_INFO[0],
     }
 }
+
+/// Retrieve pointer to [MasterDeck] by index (1-based)
+pub fn masterdeck_by_index(idx: usize) -> &'static MasterDeck {
+    &DECK_INFO[idx - 1]
+}
+/// How many decks are there?
+pub fn deck_count() -> usize { DECK_INFO.len() }
 
 macro_rules! masterdeck {
     ( $name:literal, $set:literal, $list:expr,

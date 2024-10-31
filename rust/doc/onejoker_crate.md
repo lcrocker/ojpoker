@@ -1,6 +1,6 @@
 # [wiki](https://github.com/lcrocker/ojpoker/wiki/Rust_Libraries) | A library for handling playing cards and card games.
 
-Last updated October 17, 2024 \
+Last updated October 28, 2024 \
 \
 This crate is part of the [OneJoker](https://onejoker.org) project
 to create free software for handling playing cards and card games
@@ -13,11 +13,10 @@ Licensed <https://creativecommons.org/publicdomain/zero/1.0/>
 ```
 use onejoker::*;
 
-fn main() -> Result<(),Error> {
-    let mut d = Deck::new("default");
-    d.shuffle();
-    let h1 = d.new_hand_with(5);
-    let h2 = d.new_hand_with(5);
+fn main() -> Result<(), OjError> {
+    let mut d = Deck::new("poker").shuffled();
+    let h1 = d.new_hand().init(d.draw(5));
+    let h2 = d.new_hand().init(d.draw(5));
 
     println!("Player 1: [{}], Player 2: [{}]", h1, h2);
 
@@ -37,6 +36,6 @@ fn main() -> Result<(),Error> {
 ```
 This should produce output similar to:
 ```text
-Player 1: 4cJc7s4h6s, Player 2: Kd6sJdAsKh
-Player 2 wins with pair of kings, ace, jack, six
+Player 1: [4cJc7s4h6s], Player 2: [Kd6sJdAsKh]
+Player 2 wins with [pair of kings, ace, jack, six]
 ```

@@ -73,12 +73,15 @@ if (import.meta.main) {
       <path x="0" y="0" d="${RANKS.jack}" fill="#c00" />
    </g><g transform="translate(720,640)">
       <path x="0" y="0" d="${RANKS.knight}" fill="#000" />
-   </g><g transform="translate(120,960)">
+   </g><g transform="translate(0,960)">
       <path x="0" y="0" d="${RANKS.queen}" fill="#0c0" />
-   </g><g transform="translate(360,960)">
+   </g><g transform="translate(240,960)">
       <path x="0" y="0" d="${RANKS.king}" fill="#00c" />
-   </g><g transform="translate(600,960)">
+   </g><g transform="translate(480,960)">
       <path x="0" y="0" d="${RANKS.joker}" fill="#c00" />
+   </g><g transform="translate(720,960)">
+      <path x="0" y="0" d="${RANKS.joker}" fill="none"
+      stroke-width="3" stroke="#000" />
    </g>
 </svg>
 `

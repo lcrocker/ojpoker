@@ -66,7 +66,7 @@
 
     <section class="multi-line-signature">
       
-      <span class="returntype"><a href="../../onejoker/Rank.html">Rank</a>?</span>
+      <span class="returntype"><a href="../../onejoker/Rank.html">Rank</a></span>
       <span class="name ">highRank</span>
       
 
@@ -80,9 +80,9 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Rank? get highRank {
+  <pre class="language-dart"><code class="language-dart">Rank get highRank {
   if (index &lt; Card.LowAceOfClubs.index || index &gt; Card.AceOfSpades.index) {
-    return null;
+    return Rank.None;
   }
   if (index &lt; Card.DeuceOfClubs.index) return Rank.Ace;
   return Rank.values[index &gt;&gt; 2];

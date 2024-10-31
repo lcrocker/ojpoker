@@ -105,8 +105,8 @@ print(colorsIterator.moveNext()); // false
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 bool moveNext() {
-  if (_currentIndex &lt; _cards.length - 1) {
-    _currentIndex += 1;
+  if (currentIndex &lt; cards.length - 1) {
+    currentIndex += 1;
     return true;
   }
   return false;

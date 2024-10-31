@@ -62,17 +62,12 @@
 
     <section class="multi-line-signature">
       
-  <div>
-    <ol class="annotation-list">
-        <li>@<a href="https://api.flutter.dev/flutter/dart-core/override-constant.html">override</a></li>
-    </ol>
-  </div>
 
 <span class="returntype">void</span>
 <span class="name ">push</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="push-param-card"><span class="type-annotation"><a href="../../onejoker/Card.html">Card</a></span> <span class="parameter-name">card</span></span></li>
 </ol>)
 
-      <div class="features"><span class="feature">override</span></div>
+      
 
     </section>
     
@@ -81,9 +76,9 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">@override
-void push(Card card) {
-  _cards.push(deck.validCard(card));
+  <pre class="language-dart"><code class="language-dart">void push(Card card) {
+  var (v, c) = validCard(card);
+  if (v) cards.add(c);
 }</code></pre>
 </section>
 

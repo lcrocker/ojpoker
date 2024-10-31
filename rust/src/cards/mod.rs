@@ -9,6 +9,9 @@ pub use rank::*;
 pub mod card;
 pub use card::*;
 
+pub mod card_parse;
+pub use card_parse::*;
+
 pub mod hashes;
 pub use hashes::*;
 

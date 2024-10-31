@@ -82,22 +82,13 @@
   A "live" <a href="../onejoker/Deck-class.html">Deck</a> of cards that is used for a game.
 </dd>
 
-          <dt id="DeckInterface">
-  <span class="name "><a href="../onejoker/DeckInterface-class.html">DeckInterface</a></span> 
-    <span class="category cards cp-0 linked" title="This is part of the cards topic."><a href="../topics/cards-topic.html">cards</a></span>
-
-</dt>
-<dd>
-  Common behavior for <a href="../onejoker/Deck-class.html">Deck</a>-like objects.
-</dd>
-
           <dt id="Hand">
   <span class="name "><a href="../onejoker/Hand-class.html">Hand</a></span> 
     <span class="category cards cp-0 linked" title="This is part of the cards topic."><a href="../topics/cards-topic.html">cards</a></span>
 
 </dt>
 <dd>
-  Hand of cards associated with (and created from) a <a href="../onejoker/Deck-class.html">Deck</a>.
+  Hand of cards (or other ordered collection).
 </dd>
 
           <dt id="HandEvaluator">
@@ -109,8 +100,8 @@
   Base class for poker hand evaluation.
 </dd>
 
-          <dt id="HandEvaluatorHigh">
-  <span class="name "><a href="../onejoker/HandEvaluatorHigh-class.html">HandEvaluatorHigh</a></span> 
+          <dt id="HandEvaluatorAceToFive">
+  <span class="name "><a href="../onejoker/HandEvaluatorAceToFive-class.html">HandEvaluatorAceToFive</a></span> 
     <span class="category poker cp-2 linked" title="This is part of the poker topic."><a href="../topics/poker-topic.html">poker</a></span>
 
 </dt>
@@ -118,13 +109,39 @@
   Evaluation functions for traditional "high" poker hands.
 </dd>
 
-          <dt id="HandInterface">
-  <span class="name "><a href="../onejoker/HandInterface-class.html">HandInterface</a></span> 
-    <span class="category cards cp-0 linked" title="This is part of the cards topic."><a href="../topics/cards-topic.html">cards</a></span>
+          <dt id="HandEvaluatorAceToSix">
+  <span class="name "><a href="../onejoker/HandEvaluatorAceToSix-class.html">HandEvaluatorAceToSix</a></span> 
+    <span class="category poker cp-2 linked" title="This is part of the poker topic."><a href="../topics/poker-topic.html">poker</a></span>
 
 </dt>
 <dd>
-  Common behaviors for hand-like objects.
+  Evaluation functions for ace-to-six low poker hands.
+</dd>
+
+          <dt id="HandEvaluatorBadugi">
+  <span class="name "><a href="../onejoker/HandEvaluatorBadugi-class.html">HandEvaluatorBadugi</a></span> 
+
+</dt>
+<dd>
+  Evaluation functions for Badugi hands.
+</dd>
+
+          <dt id="HandEvaluatorDeuceToSeven">
+  <span class="name "><a href="../onejoker/HandEvaluatorDeuceToSeven-class.html">HandEvaluatorDeuceToSeven</a></span> 
+    <span class="category poker cp-2 linked" title="This is part of the poker topic."><a href="../topics/poker-topic.html">poker</a></span>
+
+</dt>
+<dd>
+  Evaluation functions for deuce-to-seven low poker hands.
+</dd>
+
+          <dt id="HandEvaluatorHigh">
+  <span class="name "><a href="../onejoker/HandEvaluatorHigh-class.html">HandEvaluatorHigh</a></span> 
+    <span class="category poker cp-2 linked" title="This is part of the poker topic."><a href="../topics/poker-topic.html">poker</a></span>
+
+</dt>
+<dd>
+  Evaluation functions for traditional "high" poker hands.
 </dd>
 
           <dt id="HandIterator">
@@ -150,6 +167,42 @@
 </dt>
 <dd>
   All the information resulting from the evaluation of a poker hand.
+</dd>
+
+          <dt id="HandValueAceToFive">
+  <span class="name "><a href="../onejoker/HandValueAceToFive-class.html">HandValueAceToFive</a></span> 
+    <span class="category poker cp-2 linked" title="This is part of the poker topic."><a href="../topics/poker-topic.html">poker</a></span>
+
+</dt>
+<dd>
+  <a href="../onejoker/HandValue-class.html">HandValue</a> for ace-to-five low poker hands.
+</dd>
+
+          <dt id="HandValueAceToSix">
+  <span class="name "><a href="../onejoker/HandValueAceToSix-class.html">HandValueAceToSix</a></span> 
+    <span class="category poker cp-2 linked" title="This is part of the poker topic."><a href="../topics/poker-topic.html">poker</a></span>
+
+</dt>
+<dd>
+  <a href="../onejoker/HandValue-class.html">HandValue</a> for ace-to-six "London" low poker hands.
+</dd>
+
+          <dt id="HandValueBadugi">
+  <span class="name "><a href="../onejoker/HandValueBadugi-class.html">HandValueBadugi</a></span> 
+    <span class="category poker cp-2 linked" title="This is part of the poker topic."><a href="../topics/poker-topic.html">poker</a></span>
+
+</dt>
+<dd>
+  <a href="../onejoker/HandValue-class.html">HandValue</a> for Badugi hands.
+</dd>
+
+          <dt id="HandValueDeuceToSeven">
+  <span class="name "><a href="../onejoker/HandValueDeuceToSeven-class.html">HandValueDeuceToSeven</a></span> 
+    <span class="category poker cp-2 linked" title="This is part of the poker topic."><a href="../topics/poker-topic.html">poker</a></span>
+
+</dt>
+<dd>
+  <a href="../onejoker/HandValue-class.html">HandValue</a> for deuce-to-seven "Kansas City" low poker hands.
 </dd>
 
           <dt id="HandValueHigh">
@@ -179,13 +232,12 @@
   Simple implementation of xoshiro128++
 </dd>
 
-          <dt id="OrphanHand">
-  <span class="name "><a href="../onejoker/OrphanHand-class.html">OrphanHand</a></span> 
-    <span class="category cards cp-0 linked" title="This is part of the cards topic."><a href="../topics/cards-topic.html">cards</a></span>
+          <dt id="PokerEvaluatorState">
+  <span class="name "><a href="../onejoker/PokerEvaluatorState-class.html">PokerEvaluatorState</a></span> 
 
 </dt>
 <dd>
-  Hand of cards not associated with a <a href="../onejoker/Deck-class.html">Deck</a>.
+  
 </dd>
 
       </dl>
@@ -303,6 +355,30 @@
 
 </dd>
 
+          <dt id="ONEJOKER_FULL_TESTS" class="constant">
+    <span class="name "><a href="../onejoker/ONEJOKER_FULL_TESTS-constant.html">ONEJOKER_FULL_TESTS</a></span>
+  <span class="signature">&#8594; const <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
+  
+
+</dt>
+<dd>
+  
+  
+
+</dd>
+
+          <dt id="POKER_RANK_ORDER" class="constant">
+    <span class="name "><a href="../onejoker/POKER_RANK_ORDER-constant.html">POKER_RANK_ORDER</a></span>
+  <span class="signature">&#8594; const <a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>&gt;</span></span>
+  
+
+</dt>
+<dd>
+  
+  
+
+</dd>
+
           <dt id="TFALSE" class="constant">
     <span class="name "><a href="../onejoker/TFALSE-constant.html">TFALSE</a></span>
   <span class="signature">&#8594; const <a href="../onejoker/Troolean.html">Troolean</a></span>
@@ -347,6 +423,19 @@
       <h2>Functions</h2>
 
       <dl class="callables">
+          <dt id="badugiPartialValue" class="callable">
+  <span class="name"><a href="../onejoker/badugiPartialValue.html">badugiPartialValue</a></span><span class="signature">(<wbr><span class="parameter" id="badugiPartialValue-param-cl"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Card.html">Card</a></span>&gt;</span></span> <span class="parameter-name">cl</span></span>)
+    <span class="returntype parameter">&#8594; (<span class="field"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>, </span><span class="field"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Rank.html">Rank</a></span>&gt;</span></span></span>)</span>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
+
+</dd>
+
           <dt id="cardsFromText" class="callable">
   <span class="name"><a href="../onejoker/cardsFromText.html">cardsFromText</a></span><span class="signature">(<wbr><span class="parameter" id="cardsFromText-param-text"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">text</span></span>)
     <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Card.html">Card</a></span>&gt;</span></span>
@@ -358,6 +447,19 @@
   Parse a string of card text into a sequence of cards. Whitespace is
 ignored between cards, but is not allowed between rank and suit.
 Cards may be enclosed in square brackets.
+  
+
+</dd>
+
+          <dt id="isBadugi" class="callable">
+  <span class="name"><a href="../onejoker/isBadugi.html">isBadugi</a></span><span class="signature">(<wbr><span class="parameter" id="isBadugi-param-h"><span class="type-annotation"><a href="../onejoker/Hand-class.html">Hand</a></span> <span class="parameter-name">h</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
+  </span>
+  
+
+</dt>
+<dd>
+  
   
 
 </dd>

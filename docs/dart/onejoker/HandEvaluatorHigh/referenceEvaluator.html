@@ -69,7 +69,7 @@
   </div>
 
 <span class="returntype"><a href="../../onejoker/HandValueHigh-class.html">HandValueHigh</a></span>
-<span class="name ">referenceEvaluator</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="referenceEvaluator-param-h"><span class="type-annotation"><a href="../../onejoker/HandInterface-class.html">HandInterface</a></span> <span class="parameter-name">h</span></span></li>
+<span class="name ">referenceEvaluator</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="referenceEvaluator-param-h"><span class="type-annotation"><a href="../../onejoker/Hand-class.html">Hand</a></span> <span class="parameter-name">h</span></span></li>
 </ol>)
 
       <div class="features"><span class="feature">override</span></div>
@@ -82,9 +82,10 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
-HandValueHigh referenceEvaluator(HandInterface h) {
-  assert(_allValidCards(h) &lt;= 5);
-  var st = _EvaluatorState(h);
+HandValueHigh referenceEvaluator(Hand h) {
+  assert(_allValidCards(h) &gt; 0);
+  assert(_allValidCards(h) &lt;= completeHand());
+  var st = PokerEvaluatorState(h);
 
   st.checkFlush();
   st.checkStraight();
@@ -126,6 +127,7 @@ HandValueHigh referenceEvaluator(HandInterface h) {
     return HandValueHigh(HandLevelHigh.Pair, st.ranks);
   }
   assert(st.allChecksComplete());
+  assert(st.verifyNoPair());
   return HandValueHigh(HandLevelHigh.NoPair, st.ranks);
 }</code></pre>
 </section>

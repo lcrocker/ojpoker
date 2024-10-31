@@ -77,8 +77,9 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">bool drawCard(Card c) {
-  if (deck.removeCard(c)) {
-    _cards.push(c);
+  if (parent == null) return false;
+  if (parent!.removeCard(c)) {
+    push(c);
     return true;
   }
   return false;

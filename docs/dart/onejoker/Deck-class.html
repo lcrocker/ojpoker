@@ -85,12 +85,6 @@ sequence of events, but it's the one optimzed for.</p>
   </dd>
 
         
-  <dt>Implemented types</dt>
-  <dd>
-    <ul class="comma-separated clazz-relationships">
-        <li><a href="../onejoker/DeckInterface-class.html">DeckInterface</a></li>
-    </ul>
-  </dd>
         
 
 
@@ -113,7 +107,7 @@ sequence of events, but it's the one optimzed for.</p>
 
     <dl class="constructor-summary-list">
         <dt id="Deck" class="callable">
-          <span class="name"><a href="../onejoker/Deck/Deck.html">Deck</a></span><span class="signature">(<span class="parameter" id="-param-dname"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">dname</span></span>)</span>
+          <span class="name"><a href="../onejoker/Deck/Deck.html">Deck</a></span><span class="signature">([<span class="parameter" id="-param-dname"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">dname</span> = <span class="default-value">&quot;default&quot;</span></span>])</span>
         </dt>
         <dd>
           Create a new <a href="../onejoker/Deck-class.html">Deck</a> from a <a href="../onejoker/MasterDeck-class.html">MasterDeck</a> name
@@ -126,6 +120,18 @@ sequence of events, but it's the one optimzed for.</p>
       id="instance-properties">
     <h2>Properties</h2>
     <dl class="properties">
+        <dt id="cards" class="property">
+  <span class="name"><a href="../onejoker/Deck/cards.html">cards</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Card.html">Card</a></span>&gt;</span></span>
+  
+
+</dt>
+<dd>
+  
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
         <dt id="first" class="property inherited">
   <span class="name"><a href="https://api.flutter.dev/flutter/dart-core/Iterable/first.html">first</a></span>
   <span class="signature">&#8594; <a href="../onejoker/Card.html">Card</a></span>
@@ -140,13 +146,13 @@ sequence of events, but it's the one optimzed for.</p>
 
         <dt id="hands" class="property">
   <span class="name"><a href="../onejoker/Deck/hands.html">hands</a></span>
-  <span class="signature">&#8596; <a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Hand-class.html">Hand</a></span>&gt;</span></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Hand-class.html">Hand</a></span>&gt;</span></span>
   
 
 </dt>
 <dd>
   <code>Hand</code>s spawned from this deck
-  <div class="features"><span class="feature">getter/setter pair</span></div>
+  <div class="features"><span class="feature">final</span></div>
 
 </dd>
 
@@ -241,8 +247,8 @@ sequence of events, but it's the one optimzed for.</p>
 
 </dt>
 <dd>
-  Handy synonym for "length"
-  <div class="features"><span class="feature">no setter</span><span class="feature">override</span></div>
+  Synonym for "length"
+  <div class="features"><span class="feature">no setter</span></div>
 
 </dd>
 
@@ -278,7 +284,7 @@ sequence of events, but it's the one optimzed for.</p>
 </dt>
 <dd>
   How many cards in full deck?
-  <div class="features"><span class="feature">no setter</span><span class="feature">override</span></div>
+  <div class="features"><span class="feature">no setter</span></div>
 
 </dd>
 
@@ -325,7 +331,7 @@ sequence of events, but it's the one optimzed for.</p>
 </dt>
 <dd>
   Clear all associated <a href="../onejoker/Hand-class.html">Hand</a>s.
-  <div class="features"><span class="feature">override</span></div>
+  
 
 </dd>
 
@@ -341,7 +347,7 @@ sequence of events, but it's the one optimzed for.</p>
 For this purpose, hands with the same cards in different order are
 considered "distinct". For example, on a fresh 52-card deck,
 <code>for h in d.combinations(5)</code> will iterate over all 2598960 5-card hands.
-  <div class="features"><span class="feature">override</span></div>
+  
 
 </dd>
 
@@ -368,7 +374,7 @@ considered "distinct". For example, on a fresh 52-card deck,
 <dd>
   Deal all <a href="../onejoker/Hand-class.html">Hand</a>s created from this deck a number of cards. Useful at
 the start of a hand of play, e.g. <code>d.dealAll(5);</code>.
-  <div class="features"><span class="feature">override</span></div>
+  
 
 </dd>
 
@@ -381,7 +387,7 @@ the start of a hand of play, e.g. <code>d.dealAll(5);</code>.
 </dt>
 <dd>
   Deal a single card to the given <a href="../onejoker/Hand-class.html">Hand</a>
-  <div class="features"><span class="feature">override</span></div>
+  
 
 </dd>
 
@@ -517,7 +523,7 @@ element of the collection with an existing value
 </dd>
 
         <dt id="newHand" class="callable">
-  <span class="name"><a href="../onejoker/Deck/newHand.html">newHand</a></span><span class="signature">(<wbr>[<span class="parameter" id="newHand-param-size"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a>?</span> <span class="parameter-name">size</span></span>])
+  <span class="name"><a href="../onejoker/Deck/newHand.html">newHand</a></span><span class="signature">(<wbr>[<span class="parameter" id="newHand-param-size"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">size</span> = <span class="default-value">0</span></span>])
     <span class="returntype parameter">&#8594; <a href="../onejoker/Hand-class.html">Hand</a></span>
   </span>
   
@@ -525,7 +531,7 @@ element of the collection with an existing value
 </dt>
 <dd>
   
-  <div class="features"><span class="feature">override</span></div>
+  
 
 </dd>
 
@@ -552,7 +558,7 @@ element of the collection with an existing value
 <dd>
   Pop a <a href="../onejoker/Card.html">Card</a> from the <a href="../onejoker/Deck-class.html">Deck</a>. This is expected to be the primary way
 cards are taken (the <code>dealXX</code> functions call this).
-  <div class="features"><span class="feature">override</span></div>
+  
 
 </dd>
 
@@ -565,7 +571,7 @@ cards are taken (the <code>dealXX</code> functions call this).
 </dt>
 <dd>
   Pop a number of <a href="../onejoker/Card.html">Card</a>s from the <a href="../onejoker/Deck-class.html">Deck</a>.
-  <div class="features"><span class="feature">override</span></div>
+  
 
 </dd>
 
@@ -578,12 +584,12 @@ cards are taken (the <code>dealXX</code> functions call this).
 </dt>
 <dd>
   Add a <a href="../onejoker/Card.html">Card</a> to the <a href="../onejoker/Deck-class.html">Deck</a>. Not expected to be used often.
-  <div class="features"><span class="feature">override</span></div>
+  
 
 </dd>
 
         <dt id="pushN" class="callable">
-  <span class="name"><a href="../onejoker/Deck/pushN.html">pushN</a></span><span class="signature">(<wbr><span class="parameter" id="pushN-param-n"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">n</span>, </span><span class="parameter" id="pushN-param-cards"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Card.html">Card</a></span>&gt;</span></span> <span class="parameter-name">cards</span></span>)
+  <span class="name"><a href="../onejoker/Deck/pushN.html">pushN</a></span><span class="signature">(<wbr><span class="parameter" id="pushN-param-ci"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Card.html">Card</a></span>&gt;</span></span> <span class="parameter-name">ci</span></span>)
     <span class="returntype parameter">&#8594; void</span>
   </span>
   
@@ -591,7 +597,7 @@ cards are taken (the <code>dealXX</code> functions call this).
 </dt>
 <dd>
   Push a number of <a href="../onejoker/Card.html">Card</a>s back onto the <a href="../onejoker/Deck-class.html">Deck</a>.
-  <div class="features"><span class="feature">override</span></div>
+  
 
 </dd>
 
@@ -618,7 +624,7 @@ of the collection using the provided function.
 </dt>
 <dd>
   Refill the <a href="../onejoker/Deck-class.html">Deck</a> from its associated <a href="../onejoker/MasterDeck-class.html">MasterDeck</a>.
-  <div class="features"><span class="feature">override</span></div>
+  
 
 </dd>
 
@@ -632,7 +638,7 @@ of the collection using the provided function.
 <dd>
   Remove a specific <a href="../onejoker/Card.html">Card</a> from the <a href="../onejoker/Deck-class.html">Deck</a> by its identity.
 (e.g. <code>d.removeCard(Card.JackOfClubs))</code>.
-  <div class="features"><span class="feature">override</span></div>
+  
 
 </dd>
 
@@ -645,7 +651,7 @@ of the collection using the provided function.
 </dt>
 <dd>
   Randomize the <a href="../onejoker/Card.html">Card</a>s remaining in the <a href="../onejoker/Deck-class.html">Deck</a>.
-  <div class="features"><span class="feature">override</span></div>
+  
 
 </dd>
 
@@ -699,7 +705,7 @@ of the collection using the provided function.
   Sort the <a href="../onejoker/Deck-class.html">Deck</a> into the same descending order by <a href="../onejoker/Rank.html">Rank</a> and <a href="../onejoker/Suit.html">Suit</a> as
 used for <a href="../onejoker/Hand-class.html">Hand</a>s. Note that this will make the deck appear to be in the
 reverse ascending order when printed (see <code>toString()</code>, below).
-  <div class="features"><span class="feature">override</span></div>
+  
 
 </dd>
 
@@ -773,15 +779,15 @@ i.e., from the end of the list to the front.
 
         <dt id="validCard" class="callable">
   <span class="name"><a href="../onejoker/Deck/validCard.html">validCard</a></span><span class="signature">(<wbr><span class="parameter" id="validCard-param-cin"><span class="type-annotation"><a href="../onejoker/Card.html">Card</a></span> <span class="parameter-name">cin</span></span>)
-    <span class="returntype parameter">&#8594; <a href="../onejoker/Card.html">Card</a></span>
+    <span class="returntype parameter">&#8594; (<span class="field"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>, </span><span class="field"><span class="type-annotation"><a href="../onejoker/Card.html">Card</a></span></span>)</span>
   </span>
   
 
 </dt>
 <dd>
-  Validate that the <a href="../onejoker/Card.html">Card</a> passed is legal for this deck. Convert high
-and low aces if necessary.
-  <div class="features"><span class="feature">override</span></div>
+  Validate that the <a href="../onejoker/Card.html">Card</a> passed is legal for this deck.
+Convert high and low aces if necessary.
+  
 
 </dd>
 

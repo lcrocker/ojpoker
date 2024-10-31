@@ -33,19 +33,22 @@ impl Card {
     }
 
     /// Create a new `Card` from an integer value.
-    pub fn from_i32(v: i32) -> aResult<Card> {
+    pub fn from_i32(v: i32) -> Result<Card, OjError> {
         if v < WHITE_JOKER.0 as i32 || v > ACE_OF_SPADES.0 as i32 {
-            bail!(OjError::NotCard(v.to_string()));
+            return Err(OjError::NotCard(v.to_string()));
         }
-        aOk(Card(v as Ordinal))
+        Ok(Card(v as Ordinal))
     }
 
     /// Create a new `Card` from a `Rank` and a `Suit`. If the `Rank` and
     /// `Suit` objects are valid, this cannot fail, so it returns a real `Card`,
     /// not an Option.
     pub fn from_rank_suit(r: Rank, s: Suit) -> Card {
-        debug_assert!(r >= Rank::LowAce && r <= Rank::Ace);
-        debug_assert!(s >= Suit::Club && s <= Suit::Spade);
+        debug_assert!(r >= Rank::None && r <= Rank::Ace);
+        debug_assert!(s >= Suit::None && s <= Suit::Spade);
+        if r == Rank::None || s == Suit::None {
+            return Card(0);
+        }
         Card(((r as Ordinal) << 2) + (s as Ordinal) - 1)
     }
 
@@ -64,17 +67,17 @@ impl Card {
     }
 
     /// Rank of the card, if any.
-    pub fn rank(&self) -> aResult<Rank> {
+    pub fn rank(&self) -> Rank {
         if *self < LOW_ACE_OF_CLUBS || *self > ACE_OF_SPADES {
-            bail!(OjError::NotRank(self.to_string()));
+            return Rank::None;
         }
         Rank::from_i32((self.0 as i32) >> 2)
     }
 
     /// Suit of the card if any. `None` for jokers or illegal values.
-    pub fn suit(&self) -> aResult<Suit> {
+    pub fn suit(&self) -> Suit {
         if *self < LOW_ACE_OF_CLUBS || *self > ACE_OF_SPADES {
-            bail!(OjError::NotSuit(self.to_string()));
+            return Suit::None;
         }
         Suit::from_i32((0x03 & (self.0 as i32)) + 1)
     }
@@ -119,8 +122,8 @@ impl Card {
             WHITE_JOKER => { String::from("Jw") },
             _ => {
                 let mut ret: String = String::new();
-                let r: Rank = self.rank().expect("already handled jokers");
-                let s: Suit = self.suit().expect("already handled jokers");
+                let r: Rank = self.rank();
+                let s: Suit = self.suit();
         
                 ret.push(r.to_char());
                 ret.push(s.to_symbol());
@@ -143,103 +146,9 @@ impl Card {
             WHITE_JOKER => String::from("white joker"),
             JOKER => String::from("joker"),
             _ => format!("{} of {}",
-                self.rank().expect("already handled jokers").name(),
-                self.suit().expect("already handled jokers").plural())
+                self.rank().name(), self.suit().plural())
         }
     }
-}
-
-struct CardParseIter<'a> {
-    source: std::str::Chars<'a>,
-    state: i32,
-    bracket_allowed: bool,
-    done: bool,
-}
-
-impl<'a> CardParseIter<'a> {
-    pub fn new(chars: std::str::Chars<'a>) -> Self {
-        CardParseIter {
-            source: chars,
-            state: 0,
-            bracket_allowed: true,
-            done: false,
-        }
-    }
-}
-
-impl<'a> Iterator for CardParseIter<'a> {
-    type Item = Card;
-
-    #[allow(unused_assignments)]
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.done { return None; }
-        let mut r: Rank = Rank::Ace;
-        self.state = 0;
-
-        let mut loop_guard = 10000;
-        loop {
-            loop_guard -= 1;
-            if loop_guard <= 0 { break; }
-
-            if let Some(c) = self.source.next() {
-                match self.state {
-                    0 => {
-                        if '[' == c {
-                            if ! self.bracket_allowed { break; }
-                            self.bracket_allowed = false;
-                            continue;
-                        }
-                        if ' ' == c { continue; }
-                        self.bracket_allowed = false;
-                      
-                        if 'J' == c {
-                            self.state = 1;
-                            continue;
-                        }
-                        if let Ok(x) = Rank::from_char(c) {
-                            r = x;
-                            self.state = 2;
-                            continue;
-                        }
-                        break;
-                    },
-                    1 => {
-                        if 'k' == c || 'r' == c {
-                            return Some(JOKER);
-                        }
-                        if 'b' == c {
-                            return Some(BLACK_JOKER);
-                        }
-                        if 'w' == c {
-                            return Some(WHITE_JOKER);
-                        }
-                        r = Rank::Jack;
-                        if let Ok(s) = Suit::from_char(c) {
-                            return Some(Card::from_rank_suit(r, s));
-                        }
-                        break;
-                    },
-                    2 => {
-                        let Ok(s) = Suit::from_char(c) else { break; };
-                        return Some(Card::from_rank_suit(r, s));
-                    },
-                    _ => { break; },
-                };
-            } else {
-                break;
-            }
-        }
-        self.done = true;
-        None
-    }
-}
-
-/// If the given string begins with a card representation (e.g. "Qd"),
-/// return it and the string position immediately after so we can step
-/// through a string to get a whole hand.
-
-pub fn oj_cards_from_text(text: &str) -> impl Iterator<Item = Card> + '_ {
-    CardParseIter::new(text.chars())
 }
 
 const CARD_NAMES: [&str; 63] = [ "Jw", "Jb", "Jk",
@@ -261,29 +170,29 @@ impl std::fmt::Display for Card {
 }
 
 impl std::str::FromStr for Card {
-    type Err = anyhow::Error;
+    type Err = OjError;
 
-    fn from_str(s: &str) -> aResult<Self, Self::Err> {
-        let mut chars = s.chars();
+    fn from_str(st: &str) -> Result<Self, Self::Err> {
+        let mut chars = st.chars();
         let Some(rc) = chars.next() else {
-            bail!(OjError::ParseEmpty(String::from(s)));
+            return Err(OjError::ParseEmpty(String::from(st)));
         };
         let Some(sc) = chars.next() else {
-            bail!(OjError::ParseEmpty(String::from(s)));
+            return Err(OjError::ParseEmpty(String::from(st)));
         };
+        if 'J' == rc && 'k' == sc { return Ok(JOKER); }
+        if 'J' == rc && 'b' == sc { return Ok(BLACK_JOKER); }
+        if 'J' == rc && 'w' == sc { return Ok(WHITE_JOKER); }
 
-        if 'J' == rc {
-            if 'k' == sc || 'r' == sc { return aOk(JOKER); }
-            else if 'b' == sc { return aOk(BLACK_JOKER); }
-            else if 'w' == sc { return aOk(WHITE_JOKER); }
+        let r = Rank::from_char(rc);
+        if r == Rank::None {
+            return Err(OjError::NotRank(String::from(st)));
         }
-        let Ok(r) = Rank::from_char(rc) else {
-            bail!(OjError::NotRank(String::from(rc)));
-        };
-        let Ok(s) = Suit::from_char(sc) else {
-            bail!(OjError::NotSuit(String::from(sc)));
-        };
-        aOk(Card::from_rank_suit(r, s))
+        let s = Suit::from_char(sc);
+        if s == Suit::None {
+            return Err(OjError::NotSuit(String::from(st)));
+        }
+        Ok(Card::from_rank_suit(r, s))
     }
 }
 
@@ -369,13 +278,13 @@ cardconst!(ACE_OF_SPADES, 63);
  * CODE ENDS HERE
  */
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_cards() -> aResult<()> {
-        macro_rules! cardtests {
+ #[cfg(test)]
+ mod tests {
+     use super::*;
+ 
+     #[test]
+     fn test_cards() -> Result<(), OjError> {
+         macro_rules! cardtests {
             ( $x:ident, $v:literal, $r:ident, $s:ident, $t:literal, $u:literal,
                 $laf:literal, $haf:literal, $isj:literal, $isa:literal,
                 $isr:literal, $isb:literal, $fn:literal ) => {
@@ -385,8 +294,8 @@ mod tests {
                     assert_eq!($x, Card::from_i32($v).unwrap());
                     assert_eq!($v, $x.0);
                     assert_eq!($x, Card::from_rank_suit(Rank::$r, Suit::$s));
-                    assert_eq!(Rank::$r, $x.rank().unwrap());
-                    assert_eq!(Suit::$s, $x.suit().unwrap());
+                    assert_eq!(Rank::$r, $x.rank());
+                    assert_eq!(Suit::$s, $x.suit());
                     assert_eq!($laf, Card::low_ace_fix($x).0);
                     assert_eq!($haf, Card::high_ace_fix($x).0);
                     assert!($x.is_card());
@@ -542,7 +451,6 @@ mod tests {
                     assert!(! $x.is_ace());
                     assert_eq!($isr, $x.is_red());
                     assert_eq!($isb, $x.is_black());
-                    assert!($x.suit().is_err());
                     assert_eq!($t, $x.to_string());
                     assert_eq!($t, $x.to_unicode());
                     assert_eq!(UNICODE_SINGLES[$v as usize - 1], $x.to_unicode_single());
@@ -565,7 +473,7 @@ mod tests {
         assert!(KING_OF_SPADES < ACE_OF_CLUBS);
         assert!(KNIGHT_OF_CLUBS < KNIGHT_OF_DIAMONDS);
 
-        aOk(())
+        Ok(())
     }
 
 }

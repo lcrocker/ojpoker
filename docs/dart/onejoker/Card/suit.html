@@ -66,7 +66,7 @@
 
     <section class="multi-line-signature">
       
-      <span class="returntype"><a href="../../onejoker/Suit.html">Suit</a>?</span>
+      <span class="returntype"><a href="../../onejoker/Suit.html">Suit</a></span>
       <span class="name ">suit</span>
       
 
@@ -74,15 +74,15 @@
 
     
 <section class="desc markdown">
-  <p>What's the suit of this card? Jokers have no suit.</p>
+  <p>What's the suit of this card?</p>
 </section>
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Suit? get suit {
+  <pre class="language-dart"><code class="language-dart">Suit get suit {
   if (index &lt; Card.LowAceOfClubs.index || index &gt; Card.AceOfSpades.index) {
-    return null;
+    return Suit.None;
   }
   return Suit.values[1 + (index &amp; 3)];
 }</code></pre>

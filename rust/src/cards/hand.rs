@@ -3,7 +3,6 @@
 use std::ops::{Index, IndexMut};
 use crate::utils::*;
 use crate::cards::*;
-use crate::errors::*;
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/Hand) | Hand of cards
 /// A simple array of card objects with some utility methods.
@@ -19,53 +18,19 @@ pub struct Hand {
 
 impl Hand {
     /// Create new [Hand] associated with the named [MasterDeck].
-    pub fn new(dname: &str) -> Hand {
+    pub fn new(m: &'static MasterDeck) -> Hand {
         Hand {
-            master: MasterDeck::by_name(dname),
+            master: m,
             cards: Vec::new(),
         }
     }
 
-    /// Create a new [Hand] associated with the default [MasterDeck]
-    /// containing the cards given in the iterator.
-    pub fn from_slice(cards: &[Card]) -> Hand {
-        let mut h = Hand {
-            master: MasterDeck::by_name("default"),
-            cards: cards.to_vec(),
-        };
-        h.ace_fix();
-        h
-    }
-
-    /// Create a new [Hand] associated with the default [MasterDeck]
-    /// containing the hand given in text form.
-    pub fn from_text(text: &str) -> Hand {
-        let mut h = Hand {
-            master: MasterDeck::by_name("default"),
-            cards: oj_cards_from_text(text).collect(),
-        };
-        h.ace_fix();
-        h
-    }
-
-    /// Create a new "sister" [Hand] with the [Card]s given as a slice.
-    pub fn copy_from_slice(&self, cards: &[Card]) -> Hand {
-        let mut h = Hand {
-            master: self.master,
-            cards: cards.to_vec(),
-        };
-        h.ace_fix();
-        h
-    }
-
-    /// Create a new "sister" [Hand] with the [Card]s given as text.
-    pub fn copy_from_text(&self, text: &str) -> Hand {
-        let mut h = Hand {
-            master: self.master,
-            cards: oj_cards_from_text(text).collect(),
-        };
-        h.ace_fix();
-        h
+    /// Initialize new hand
+    pub fn init<I>(mut self, iter: I) -> Self
+    where I: IntoIterator<Item = Card> {
+        self.clear();
+        self.push_n(iter);
+        self
     }
 
     /// Export Vec of [Card]s.
@@ -73,9 +38,19 @@ impl Hand {
         self.cards.clone()
     }
 
+    /// Export Vec of [Rank]s.
+    pub fn ranks(&self) -> Vec<Rank> {
+        self.cards.iter().map(|c| c.rank()).collect()
+    }
+
     /// Point to a slice of the underlying [Card] array.
     pub fn as_slice(&self) -> &[Card] {
         &self.cards[..]
+    }
+
+    /// Point to a slice of the underlying [Card] array.
+    pub fn as_mut_slice(&mut self) -> &mut [Card] {
+        &mut self.cards[..]
     }
 
     /// How many cards in the hand?
@@ -95,7 +70,10 @@ impl Hand {
 
     /// Does the hand contain the given [Card]?
     pub fn contains(&self, card: Card) -> bool {
-        self.cards.contains(&card)
+        if let Some(c) = self.valid_card(card) {
+            return self.cards.contains(&c)
+        }
+        false
     }
 
     /// Empty the hand
@@ -137,6 +115,13 @@ impl Hand {
         false
     }
 
+    /// Set all cards in hand
+    pub fn set<I>(&mut self, iter: I) -> bool
+    where I: IntoIterator<Item = Card> {
+        self.clear();
+        self.push_n(iter)
+    }
+
     /// Push a [Card] onto the end of the hand.
     pub fn push(&mut self, card: Card) -> bool {
         if let Some(c) = self.valid_card(card) {
@@ -152,18 +137,16 @@ impl Hand {
     }
 
     /// Push a collection of [Card]s onto the end of the hand.
-    pub fn push_n<I>(&mut self, n: usize, iter: I) -> bool
-      where I: IntoIterator<Item = Card> {
-        let mut remaining = n;
+    pub fn push_n<I>(&mut self, iter: I) -> bool
+    where I: IntoIterator<Item = Card> {
+        let mut all_ok = true;
 
         for c in iter {
-            if remaining == 0 {
-                break;
+            if !self.push(c) {
+                all_ok = false;
             }
-            remaining -= 1;
-            self.push(c);
         }
-        remaining == 0
+        all_ok
     }
 
     /// Pop `n` [Card]s from the end of the hand.
@@ -271,45 +254,19 @@ impl Hand {
         }
     }
 
-    /// Take `n` cards from the given [Deck] and add them to the hand.
-    pub fn draw(&mut self, n: usize, d: &mut Deck) -> bool {
-        if d.remaining() < n {
-            return false;
-        }
-        self.push_n(n, d.pop_n(n))
-    }
+    /// Discard the cards at the given indices.
+    pub fn discard(&mut self, indices: &mut [usize]) -> bool {
+        let mut ok = true;
+        oj_sort(indices);   // descending is important!
 
-    /// Take the given [Card] from the [Deck] and add it to the hand.
-    pub fn draw_card(&mut self, c: Card, d: &mut Deck) -> bool {
-        if ! d.remove_card(c) {
-            return false;
-        }
-        self.push(c)
-    }
-
-    /// Take the given [Card]s from the [Deck] and add them to the hand.
-    pub fn draw_hand(&mut self, cl: &[Card], d: &mut Deck) -> bool {
-        for c in cl.iter() {
-            if ! d.remove_card(*c) {
-                return false;
+        for i in indices {
+            if *i > self.len() {
+                ok = false;
+            } else {
+                self.remove_at(*i);
             }
-            self.push(*c);
         }
-        true
-    }
-}
-
-impl Default for Hand {
-    fn default() -> Self {
-        Hand::new("default")
-    }
-}
-
-impl std::str::FromStr for Hand {
-    type Err = anyhow::Error;
-
-    fn from_str(s: &str) -> aResult<Self, Self::Err> {
-        aOk(Hand::from_text(s))
+        ok
     }
 }
 
@@ -428,7 +385,7 @@ struct CardCombinationIter {
 impl CardCombinationIter {
     pub fn new(hand: &Hand, k: usize) -> CardCombinationIter {
         let source = hand.to_vec();
-        let dest: Hand = hand.copy_from_slice(&source[0..k]);
+        let dest: Hand = hand.clone().init(source.iter().take(k).cloned());
         let mut indices: Vec<usize> = Vec::with_capacity(k);
 
         for i in 0..k {
@@ -460,14 +417,16 @@ impl Iterator for CardCombinationIter {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::errors::OjError;
 
     #[test]
-    fn test_hand_methods() -> aResult<()> {
-        let mut h = Hand::new("default");
+    fn test_hand_methods() -> Result<(), OjError> {
+        let d = Deck::new("default");
+        let mut h = d.new_hand();
         assert_eq!(h.len(), 0);
         assert!(h.is_empty());
 
-        h = Hand::from_slice(&[FOUR_OF_SPADES,JOKER]);
+        h.set([FOUR_OF_SPADES,JOKER]);
         assert_eq!(h.len(), 2);
         assert_eq!(h.card_at(0).unwrap(), FOUR_OF_SPADES);
         assert_eq!(h.card_at(1).unwrap(), JOKER);
@@ -478,29 +437,29 @@ mod tests {
         assert!(h.is_empty());
         assert!(! h.contains(FOUR_OF_SPADES));
 
-        h = Hand::from_text("4sJc9d");
+        h.set(parse_cards("4sJc9d"));
         assert_eq!(h.len(), 3);
         assert_eq!(h.card_at(0).unwrap(), FOUR_OF_SPADES);
         assert_eq!(h.card_at(1).unwrap(), JACK_OF_CLUBS);
         assert_eq!(h.card_at(2).unwrap(), NINE_OF_DIAMONDS);
 
-        h = Hand::from_slice(&[
+        let mut h2 = d.new_hand().init([
             LOW_ACE_OF_DIAMONDS, SEVEN_OF_HEARTS,
             ACE_OF_HEARTS, KING_OF_CLUBS
         ]);
-        assert_eq!(h.card_at(0).unwrap(), ACE_OF_DIAMONDS);
-        assert_eq!(h.card_at(1).unwrap(), SEVEN_OF_HEARTS);
-        assert_eq!(h.card_at(2).unwrap(), ACE_OF_HEARTS);
-        assert_eq!(h.card_at(3).unwrap(), KING_OF_CLUBS);
+        assert_eq!(h2.card_at(0).unwrap(), ACE_OF_DIAMONDS);
+        assert_eq!(h2.card_at(1).unwrap(), SEVEN_OF_HEARTS);
+        assert_eq!(h2.card_at(2).unwrap(), ACE_OF_HEARTS);
+        assert_eq!(h2.card_at(3).unwrap(), KING_OF_CLUBS);
 
-        h[0] = QUEEN_OF_DIAMONDS;
-        h[2] = FIVE_OF_HEARTS;
-        assert_eq!(h.to_string(), "Qd7h5hKc");
+        h2[0] = QUEEN_OF_DIAMONDS;
+        h2[2] = FIVE_OF_HEARTS;
+        assert_eq!(h2.to_string(), "Qd7h5hKc");
 
         /* Push and pop
          */
-        h = Hand::new("onejoker");
-        h.push(FOUR_OF_SPADES);
+        let d2 = Deck::new("onejoker");
+        h = d2.new_hand().init([FOUR_OF_SPADES]);
         assert_eq!(h.len(), 1);
         assert_eq!(h.card_at(0).unwrap(), FOUR_OF_SPADES);
         h.push(JOKER);
@@ -519,8 +478,8 @@ mod tests {
         h.push(QUEEN_OF_SPADES);
         assert_eq!(h.to_string(), "9dQs");
 
-        h = Hand::from_slice(&[ TEN_OF_CLUBS, JACK_OF_CLUBS ]);
-        h.push_n(3, [
+        h.set([ TEN_OF_CLUBS, JACK_OF_CLUBS ]);
+        h.push_n([
             QUEEN_OF_CLUBS, KING_OF_CLUBS, ACE_OF_CLUBS
         ]);
         assert_eq!(h.to_string(), "TcJcQcKcAc");
@@ -532,8 +491,7 @@ mod tests {
 
         /* insert and remove
          */
-        h = Hand::new("onejoker");
-        h.push_n(3, oj_cards_from_text("4sJc9d"));
+        h = d2.new_hand().init(parse_cards("4sJc9d"));
         h.insert_at(1, JOKER);
         assert_eq!(h.to_string(), "4sJkJc9d");
         h.insert_at(0, TEN_OF_DIAMONDS);
@@ -559,7 +517,7 @@ mod tests {
         /* shuffle and sort
          */
 
-        h = Hand::from_text("3h5h8dTh3c4h7sJkQs7d");
+        h = d2.new_hand().init(parse_cards("3h5h8dTh3c4h7sJkQs7d"));
         h.shuffle();
         assert_eq!(h.len(), 10);
         assert!(h.contains(FIVE_OF_HEARTS));
@@ -580,23 +538,6 @@ mod tests {
 
         h.sort();
         assert_eq!(h.to_string(), "QsTh8d7s5h4h3h3cJk");
-
-        // Test randomness of shuffle
-        let mut counts = [0; 20];
-        h = Hand::from_text("As2s3s4s5s6s7s8s9sTsAh2h3h4h5h6h7h8h9hTh");
-        for _ in 0..1000000 {
-            h.shuffle();
-            for j in 0..20 {
-                if h[j] == ACE_OF_SPADES {
-                    counts[j] += 1;
-                    break;
-                }
-            }
-        }
-        for i in 0..20 {
-            assert!(counts[i] > 49000);
-            assert!(counts[i] < 51000);
-        }
-        aOk(())
+        Ok(())
     }
 }

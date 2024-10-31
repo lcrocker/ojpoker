@@ -62,31 +62,25 @@
 
     <section class="multi-line-signature">
       
-  <div>
-    <ol class="annotation-list">
-        <li>@<a href="https://api.flutter.dev/flutter/dart-core/override-constant.html">override</a></li>
-    </ol>
-  </div>
 
-<span class="returntype"><a href="../../onejoker/Card.html">Card</a></span>
+<span class="returntype">(<span class="field"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>, </span><span class="field"><span class="type-annotation"><a href="../../onejoker/Card.html">Card</a></span></span>)</span>
 <span class="name ">validCard</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="validCard-param-cin"><span class="type-annotation"><a href="../../onejoker/Card.html">Card</a></span> <span class="parameter-name">cin</span></span></li>
 </ol>)
 
-      <div class="features"><span class="feature">override</span></div>
+      
 
     </section>
     
 <section class="desc markdown">
-  <p>Validate that the <a href="../../onejoker/Card.html">Card</a> passed is legal for this deck. Convert high
-and low aces if necessary.</p>
+  <p>Validate that the <a href="../../onejoker/Card.html">Card</a> passed is legal for this deck.
+Convert high and low aces if necessary.</p>
 </section>
 
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">@override
-Card validCard(Card cin) {
+  <pre class="language-dart"><code class="language-dart">(bool, Card) validCard(Card cin) {
   Card cout;
 
   if (master.lowAces) {
@@ -94,8 +88,8 @@ Card validCard(Card cin) {
   } else {
     cout = Card.highAceFix(cin);
   }
-  assert(master.has(cout));
-  return cout;
+  if (master.has(cout)) return (true, cout);
+  return (false, cout);
 }</code></pre>
 </section>
 

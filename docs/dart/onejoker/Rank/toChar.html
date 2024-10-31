@@ -79,8 +79,9 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">String toChar() {
-  assert(index &gt;= Rank.LowAce.index &amp;&amp; index &lt;= Rank.Ace.index);
+  assert(index &gt;= Rank.None.index &amp;&amp; index &lt;= Rank.Ace.index);
   return [
+    &#39;?&#39;,
     &#39;A&#39;,
     &#39;2&#39;,
     &#39;3&#39;,
@@ -96,7 +97,7 @@
     &#39;Q&#39;,
     &#39;K&#39;,
     &#39;A&#39;,
-  ][index - 1];
+  ][index];
 }</code></pre>
 </section>
 

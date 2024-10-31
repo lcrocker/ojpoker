@@ -19,11 +19,16 @@ split-debuginfo = "unpacked"
 rustflags = [ "-Clink-arg=-fuse-ld=lld", "-Ctarget-cpu=native" ]
 
 [dependencies]
-anyhow = "1.0.71"
-serde = { version = "1.0.210", features = [ "derive" ] }
-rmp-serde = "1.3.0"
+json5 = "0.4.1"
+serde = { version = "1.0.214", features = ["derive"] }
 
 [[bin]]
 name = "bth"
 path = "src/bin/bth.rs"
 doc = false
+
+[[bin]]
+name = "primes"
+path = "src/bin/primes.rs"
+doc = false
+

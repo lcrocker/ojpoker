@@ -62,18 +62,13 @@
 
     <section class="multi-line-signature">
       
-  <div>
-    <ol class="annotation-list">
-        <li>@<a href="https://api.flutter.dev/flutter/dart-core/override-constant.html">override</a></li>
-    </ol>
-  </div>
 
 <span class="returntype">void</span>
 <span class="name ">operator []=</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="[]=-param-index"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">index</span>, </span></li>
 <li><span class="parameter" id="[]=-param-card"><span class="type-annotation"><a href="../../onejoker/Card.html">Card</a></span> <span class="parameter-name">card</span></span></li>
 </ol>)
 
-      <div class="features"><span class="feature">override</span></div>
+      
 
     </section>
     
@@ -82,9 +77,8 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">@override
-operator []=(int index, Card card) {
-  _cards[index] = card;
+  <pre class="language-dart"><code class="language-dart">void operator []=(int index, Card card) {
+  setCardAt(index, card);
 }</code></pre>
 </section>
 

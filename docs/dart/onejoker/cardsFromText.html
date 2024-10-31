@@ -109,7 +109,7 @@ Cards may be enclosed in square brackets.</p>
     }
     var r = Rank.fromChar(match.group(2)!);
     var s = Suit.fromChar(match.group(3)!);
-    if (r == null || s == null) {
+    if (r == Rank.None || s == Suit.None) {
       return;
     }
     yield Card.fromRankSuit(r, s);

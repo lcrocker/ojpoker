@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["MasterDeck"]};
+window.SIDEBAR_ITEMS = {"fn":["deck_count","masterdeck_by_index"],"struct":["MasterDeck"]};

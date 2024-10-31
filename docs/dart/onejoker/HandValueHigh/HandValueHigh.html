@@ -73,8 +73,8 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">HandValueHigh(HandLevelHigh level, List&lt;Rank&gt; ranks):
-  super(level, ranks, -1);</code></pre>
+  <pre class="language-dart"><code class="language-dart">HandValueHigh(HandLevelHigh level, List&lt;Rank&gt; ranks)
+    : super(level, ranks, ojHighHandValueFunction(level, ranks));</code></pre>
 </section>
 
 

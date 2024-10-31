@@ -62,8 +62,8 @@
 
     <section class="multi-line-signature">
       
-      <span class="name ">Deck</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="-param-dname"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">dname</span></span></li>
-</ol>)
+      <span class="name ">Deck</span>(<wbr>[<ol class="parameter-list single-line"> <li><span class="parameter" id="-param-dname"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">dname</span> = <span class="default-value">&quot;default&quot;</span></span></li>
+</ol>])
     </section>
 
     
@@ -75,8 +75,8 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Deck(String dname) : master = MasterDeck.byName(dname) {
-  _cards = OrphanHand.fromIterable(master.cardList);
+  <pre class="language-dart"><code class="language-dart">Deck([String dname = &quot;default&quot;]) : master = MasterDeck.byName(dname) {
+  refill();
 }</code></pre>
 </section>
 

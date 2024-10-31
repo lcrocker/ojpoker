@@ -62,17 +62,12 @@
 
     <section class="multi-line-signature">
       
-  <div>
-    <ol class="annotation-list">
-        <li>@<a href="https://api.flutter.dev/flutter/dart-core/override-constant.html">override</a></li>
-    </ol>
-  </div>
 
 <span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
 <span class="name ">dealTo</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="dealTo-param-h"><span class="type-annotation"><a href="../../onejoker/Hand-class.html">Hand</a></span> <span class="parameter-name">h</span></span></li>
 </ol>)
 
-      <div class="features"><span class="feature">override</span></div>
+      
 
     </section>
     
@@ -84,10 +79,9 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">@override
-bool dealTo(Hand h) {
-  if (_cards.isEmpty) return false;
-  h.push(_cards.pop()!);
+  <pre class="language-dart"><code class="language-dart">bool dealTo(Hand h) {
+  if (cards.isEmpty) return false;
+  h.push(pop()!);
   return true;
 }</code></pre>
 </section>

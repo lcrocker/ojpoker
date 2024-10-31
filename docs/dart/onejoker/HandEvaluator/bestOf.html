@@ -64,7 +64,7 @@
       
 
 <span class="returntype">V</span>
-<span class="name ">bestOf</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="bestOf-param-h"><span class="type-annotation"><a href="../../onejoker/HandInterface-class.html">HandInterface</a></span> <span class="parameter-name">h</span></span></li>
+<span class="name ">bestOf</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="bestOf-param-h"><span class="type-annotation"><a href="../../onejoker/Hand-class.html">Hand</a></span> <span class="parameter-name">h</span></span></li>
 </ol>)
 
       
@@ -76,10 +76,10 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">V bestOf(HandInterface h) {
-  V best = valueFactory();
+  <pre class="language-dart"><code class="language-dart">V bestOf(Hand h) {
+  V best = worstHandValue();
 
-  for (HandInterface sub in h.combinations(5)) {
+  for (Hand sub in h.combinations(completeHand())) {
     V subV = lookupEvaluator(sub);
     if (subV.value &lt; best.value) {
       best = subV;

@@ -7,14 +7,18 @@
 /// some tests and compatibility with the Rust code.
 /// {@category cards}
 enum Suit implements Comparable<Suit> {
-  None, // 0 not a valid suit, but Dart won't let me assign the numbers
+  None, // 0
   Club, // 1
   Diamond, // 2
   Heart, // 3
   Spade; // 4
 
+  static Suit fromInt(int i) {
+    return Suit.values[i < 5 ? i : 0];
+  }
+
   /// Create one from text character or unicode symbol.
-  static Suit? fromChar(String c) {
+  static Suit fromChar(String c) {
     switch (c) {
       case 'c':
       case '♣':
@@ -29,32 +33,32 @@ enum Suit implements Comparable<Suit> {
       case '♠':
         return Spade;
       default:
-        return null;
+        return None;
     }
   }
 
   /// Render as text
   String toChar() {
-    assert(index >= Suit.Club.index && index <= Suit.Spade.index);
-    return ['c', 'd', 'h', 's'][index - 1];
+    assert(index >= Suit.None.index && index <= Suit.Spade.index);
+    return ['?', 'c', 'd', 'h', 's'][index];
   }
 
   /// Render as unicode symbol
   String toUnicode() {
-    assert(index >= Suit.Club.index && index <= Suit.Spade.index);
-    return ['♣', '♦', '♥', '♠'][index - 1];
+    assert(index >= Suit.None.index && index <= Suit.Spade.index);
+    return ['?', '♣', '♦', '♥', '♠'][index];
   }
 
   /// Full English name
   String get name {
-    assert(index >= Suit.Club.index && index <= Suit.Spade.index);
-    return ["club", "diamond", "heart", "spade"][index - 1];
+    assert(index >= Suit.None.index && index <= Suit.Spade.index);
+    return ["?", "club", "diamond", "heart", "spade"][index];
   }
 
   /// Full English plural name, not really needed but for consistency
   String get plural {
-    assert(index >= Suit.Club.index && index <= Suit.Spade.index);
-    return ["clubs", "diamonds", "hearts", "spades"][index - 1];
+    assert(index >= Suit.None.index && index <= Suit.Spade.index);
+    return ["?", "clubs", "diamonds", "hearts", "spades"][index];
   }
 
   /// For consistency with rank, not really needed

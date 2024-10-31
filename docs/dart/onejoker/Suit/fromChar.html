@@ -63,7 +63,7 @@
     <section class="multi-line-signature">
       
 
-<span class="returntype"><a href="../../onejoker/Suit.html">Suit</a>?</span>
+<span class="returntype"><a href="../../onejoker/Suit.html">Suit</a></span>
 <span class="name ">fromChar</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="fromChar-param-c"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">c</span></span></li>
 </ol>)
 
@@ -79,7 +79,7 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">static Suit? fromChar(String c) {
+  <pre class="language-dart"><code class="language-dart">static Suit fromChar(String c) {
   switch (c) {
     case &#39;c&#39;:
     case &#39;♣&#39;:
@@ -94,7 +94,7 @@
     case &#39;♠&#39;:
       return Spade;
     default:
-      return null;
+      return None;
   }
 }</code></pre>
 </section>

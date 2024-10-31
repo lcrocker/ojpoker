@@ -116,14 +116,3 @@ void main() {
     });
   });
 }
-
-
-
-      /// Test the randomness of shuffle() by playing "find the ace".
-      /// Make a deck of 20 cards, shuffle it a million times, and count the
-      /// number of times the ace of spades falls in each position. Should be
-      /// close to 50000 per bucket. Of course, being random, the test may
-      /// fail rarely. This is a simple quick-and-dirty "is it broken", test.
-      /// The PRNG itself I ran through a battery of tests called "dieharder"
-      /// that checks for all kinds of statistical bias.
-

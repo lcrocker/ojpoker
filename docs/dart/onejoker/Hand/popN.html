@@ -62,17 +62,12 @@
 
     <section class="multi-line-signature">
       
-  <div>
-    <ol class="annotation-list">
-        <li>@<a href="https://api.flutter.dev/flutter/dart-core/override-constant.html">override</a></li>
-    </ol>
-  </div>
 
 <span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../../onejoker/Card.html">Card</a></span>&gt;</span></span>
 <span class="name ">popN</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="popN-param-n"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">n</span></span></li>
 </ol>)
 
-      <div class="features"><span class="feature">override</span></div>
+      
 
     </section>
     
@@ -81,9 +76,11 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">@override
-Iterable&lt;Card&gt; popN(int n) sync* {
-  yield* _cards.popN(n);
+  <pre class="language-dart"><code class="language-dart">Iterable&lt;Card&gt; popN(int n) sync* {
+  if (n &gt; cards.length) n = cards.length;
+  for (int i = 0; i &lt; n; i += 1) {
+    yield cards.removeLast();
+  }
 }</code></pre>
 </section>
 

@@ -62,16 +62,11 @@
 
     <section class="multi-line-signature">
       
-  <div>
-    <ol class="annotation-list">
-        <li>@<a href="https://api.flutter.dev/flutter/dart-core/override-constant.html">override</a></li>
-    </ol>
-  </div>
 
 <span class="returntype"><a href="../../onejoker/Card.html">Card</a>?</span>
 <span class="name ">pop</span>(<wbr>)
 
-      <div class="features"><span class="feature">override</span></div>
+      
 
     </section>
     
@@ -84,9 +79,8 @@ cards are taken (the <code>dealXX</code> functions call this).</p>
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">@override
-Card? pop() {
-  return _cards.pop();
+  <pre class="language-dart"><code class="language-dart">Card? pop() {
+  return cards.removeLast();
 }</code></pre>
 </section>
 

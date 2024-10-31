@@ -27,6 +27,12 @@ class MasterDeck {
         return decks[id - 1];
     }
 
+    factory MasterDeck.byIndex(int idx) {
+        return decks[idx - 1];
+    }
+
+    static const deckCount = 19;
+
     int get size => cardList.length;
 
     /// Does this deck contain the given card?
@@ -55,7 +61,6 @@ class MasterDeck {
         "52": 1,
         "53": 3,
         "54": 4,
-        "default": 1,
         "french": 1,
         "poker": 1,
         "bridge": 1,
@@ -66,6 +71,7 @@ class MasterDeck {
         "hearts": 1,
         "boure": 1,
         "english": 1,
+        "default": 2,
         "allcards": 2,
         "joker": 3,
         "bug": 3,

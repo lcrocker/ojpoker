@@ -87,7 +87,9 @@
   <pre class="language-dart"><code class="language-dart">@override
 bool contains(Object? element) {
   if (element is! Card) return false;
-  return _cards.contains(validCard(element));
+  var (v, c) = validCard(element);
+  if (v) return cards.contains(c);
+  return false;
 }</code></pre>
 </section>
 

@@ -79,11 +79,11 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">String toUnicode() {
-  assert(isCard);
+  if (!isCard) return &quot;??&quot;;
   if (Card.WhiteJoker.index == index) return &quot;Jw&quot;;
   if (Card.BlackJoker.index == index) return &quot;Jb&quot;;
   if (Card.Joker.index == index) return &quot;Jk&quot;;
-  return &quot;${rank!.toChar()}${suit!.toUnicode()}&quot;;
+  return &quot;${rank.toChar()}${suit.toUnicode()}&quot;;
 }</code></pre>
 </section>
 

@@ -5,12 +5,12 @@ void main() {
   group('Card', () {
     test('properties', () {
       for (var i = 1; i < 64; i += 1) {
-        var c = Card.fromInt(i)!;
+        var c = Card.fromInt(i);
 
         if ({1, 2, 3}.contains(c.index)) {
           expect(true, c.isJoker);
-          expect(null, c.rank);
-          expect(null, c.suit);
+          expect(Rank.None, c.rank);
+          expect(Suit.None, c.suit);
         } else {
           expect(false, c.isJoker);
         }
@@ -134,4 +134,3 @@ void main() {
     });
   });
 }
-

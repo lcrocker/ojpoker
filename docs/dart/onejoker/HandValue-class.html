@@ -78,10 +78,20 @@ All the numbers here are such that lower number means better hand.</p>
         
 
         
+  <dt>Implemented types</dt>
+  <dd>
+    <ul class="comma-separated clazz-relationships">
+        <li><a href="https://api.flutter.dev/flutter/dart-core/Comparable-class.html">Comparable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/HandValue-class.html">HandValue</a><span class="signature">&lt;<wbr><span class="type-parameter">L</span>&gt;</span></span>&gt;</span></li>
+    </ul>
+  </dd>
         
 
           <dt>Implementers</dt>
           <dd><ul class="comma-separated clazz-relationships">
+              <li><a href="../onejoker/HandValueAceToFive-class.html">HandValueAceToFive</a></li>
+              <li><a href="../onejoker/HandValueAceToSix-class.html">HandValueAceToSix</a></li>
+              <li><a href="../onejoker/HandValueBadugi-class.html">HandValueBadugi</a></li>
+              <li><a href="../onejoker/HandValueDeuceToSeven-class.html">HandValueDeuceToSeven</a></li>
               <li><a href="../onejoker/HandValueHigh-class.html">HandValueHigh</a></li>
           </ul></dd>
 
@@ -98,13 +108,13 @@ All the numbers here are such that lower number means better hand.</p>
 
     <dl class="constructor-summary-list">
         <dt id="HandValue" class="callable">
-          <span class="name"><a href="../onejoker/HandValue/HandValue.html">HandValue</a></span><span class="signature">(<span class="parameter" id="-param-level"><span class="type-annotation">L</span> <span class="parameter-name">level</span>, </span><span class="parameter" id="-param-ranks"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Rank.html">Rank</a></span>&gt;</span></span> <span class="parameter-name">ranks</span>, </span><span class="parameter" id="-param-v"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">v</span></span>)</span>
+          <span class="name"><a href="../onejoker/HandValue/HandValue.html">HandValue</a></span><span class="signature">(<span class="parameter" id="-param-level"><span class="type-annotation">L</span> <span class="parameter-name">level</span>, </span><span class="parameter" id="-param-ranks"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Rank.html">Rank</a></span>&gt;</span></span> <span class="parameter-name">ranks</span>, </span><span class="parameter" id="-param-value"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">value</span></span>)</span>
         </dt>
         <dd>
           Constructor for internal use
         </dd>
-        <dt id="HandValue.best" class="callable">
-          <span class="name"><a href="../onejoker/HandValue/HandValue.best.html">HandValue.best</a></span><span class="signature">()</span>
+        <dt id="HandValue.worst" class="callable">
+          <span class="name"><a href="../onejoker/HandValue/HandValue.worst.html">HandValue.worst</a></span><span class="signature">()</span>
         </dt>
         <dd>
           
@@ -185,6 +195,19 @@ All the numbers here are such that lower number means better hand.</p>
       id="instance-methods">
     <h2>Methods</h2>
     <dl class="callables">
+        <dt id="compareTo" class="callable">
+  <span class="name"><a href="../onejoker/HandValue/compareTo.html">compareTo</a></span><span class="signature">(<wbr><span class="parameter" id="compareTo-param-other"><span class="type-annotation"><a href="../onejoker/HandValue-class.html">HandValue</a><span class="signature">&lt;<wbr><span class="type-parameter">L</span>&gt;</span></span> <span class="parameter-name">other</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Compares this object to another object.
+  <div class="features"><span class="feature">override</span></div>
+
+</dd>
+
         <dt id="fullName" class="callable">
   <span class="name"><a href="../onejoker/HandValue/fullName.html">fullName</a></span><span class="signature">(<wbr>)
     <span class="returntype parameter">&#8594; dynamic</span>
@@ -212,8 +235,8 @@ All the numbers here are such that lower number means better hand.</p>
 </dd>
 
         <dt id="orderedForDisplay" class="callable">
-  <span class="name"><a href="../onejoker/HandValue/orderedForDisplay.html">orderedForDisplay</a></span><span class="signature">(<wbr><span class="parameter" id="orderedForDisplay-param-h"><span class="type-annotation"><a href="../onejoker/HandInterface-class.html">HandInterface</a></span> <span class="parameter-name">h</span></span>)
-    <span class="returntype parameter">&#8594; <a href="../onejoker/OrphanHand-class.html">OrphanHand</a></span>
+  <span class="name"><a href="../onejoker/HandValue/orderedForDisplay.html">orderedForDisplay</a></span><span class="signature">(<wbr><span class="parameter" id="orderedForDisplay-param-h"><span class="type-annotation"><a href="../onejoker/Hand-class.html">Hand</a></span> <span class="parameter-name">h</span></span>)
+    <span class="returntype parameter">&#8594; <a href="../onejoker/Hand-class.html">Hand</a></span>
   </span>
   
 
@@ -246,6 +269,32 @@ All the numbers here are such that lower number means better hand.</p>
       id="operators">
     <h2>Operators</h2>
     <dl class="callables">
+        <dt id="operator &lt;" class="callable">
+  <span class="name"><a href="../onejoker/HandValue/operator_less.html">operator <</a></span><span class="signature">(<wbr><span class="parameter" id="<-param-other"><span class="type-annotation"><a href="../onejoker/HandValue-class.html">HandValue</a><span class="signature">&lt;<wbr><span class="type-parameter">L</span>&gt;</span></span> <span class="parameter-name">other</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
+
+</dd>
+
+        <dt id="operator &lt;=" class="callable">
+  <span class="name"><a href="../onejoker/HandValue/operator_less_equal.html">operator <=</a></span><span class="signature">(<wbr><span class="parameter" id="<=-param-other"><span class="type-annotation"><a href="../onejoker/HandValue-class.html">HandValue</a><span class="signature">&lt;<wbr><span class="type-parameter">L</span>&gt;</span></span> <span class="parameter-name">other</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
+
+</dd>
+
         <dt id="operator ==" class="callable">
   <span class="name"><a href="../onejoker/HandValue/operator_equals.html">operator ==</a></span><span class="signature">(<wbr><span class="parameter" id="==-param-other"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Object-class.html">Object</a></span> <span class="parameter-name">other</span></span>)
     <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
@@ -256,6 +305,32 @@ All the numbers here are such that lower number means better hand.</p>
 <dd>
   Implement == for <a href="../onejoker/HandValue-class.html">HandValue</a>
   <div class="features"><span class="feature">override</span></div>
+
+</dd>
+
+        <dt id="operator &gt;" class="callable">
+  <span class="name"><a href="../onejoker/HandValue/operator_greater.html">operator ></a></span><span class="signature">(<wbr><span class="parameter" id=">-param-other"><span class="type-annotation"><a href="../onejoker/HandValue-class.html">HandValue</a><span class="signature">&lt;<wbr><span class="type-parameter">L</span>&gt;</span></span> <span class="parameter-name">other</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
+
+</dd>
+
+        <dt id="operator &gt;=" class="callable">
+  <span class="name"><a href="../onejoker/HandValue/operator_greater_equal.html">operator >=</a></span><span class="signature">(<wbr><span class="parameter" id=">=-param-other"><span class="type-annotation"><a href="../onejoker/HandValue-class.html">HandValue</a><span class="signature">&lt;<wbr><span class="type-parameter">L</span>&gt;</span></span> <span class="parameter-name">other</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
 
 </dd>
 

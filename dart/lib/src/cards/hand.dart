@@ -2,225 +2,233 @@
 import '../utilities.dart';
 import 'cards.dart';
 
-/// Common behaviors for hand-like objects.
-/// {@category cards}
-abstract class HandInterface extends Iterable<Card> {
-  @override
-  int get length;
-  @override
-  bool get isEmpty;
-  @override
-  bool get isNotEmpty;
-  @override
-  bool contains(Object? element);
-  HandInterface clone();
-  void clear();
-  Card? cardAt(int index);
-  bool setCardAt(int index, Card card);
-  void push(Card card);
-  Card? pop();
-  void pushN(int count, Iterable<Card> cards);
-  Iterable<Card> popN(int n);
-  void insertAt(int index, Card card);
-  Card? removeAt(int index);
-  bool removeCard(Card card);
-  void shuffle();
-  void sort();
-  Iterable<OrphanHand> combinations(int count);
-  operator [](int index);
-  operator []=(int index, Card card);
-  bool equals(HandInterface other);
-  bool isEquivalentTo(HandInterface other);
-}
-
 class HandIterator implements Iterator<Card> {
-  final List<Card> _cards;
-  int _currentIndex = -1;
+  final List<Card> cards;
+  int currentIndex = -1;
 
-  HandIterator(this._cards) {
-    _currentIndex = -1;
+  HandIterator(this.cards) {
+    currentIndex = -1;
   }
 
   @override
   bool moveNext() {
-    if (_currentIndex < _cards.length - 1) {
-      _currentIndex += 1;
+    if (currentIndex < cards.length - 1) {
+      currentIndex += 1;
       return true;
     }
     return false;
   }
 
   @override
-  Card get current => _cards[_currentIndex];
+  Card get current => cards[currentIndex];
 }
 
-/// Hand of cards not associated with a [Deck].
+/// Hand of cards (or other ordered collection).
 /// {@category cards}
-class OrphanHand extends Iterable<Card> implements HandInterface {
-  List<Card> _cards = [];
+class Hand extends Iterable<Card> {
+  final MasterDeck master;
+  final Deck? parent;
+  final List<Card> cards;
 
-  OrphanHand();
+  Hand([String dname = "default", this.parent, List<Card>? cards])
+      : master = MasterDeck.byName(dname),
+        cards = cards ?? [];
 
-  /// Create new stack from list of cards, e.g.:
+  /// Create new hand from list of cards, e.g.:
   /// ```
   /// var hand = CardStack.fromList([ Card.FourOfSpades, Card.Joker ]);
   /// ```
-  OrphanHand.fromIterable(Iterable<Card> c) {
-    _cards = c.toList();
+  Hand.fromIter(Iterable<Card> c)
+      : master = MasterDeck.byName("default"),
+        parent = null,
+        cards = c.toList() {
+    aceFix();
   }
 
-  OrphanHand.fromText(String text) : this.fromIterable(cardsFromText(text));
-
-  @override
-  OrphanHand clone() {
-    return OrphanHand.fromIterable(_cards.toList());
+  /// Create new hand from text, e.g.:
+  Hand.fromText(String text)
+      : master = MasterDeck.byName("default"),
+        parent = null,
+        cards = cardsFromText(text).toList() {
+    aceFix();
   }
 
-  @override
-  Iterator<Card> get iterator => HandIterator(_cards);
+  Hand clone() {
+    return Hand(master.name, parent, cards.toList());
+  }
 
-  /// Fix cards for decks with low aces.
-  void lowAceFix() {
-    for (int i = 0; i < _cards.length; i += 1) {
-      _cards[i] = Card.lowAceFix(_cards[i]);
+  Hand copyFromIter(Iterable<Card> c) {
+    var h = Hand(master.name, parent, c.toList());
+    h.aceFix();
+    return h;
+  }
+
+  Hand copyFromText(String s) {
+    var h = Hand(master.name, parent, cardsFromText(s).toList());
+    h.aceFix();
+    return h;
+  }
+
+  Iterable<Rank> get ranks sync* {
+    for (Card c in cards) {
+      yield c.rank;
     }
   }
 
-  /// Fix cards for decks with high aces.
-  void highAceFix() {
-    for (int i = 0; i < _cards.length; i += 1) {
-      _cards[i] = Card.highAceFix(_cards[i]);
+  Iterable<Suit> get suits sync* {
+    for (Card c in cards) {
+      yield c.suit;
     }
+  }
+
+  @override
+  Iterator<Card> get iterator => HandIterator(cards);
+
+  /// Fix cards for decks with low/high aces.
+  void aceFix() {
+    if (master.lowAces) {
+      for (int i = 0; i < cards.length; i += 1) {
+        cards[i] = Card.lowAceFix(cards[i]);
+      }
+    } else {
+      for (int i = 0; i < cards.length; i += 1) {
+        cards[i] = Card.highAceFix(cards[i]);
+      }
+    }
+  }
+
+  (bool, Card) validCard(Card c) {
+    Card cout = master.lowAces ? Card.lowAceFix(c) : Card.highAceFix(c);
+    if (master.has(cout)) return (true, cout);
+    return (false, cout);
   }
 
   /// How many cards currently in the stack?
   @override
   int get length {
-    return _cards.length;
+    return cards.length;
   }
 
   /// Is list empty?
   @override
   bool get isEmpty {
-    return _cards.isEmpty;
+    return cards.isEmpty;
   }
 
   @override
   bool get isNotEmpty {
-    return _cards.isNotEmpty;
+    return cards.isNotEmpty;
   }
 
-  /// Empty the stack.
-  @override
+  /// Empty the hand.
   void clear() {
-    _cards.clear();
+    cards.clear();
   }
 
   /// Return the card at position `index`.
-  @override
   Card? cardAt(int index) {
-    if (index < 0 || index >= _cards.length) return null;
-    return _cards[index];
+    if (index < 0 || index >= cards.length) return null;
+    return cards[index];
   }
 
-  @override
   bool setCardAt(int index, Card card) {
-    if (index < 0 || index >= _cards.length) return false;
-    _cards[index] = card;
-    return true;
+    if (index < 0 || index >= cards.length) return false;
+    var (v, c) = validCard(card);
+    if (v) cards[index] = c;
+    return v;
   }
 
-  @override
   void push(Card card) {
-    _cards.add(card);
+    var (v, c) = validCard(card);
+    if (v) cards.add(c);
   }
 
-  @override
   Card? pop() {
-    if (_cards.isEmpty) return null;
-    return _cards.removeLast();
+    if (cards.isEmpty) return null;
+    return cards.removeLast();
   }
 
   @override
   bool contains(Object? element) {
     if (element is! Card) return false;
-    return _cards.contains(element);
+    var (v, c) = validCard(element);
+    if (v) return cards.contains(element);
+    return v;
   }
 
-  /// Add *n* cards to the top of the stack as a unit.
-  @override
-  void pushN(int count, Iterable<Card> cards) {
-    for (Card c in cards.take(count)) {
-      _cards.add(c);
+  void pushN(Iterable<Card> cards) {
+    for (Card c in cards) {
+      push(c);
     }
   }
 
-  @override
   Iterable<Card> popN(int n) sync* {
-    if (n > _cards.length) n = _cards.length;
+    if (n > cards.length) n = cards.length;
     for (int i = 0; i < n; i += 1) {
-      yield _cards.removeLast();
+      yield cards.removeLast();
     }
   }
 
   /// Insert card at position `index`.
-  @override
   void insertAt(int index, Card card) {
-    assert(index >= 0 && index <= _cards.length);
-    _cards.insert(index, card);
+    if (index < 0 || index > cards.length) return;
+    var (v, c) = validCard(card);
+    if (v) cards.insert(index, card);
   }
 
   /// Remove card at position `index`.
-  @override
   Card? removeAt(int index) {
-    if (index < 0 || index >= _cards.length) return null;
-    return _cards.removeAt(index);
+    if (index < 0 || index >= cards.length) return null;
+    return cards.removeAt(index);
   }
 
   /// Remove top-most specific card from list.
-  @override
   bool removeCard(Card card) {
-    for (var i = _cards.length - 1; i >= 0; i -= 1) {
-      if (_cards[i] == card) {
-        _cards.removeAt(i);
+    for (var i = 0; i < cards.length; i += 1) {
+      var (v, c) = validCard(card);
+
+      if (v && cards[i] == c) {
+        cards.removeAt(i);
         return true;
       }
     }
     return false;
   }
 
+  void truncate(int n) {
+    if (n < 0) n = 0;
+    if (n < cards.length) cards.removeRange(n, cards.length);
+  }
+
   /// Randomize order of cards in the stack.
-  @override
   void shuffle() {
-    ojShuffle(_cards);
+    ojShuffle(cards);
   }
 
   /// Sort cards in the stack in *descending* order from the top.
-  @override
   void sort() {
-    ojSort(_cards);
+    ojSort(cards);
   }
 
-  @override
-  Iterable<OrphanHand> combinations([int? count]) sync* {
-    count ??= _cards.length;
-    if (count > _cards.length) return;
+  Iterable<Hand> combinations([int? count]) sync* {
+    count ??= cards.length;
+    if (count > cards.length) return;
 
-    if (0 == count || _cards.isEmpty) {
-      yield OrphanHand();
+    if (0 == count || cards.isEmpty) {
+      yield copyFromIter([]);
       return;
     }
-    List<Card> cs = _cards.toList();
+    List<Card> cs = cards.toList();
     ojSort(cs);
     if (cs.length == count) {
-      yield OrphanHand.fromIterable(cs);
+      yield copyFromIter(cs);
       return;
     }
 
     List<int> a = List<int>.generate(count, (i) => i + 1);
 
     do {
-      var res = OrphanHand();
+      var res = copyFromIter([]);
       for (int i = 0; i < count; i += 1) {
         res.push(cs[a[i] - 1]);
       }
@@ -228,90 +236,76 @@ class OrphanHand extends Iterable<Card> implements HandInterface {
     } while (ojNextCombination(a, cs.length));
   }
 
-  @override
-  operator [](int index) {
-    return cardAt(index);
+  Card operator [](int index) {
+    return cardAt(index)!;
   }
 
-  @override
-  operator []=(int index, Card card) {
+  void operator []=(int index, Card card) {
     setCardAt(index, card);
   }
 
   @override
   String toString() {
     List<String> a = [];
-    for (int i = 0; i < _cards.length; i += 1) {
-      a.add(_cards[i].toString());
+    for (int i = 0; i < cards.length; i += 1) {
+      a.add(cards[i].toString());
     }
     return a.join('');
   }
 
-  @override
-  bool equals(HandInterface other) {
-    if (other is! OrphanHand) return false;
-    if (_cards.length != other.length) return false;
+  bool equals(Hand other) {
+    if (cards.length != other.length) return false;
 
-    for (int i = 0; i < _cards.length; i += 1) {
-      if (_cards[i] != other.cardAt(i)) return false;
+    for (int i = 0; i < cards.length; i += 1) {
+      if (cards[i] != other.cards[i]) return false;
     }
     return true;
   }
 
-  @override
-  bool isEquivalentTo(HandInterface other) {
-    if (other is! OrphanHand) return false;
-    if (_cards.length != other.length) return false;
+  bool isEquivalentTo(Hand other) {
+    if (cards.length != other.length) return false;
 
     // Have to do the hard way if duplicates are possible.
-    List<Card> as = _cards.toList();
-    List<Card> os = other.toList();
-    ojSort(as);
-    ojSort(os);
-    for (int i = 0; i < as.length; i += 1) {
-      if (as[i] != os[i]) return false;
+    if (master.dupsAllowed) {
+      List<Card> as = cards.toList();
+      List<Card> os = other.toList();
+      ojSort(as);
+      ojSort(os);
+
+      for (int i = 0; i < as.length; i += 1) {
+        if (as[i] != os[i]) return false;
+      }
+      return true;
     }
-    return true;
+    int mask1 = 0, mask2 = 0;
+    for (int i = 0; i < cards.length; i += 1) {
+      mask1 |= (1 << cards[i].index);
+      mask2 |= (1 << other.cards[i].index);
+    }
+    return mask1 == mask2;
   }
-}
-
-/// Hand of cards associated with (and created from) a [Deck].
-/// {@category cards}
-class Hand extends Iterable<Card> implements HandInterface {
-  final Deck deck;
-  final OrphanHand _cards = OrphanHand();
-
-  Hand(this.deck);
-  Hand.fromNewDeck(String dname) : deck = Deck(dname);
-
-  @override
-  Hand clone() {
-    Hand res = Hand(deck);
-    res._cards.pushN(_cards.length, _cards);
-    return res;
-  }
-
-  @override
-  Iterator<Card> get iterator => HandIterator(_cards.toList());
 
   bool draw(int n) {
-    if (deck.length < n) return false;
-    _cards.pushN(n, deck.popN(n));
+    if (parent == null) return false;
+    if (parent!.remaining < n) return false;
+    pushN(parent!.popN(n));
     return true;
   }
 
   bool drawCard(Card c) {
-    if (deck.removeCard(c)) {
-      _cards.push(c);
+    if (parent == null) return false;
+    if (parent!.removeCard(c)) {
+      push(c);
       return true;
     }
     return false;
   }
 
-  bool drawHand(List<Card> cards) {
+  bool drawHand(Iterable<Card> cards) {
+    if (parent == null) return false;
     for (Card c in cards) {
-      if (deck.removeCard(c)) {
-        _cards.push(c);
+      if (parent!.removeCard(c)) {
+        push(c);
       } else {
         return false;
       }
@@ -327,140 +321,9 @@ class Hand extends Iterable<Card> implements HandInterface {
       if (x >= length) {
         ok = false;
       } else {
-        _cards.removeAt(x);
+        cards.removeAt(x);
       }
     }
     return ok;
-  }
-
-  void aceFix() {
-    if (deck.master.lowAces) {
-      _cards.lowAceFix();
-    } else {
-      _cards.highAceFix();
-    }
-  }
-
-  @override
-  List<Card> toList({bool growable = true}) {
-    return _cards.toList(growable: growable);
-  }
-
-  @override
-  int get length => _cards.length;
-
-  @override
-  bool get isEmpty => _cards.isEmpty;
-
-  @override
-  bool get isNotEmpty => _cards.isNotEmpty;
-
-  @override
-  bool contains(Object? element) {
-    if (element is! Card) return false;
-    return _cards.contains(deck.validCard(element));
-  }
-
-  @override
-  void clear() {
-    _cards.clear();
-  }
-
-  @override
-  Card? cardAt(int index) {
-    return _cards.cardAt(index);
-  }
-
-  @override
-  bool setCardAt(int index, Card card) {
-    return _cards.setCardAt(index, deck.validCard(card));
-  }
-
-  @override
-  void push(Card card) {
-    _cards.push(deck.validCard(card));
-  }
-
-  @override
-  Card? pop() {
-    return _cards.pop();
-  }
-
-  @override
-  void pushN(int n, Iterable<Card> cards) {
-    _cards.pushN(n, cards.map((c) => deck.validCard(c)));
-  }
-
-  @override
-  Iterable<Card> popN(int n) sync* {
-    yield* _cards.popN(n);
-  }
-
-  @override
-  void insertAt(int index, Card card) {
-    _cards.insertAt(index, deck.validCard(card));
-  }
-
-  @override
-  Card? removeAt(int index) {
-    return _cards.removeAt(index);
-  }
-
-  @override
-  bool removeCard(Card card) {
-    return _cards.removeCard(card);
-  }
-
-  @override
-  void shuffle() {
-    _cards.shuffle();
-  }
-
-  @override
-  void sort() {
-    _cards.sort();
-  }
-
-  @override
-  Iterable<OrphanHand> combinations(int count) sync* {
-    yield* _cards.combinations(count);
-  }
-
-  @override
-  String toString() {
-    return _cards.toString();
-  }
-
-  @override
-  operator [](int index) {
-    return _cards[index];
-  }
-
-  @override
-  operator []=(int index, Card card) {
-    _cards[index] = card;
-  }
-
-  @override
-  bool equals(HandInterface other) {
-    if (other is! Hand) return false;
-    return _cards.equals(other._cards);
-  }
-
-  @override
-  bool isEquivalentTo(HandInterface other) {
-    if (other is! Hand) return false;
-    if (_cards.length != other.length) return false;
-
-    if (deck.master.dupsAllowed) {
-      return _cards.isEquivalentTo(other._cards);
-    } else {
-      int mask1 = 0, mask2 = 0;
-      for (int i = 0; i < _cards.length; i += 1) {
-        mask1 |= (1 << _cards.cardAt(i)!.index);
-        mask2 |= (1 << other.cardAt(i)!.index);
-      }
-      return mask1 == mask2;
-    }
   }
 }

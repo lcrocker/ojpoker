@@ -79,18 +79,16 @@
 
     
 <section class="desc markdown">
-  <p>The number of elements in this <a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a>.</p>
-<p>Counting all elements may involve iterating through all elements and can
-therefore be slow.
-Some iterables have a more efficient way to find the number of elements.
-These <em>must</em> override the default implementation of <code>length</code>.</p>
+  <p>How many cards currently in the stack?</p>
 </section>
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
-int get length =&gt; _cards.length;</code></pre>
+int get length {
+  return cards.length;
+}</code></pre>
 </section>
 
   </section>

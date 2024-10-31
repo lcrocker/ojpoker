@@ -63,7 +63,7 @@
 
     
 <section class="desc markdown">
-  <p>Hand of cards associated with (and created from) a <a href="../onejoker/Deck-class.html">Deck</a>.</p>
+  <p>Hand of cards (or other ordered collection).</p>
 </section>
 
 
@@ -80,12 +80,6 @@
   </dd>
 
         
-  <dt>Implemented types</dt>
-  <dd>
-    <ul class="comma-separated clazz-relationships">
-        <li><a href="../onejoker/HandInterface-class.html">HandInterface</a></li>
-    </ul>
-  </dd>
         
 
 
@@ -108,16 +102,22 @@
 
     <dl class="constructor-summary-list">
         <dt id="Hand" class="callable">
-          <span class="name"><a href="../onejoker/Hand/Hand.html">Hand</a></span><span class="signature">(<span class="parameter" id="-param-deck"><span class="type-annotation"><a href="../onejoker/Deck-class.html">Deck</a></span> <span class="parameter-name">deck</span></span>)</span>
+          <span class="name"><a href="../onejoker/Hand/Hand.html">Hand</a></span><span class="signature">([<span class="parameter" id="-param-dname"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">dname</span> = <span class="default-value">&quot;default&quot;</span>, </span><span class="parameter" id="-param-parent"><span class="type-annotation"><a href="../onejoker/Deck-class.html">Deck</a>?</span> <span class="parameter-name">parent</span>, </span><span class="parameter" id="-param-cards"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Card.html">Card</a></span>&gt;</span>?</span> <span class="parameter-name">cards</span></span>])</span>
         </dt>
         <dd>
           
         </dd>
-        <dt id="Hand.fromNewDeck" class="callable">
-          <span class="name"><a href="../onejoker/Hand/Hand.fromNewDeck.html">Hand.fromNewDeck</a></span><span class="signature">(<span class="parameter" id="fromNewDeck-param-dname"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">dname</span></span>)</span>
+        <dt id="Hand.fromIter" class="callable">
+          <span class="name"><a href="../onejoker/Hand/Hand.fromIter.html">Hand.fromIter</a></span><span class="signature">(<span class="parameter" id="fromIter-param-c"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Card.html">Card</a></span>&gt;</span></span> <span class="parameter-name">c</span></span>)</span>
         </dt>
         <dd>
-          
+          Create new hand from list of cards, e.g.:
+        </dd>
+        <dt id="Hand.fromText" class="callable">
+          <span class="name"><a href="../onejoker/Hand/Hand.fromText.html">Hand.fromText</a></span><span class="signature">(<span class="parameter" id="fromText-param-text"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">text</span></span>)</span>
+        </dt>
+        <dd>
+          Create new hand from text, e.g.:
         </dd>
     </dl>
   </section>
@@ -127,9 +127,9 @@
       id="instance-properties">
     <h2>Properties</h2>
     <dl class="properties">
-        <dt id="deck" class="property">
-  <span class="name"><a href="../onejoker/Hand/deck.html">deck</a></span>
-  <span class="signature">&#8594; <a href="../onejoker/Deck-class.html">Deck</a></span>
+        <dt id="cards" class="property">
+  <span class="name"><a href="../onejoker/Hand/cards.html">cards</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Card.html">Card</a></span>&gt;</span></span>
   
 
 </dt>
@@ -170,7 +170,7 @@
 
 </dt>
 <dd>
-  Whether this collection has no elements.
+  Is list empty?
   <div class="features"><span class="feature">no setter</span><span class="feature">override</span></div>
 
 </dd>
@@ -218,8 +218,44 @@
 
 </dt>
 <dd>
-  The number of elements in this <a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a>.
+  How many cards currently in the stack?
   <div class="features"><span class="feature">no setter</span><span class="feature">override</span></div>
+
+</dd>
+
+        <dt id="master" class="property">
+  <span class="name"><a href="../onejoker/Hand/master.html">master</a></span>
+  <span class="signature">&#8594; <a href="../onejoker/MasterDeck-class.html">MasterDeck</a></span>
+  
+
+</dt>
+<dd>
+  
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="parent" class="property">
+  <span class="name"><a href="../onejoker/Hand/parent.html">parent</a></span>
+  <span class="signature">&#8594; <a href="../onejoker/Deck-class.html">Deck</a>?</span>
+  
+
+</dt>
+<dd>
+  
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="ranks" class="property">
+  <span class="name"><a href="../onejoker/Hand/ranks.html">ranks</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Rank.html">Rank</a></span>&gt;</span></span>
+  
+
+</dt>
+<dd>
+  
+  <div class="features"><span class="feature">no setter</span></div>
 
 </dd>
 
@@ -247,6 +283,18 @@
 
 </dd>
 
+        <dt id="suits" class="property">
+  <span class="name"><a href="../onejoker/Hand/suits.html">suits</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Suit.html">Suit</a></span>&gt;</span></span>
+  
+
+</dt>
+<dd>
+  
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
     </dl>
   </section>
     
@@ -263,7 +311,7 @@
 
 </dt>
 <dd>
-  
+  Fix cards for decks with low/high aces.
   
 
 </dd>
@@ -289,8 +337,8 @@
 
 </dt>
 <dd>
+  Return the card at position <code>index</code>.
   
-  <div class="features"><span class="feature">override</span></div>
 
 </dd>
 
@@ -315,8 +363,8 @@
 
 </dt>
 <dd>
+  Empty the hand.
   
-  <div class="features"><span class="feature">override</span></div>
 
 </dd>
 
@@ -329,20 +377,20 @@
 </dt>
 <dd>
   
-  <div class="features"><span class="feature">override</span></div>
+  
 
 </dd>
 
         <dt id="combinations" class="callable">
-  <span class="name"><a href="../onejoker/Hand/combinations.html">combinations</a></span><span class="signature">(<wbr><span class="parameter" id="combinations-param-count"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">count</span></span>)
-    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/OrphanHand-class.html">OrphanHand</a></span>&gt;</span></span>
+  <span class="name"><a href="../onejoker/Hand/combinations.html">combinations</a></span><span class="signature">(<wbr>[<span class="parameter" id="combinations-param-count"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a>?</span> <span class="parameter-name">count</span></span>])
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Hand-class.html">Hand</a></span>&gt;</span></span>
   </span>
   
 
 </dt>
 <dd>
   
-  <div class="features"><span class="feature">override</span></div>
+  
 
 </dd>
 
@@ -356,6 +404,32 @@
 <dd>
   Whether the collection contains an element equal to <code>element</code>.
   <div class="features"><span class="feature">override</span></div>
+
+</dd>
+
+        <dt id="copyFromIter" class="callable">
+  <span class="name"><a href="../onejoker/Hand/copyFromIter.html">copyFromIter</a></span><span class="signature">(<wbr><span class="parameter" id="copyFromIter-param-c"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Card.html">Card</a></span>&gt;</span></span> <span class="parameter-name">c</span></span>)
+    <span class="returntype parameter">&#8594; <a href="../onejoker/Hand-class.html">Hand</a></span>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
+
+</dd>
+
+        <dt id="copyFromText" class="callable">
+  <span class="name"><a href="../onejoker/Hand/copyFromText.html">copyFromText</a></span><span class="signature">(<wbr><span class="parameter" id="copyFromText-param-s"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">s</span></span>)
+    <span class="returntype parameter">&#8594; <a href="../onejoker/Hand-class.html">Hand</a></span>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
 
 </dd>
 
@@ -399,7 +473,7 @@
 </dd>
 
         <dt id="drawHand" class="callable">
-  <span class="name"><a href="../onejoker/Hand/drawHand.html">drawHand</a></span><span class="signature">(<wbr><span class="parameter" id="drawHand-param-cards"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Card.html">Card</a></span>&gt;</span></span> <span class="parameter-name">cards</span></span>)
+  <span class="name"><a href="../onejoker/Hand/drawHand.html">drawHand</a></span><span class="signature">(<wbr><span class="parameter" id="drawHand-param-cards"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Card.html">Card</a></span>&gt;</span></span> <span class="parameter-name">cards</span></span>)
     <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
   </span>
   
@@ -425,7 +499,7 @@
 </dd>
 
         <dt id="equals" class="callable">
-  <span class="name"><a href="../onejoker/Hand/equals.html">equals</a></span><span class="signature">(<wbr><span class="parameter" id="equals-param-other"><span class="type-annotation"><a href="../onejoker/HandInterface-class.html">HandInterface</a></span> <span class="parameter-name">other</span></span>)
+  <span class="name"><a href="../onejoker/Hand/equals.html">equals</a></span><span class="signature">(<wbr><span class="parameter" id="equals-param-other"><span class="type-annotation"><a href="../onejoker/Hand-class.html">Hand</a></span> <span class="parameter-name">other</span></span>)
     <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
   </span>
   
@@ -433,7 +507,7 @@
 </dt>
 <dd>
   
-  <div class="features"><span class="feature">override</span></div>
+  
 
 </dd>
 
@@ -524,13 +598,13 @@ element of the collection with an existing value
 
 </dt>
 <dd>
+  Insert card at position <code>index</code>.
   
-  <div class="features"><span class="feature">override</span></div>
 
 </dd>
 
         <dt id="isEquivalentTo" class="callable">
-  <span class="name"><a href="../onejoker/Hand/isEquivalentTo.html">isEquivalentTo</a></span><span class="signature">(<wbr><span class="parameter" id="isEquivalentTo-param-other"><span class="type-annotation"><a href="../onejoker/HandInterface-class.html">HandInterface</a></span> <span class="parameter-name">other</span></span>)
+  <span class="name"><a href="../onejoker/Hand/isEquivalentTo.html">isEquivalentTo</a></span><span class="signature">(<wbr><span class="parameter" id="isEquivalentTo-param-other"><span class="type-annotation"><a href="../onejoker/Hand-class.html">Hand</a></span> <span class="parameter-name">other</span></span>)
     <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
   </span>
   
@@ -538,7 +612,7 @@ element of the collection with an existing value
 </dt>
 <dd>
   
-  <div class="features"><span class="feature">override</span></div>
+  
 
 </dd>
 
@@ -603,7 +677,7 @@ element of the collection with an existing value
 </dt>
 <dd>
   
-  <div class="features"><span class="feature">override</span></div>
+  
 
 </dd>
 
@@ -616,7 +690,7 @@ element of the collection with an existing value
 </dt>
 <dd>
   
-  <div class="features"><span class="feature">override</span></div>
+  
 
 </dd>
 
@@ -629,12 +703,12 @@ element of the collection with an existing value
 </dt>
 <dd>
   
-  <div class="features"><span class="feature">override</span></div>
+  
 
 </dd>
 
         <dt id="pushN" class="callable">
-  <span class="name"><a href="../onejoker/Hand/pushN.html">pushN</a></span><span class="signature">(<wbr><span class="parameter" id="pushN-param-n"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">n</span>, </span><span class="parameter" id="pushN-param-cards"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Card.html">Card</a></span>&gt;</span></span> <span class="parameter-name">cards</span></span>)
+  <span class="name"><a href="../onejoker/Hand/pushN.html">pushN</a></span><span class="signature">(<wbr><span class="parameter" id="pushN-param-cards"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Card.html">Card</a></span>&gt;</span></span> <span class="parameter-name">cards</span></span>)
     <span class="returntype parameter">&#8594; void</span>
   </span>
   
@@ -642,7 +716,7 @@ element of the collection with an existing value
 </dt>
 <dd>
   
-  <div class="features"><span class="feature">override</span></div>
+  
 
 </dd>
 
@@ -668,8 +742,8 @@ of the collection using the provided function.
 
 </dt>
 <dd>
+  Remove card at position <code>index</code>.
   
-  <div class="features"><span class="feature">override</span></div>
 
 </dd>
 
@@ -681,8 +755,8 @@ of the collection using the provided function.
 
 </dt>
 <dd>
+  Remove top-most specific card from list.
   
-  <div class="features"><span class="feature">override</span></div>
 
 </dd>
 
@@ -695,7 +769,7 @@ of the collection using the provided function.
 </dt>
 <dd>
   
-  <div class="features"><span class="feature">override</span></div>
+  
 
 </dd>
 
@@ -707,8 +781,8 @@ of the collection using the provided function.
 
 </dt>
 <dd>
+  Randomize order of cards in the stack.
   
-  <div class="features"><span class="feature">override</span></div>
 
 </dd>
 
@@ -759,8 +833,8 @@ of the collection using the provided function.
 
 </dt>
 <dd>
+  Sort cards in the stack in <em>descending</em> order from the top.
   
-  <div class="features"><span class="feature">override</span></div>
 
 </dd>
 
@@ -790,16 +864,16 @@ of the collection using the provided function.
 
 </dd>
 
-        <dt id="toList" class="callable">
-  <span class="name"><a href="../onejoker/Hand/toList.html">toList</a></span><span class="signature">(<wbr>{<span class="parameter" id="toList-param-growable"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">growable</span> = <span class="default-value">true</span></span>})
+        <dt id="toList" class="callable inherited">
+  <span class="name"><a href="https://api.flutter.dev/flutter/dart-core/Iterable/toList.html">toList</a></span><span class="signature">(<wbr>{<span class="parameter" id="toList-param-growable"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">growable</span> = <span class="default-value">true</span></span>})
     <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../onejoker/Card.html">Card</a></span>&gt;</span></span>
   </span>
   
 
 </dt>
-<dd>
+<dd class="inherited">
   Creates a <a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a> containing the elements of this <a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a>.
-  <div class="features"><span class="feature">override</span></div>
+  <div class="features"><span class="feature">inherited</span></div>
 
 </dd>
 
@@ -826,6 +900,32 @@ of the collection using the provided function.
 <dd>
   Returns a string representation of (some of) the elements of <code>this</code>.
   <div class="features"><span class="feature">override</span></div>
+
+</dd>
+
+        <dt id="truncate" class="callable">
+  <span class="name"><a href="../onejoker/Hand/truncate.html">truncate</a></span><span class="signature">(<wbr><span class="parameter" id="truncate-param-n"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">n</span></span>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
+
+</dd>
+
+        <dt id="validCard" class="callable">
+  <span class="name"><a href="../onejoker/Hand/validCard.html">validCard</a></span><span class="signature">(<wbr><span class="parameter" id="validCard-param-c"><span class="type-annotation"><a href="../onejoker/Card.html">Card</a></span> <span class="parameter-name">c</span></span>)
+    <span class="returntype parameter">&#8594; (<span class="field"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>, </span><span class="field"><span class="type-annotation"><a href="../onejoker/Card.html">Card</a></span></span>)</span>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
 
 </dd>
 
@@ -879,14 +979,14 @@ predicate <code>test</code>.
 
         <dt id="operator []" class="callable">
   <span class="name"><a href="../onejoker/Hand/operator_get.html">operator []</a></span><span class="signature">(<wbr><span class="parameter" id="[]-param-index"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">index</span></span>)
-    <span class="returntype parameter">&#8594; dynamic</span>
+    <span class="returntype parameter">&#8594; <a href="../onejoker/Card.html">Card</a></span>
   </span>
   
 
 </dt>
 <dd>
   
-  <div class="features"><span class="feature">override</span></div>
+  
 
 </dd>
 
@@ -899,7 +999,7 @@ predicate <code>test</code>.
 </dt>
 <dd>
   
-  <div class="features"><span class="feature">override</span></div>
+  
 
 </dd>
 

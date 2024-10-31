@@ -1,4 +1,4 @@
-# ojpoker | Updated: October 20, 2024
+# ojpoker | Updated: October 30, 2024
 
 This is code for the [OneJoker](https://onejoker.org) project,
 aiming to create libraries and other digital tools for handling playing cards
@@ -20,6 +20,10 @@ encountered on the net:
 This codebase produces two separate libraries in [Rust](https://rust-lang.org)
 and [Dart](https://dart.dev) (library documentation
 [here](https://lcrocker.github.io/ojpoker/)).
+
+![rust](https://lcrocker.github.io/ojpoker/img/rust-logo-blk.svg)
+![dart](https://lcrocker.github.io/ojpoker/img/dart-logo.svg)
+![deno](https://lcrocker.github.io/ojpoker/img/deno-circle.svg)
 
 # Requirements
 
@@ -55,7 +59,7 @@ you'll have to install Deno to rebuild them.
 
 ## TypeScript
 
-I am using Deno 2.0.2 (TypeScript 5.6.2) for the scripts, though
+I am using Deno 2.0.3 (TypeScript 5.6.2) for the scripts, though
 most older versions should work.
 Deno scripts are used for automating build tasks, building and
 converting data files, and building some source files.
@@ -64,13 +68,16 @@ converting data files, and building some source files.
 
 I use many serialized data sets for things like test data and pre-computed
 lookup tables. The smaller and more necessary ones are checked into the repo
-in the `data` directory along with conversion scripts.
-[JSONC](https://code.visualstudio.com/docs/languages/json#_json-with-comments)
-format is used for ease of human editing and
-[MessagePack](https://msgpack.org) binary format for performance.
-The very large ones (such as the poker evaluator lookup tables) are not in
-the repo, but can be downloaded from the repo's
+in the `data` directory, but some are very large and do not change often,
+so they are not under source control. They can be downloaded from the repo's
 [Releases](https://githib.com/lcrocker/ojpoker/releases) area.
+
+## Card images
+
+Inside the `data` directory is the `cards` directory which contains data
+and Deno scripts for building SVG playing card images. These can be easily
+customized to the needs of your software. You can see a sample
+[here](https://onejoker.org/images).
 
 # More information
 

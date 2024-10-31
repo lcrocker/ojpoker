@@ -30,6 +30,12 @@ impl Deck {
         }
     }
 
+    /// Initial shuffle for new deck
+    pub fn shuffled(mut self) -> Deck {
+        self.shuffle();
+        self
+    }
+
     /// Create a new [Hand] associated with the same [MasterDeck],
     /// and deal it some initial cards.
     pub fn new_hand(&self) -> Hand {
@@ -37,17 +43,6 @@ impl Deck {
             master: self.master,
             cards: Vec::new(),
         }
-    }
-
-    /// Create a new [Hand] associated with the same [MasterDeck],
-    /// and deal it some initial cards.
-    pub fn new_hand_with(&mut self, n: usize) -> Hand {
-        let mut h = Hand {
-            master: self.master,
-            cards: Vec::new(),
-        };
-        if n > 0 { h.push_n(n, self.pop_n(n)); }
-        h
     }
 
     /// Export the current contents of the deck as a vector of [Card].
@@ -60,7 +55,7 @@ impl Deck {
         if self.cards.len() < n {
             return false;
         }
-        h.push_n(n, self.pop_n(n));
+        h.push_n(self.pop_n(n));
         true
     }
 
@@ -81,6 +76,12 @@ impl Deck {
     /// Refill the deck from the master list.
     pub fn refill(&mut self) {
         self.cards = self.master.card_list.to_vec();
+    }
+
+    /// Refill the deck from the master list and shuffle
+    pub fn refill_shuffled(&mut self) {
+        self.cards = self.master.card_list.to_vec();
+        oj_shuffle(&mut self.cards[..]);
     }
 
     /// Return the number of cards remaining in the deck.
@@ -118,10 +119,12 @@ impl Deck {
 
     /// Push a [Card] onto the deck. We do not generally expects cards
     /// to go in this direction, but it is useful for testing and simulation.
-    pub fn push(&mut self, card: Card) {
+    pub fn push(&mut self, card: Card) -> bool {
         if let Some(c) = self.valid_card(card) {
             self.cards.push(c);
+            return true;
         }
+        false
     }
 
     /// Pop a [Card] from the deck. Return `None` if the deck is empty.
@@ -130,17 +133,16 @@ impl Deck {
     }
 
     /// Push a collection of [Card]s onto the deck.
-    pub fn push_n<I>(&mut self, n: usize, cards: I)
+    pub fn push_n<I>(&mut self, cards: I) -> bool
     where I: IntoIterator<Item = Card> {
-        let mut remaining = n;
+        let mut all_ok = true;
 
         for c in cards {
-            if remaining == 0 {
-                break;
+            if !self.push(c) {
+                all_ok = false;
             }
-            remaining -= 1;
-            self.push(c);
         }
+        all_ok
     }
 
     /// Pop `n` cards from the deck as an iterator.
@@ -154,6 +156,11 @@ impl Deck {
         v.into_iter()
     }
 
+    /// Synonym for pop_n
+    pub fn draw(&mut self, n: usize) -> impl Iterator<Item = Card> {
+        self.pop_n(n)
+    }
+
     /// Remove a card from the deck by value. Return `true` if found.
     pub fn remove_card(&mut self, card: Card) -> bool {
         for i in 0..self.cards.len() {
@@ -163,6 +170,24 @@ impl Deck {
             }
         }
         false
+    }
+
+    /// Synonym for remove_card
+    pub fn draw_card(&mut self, c: Card) -> bool {
+        self.remove_card(c)
+    }
+
+    /// Take the given [Card]s from the [Deck] and add them to the hand.
+    pub fn draw_hand<I>(&mut self, cards: I) -> impl Iterator<Item = Card>
+    where I: IntoIterator<Item = Card> {
+        let mut v: Vec<Card> = Vec::new();
+
+        for c in cards {
+            if self.remove_card(c) {
+                v.push(c);
+            }
+        }
+        v.into_iter()
     }
 
     /// Shuffle the deck in place.
@@ -195,10 +220,10 @@ impl Default for Deck {
 }
 
 impl std::str::FromStr for Deck {
-    type Err = anyhow::Error;
+    type Err = OjError;
 
-    fn from_str(s: &str) -> aResult<Self, Self::Err> {
-        aOk(Deck::new(s))
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Deck::new(s))
     }
 }
 
@@ -258,7 +283,7 @@ impl CardCombinationIter {
     pub fn new(deck: &Deck, k: usize) -> CardCombinationIter {
         let source = deck.to_vec();
         let mut dest: Hand = deck.new_hand();
-        dest.push_n(k, source[0..k].iter().cloned());
+        dest.push_n(source[0..k].iter().cloned().take(k));
         debug_assert!(dest.len() == k);
         let mut indices: Vec<usize> = Vec::with_capacity(k);
 
@@ -294,7 +319,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_live_deck() -> aResult<()> {
+    fn test_live_deck() -> Result<(), OjError> {
         let mut d1 = Deck::new("english");
         let mut d2 = Deck::new("52");
 
@@ -317,20 +342,19 @@ mod tests {
         assert!(d1.contains(FOUR_OF_HEARTS));
         assert!(! d2.contains(JOKER));
 
-        d2.refill();
         d1.shuffle();
-        d2.shuffle();
+        d2.refill_shuffled();
         let _ = format!("{} {:?} {} {:?}", d1, d1, d2, d2);
 
         let mut h1 = d1.new_hand();
-        let mut h2 = d2.new_hand_with(5);
+        let mut h2 = d2.new_hand().init(d2.draw(5));
     
-        h1.draw(5, &mut d1);
+        h1.set(d1.draw(5));
         assert_eq!(47, d1.len());
         assert_eq!(5, h1.len());
         assert_eq!(5, h2.len());
-        h2.clear();
-        h2.draw(7, &mut d2);
+
+        h2.set(d2.draw(7));
         assert_eq!(40, d2.len());
         assert_eq!(7, h2.len());
     
@@ -340,7 +364,7 @@ mod tests {
         let c = h1.card_at(0);
         assert!(c.is_none());
     
-        h1.push_n(3, [ACE_OF_CLUBS, DEUCE_OF_DIAMONDS, TREY_OF_HEARTS]);
+        h1.push_n([ACE_OF_CLUBS, DEUCE_OF_DIAMONDS, TREY_OF_HEARTS]);
         assert!(h1.contains(DEUCE_OF_DIAMONDS));
         h1.insert_at(1, FOUR_OF_SPADES);
         assert_eq!(DEUCE_OF_DIAMONDS, h1.card_at(2).unwrap());
@@ -349,10 +373,10 @@ mod tests {
         let v = h1.to_vec();
         assert_eq!(vec![FOUR_OF_SPADES, DEUCE_OF_DIAMONDS, TREY_OF_HEARTS], v);
         h2.clear();
-        h2.push_n(3, oj_cards_from_text("4s2d3h"));
+        h2.push_n(parse_cards("4s2d3h"));
         assert!(h1.equals(&h2));
-        h1.push_n(2, [JACK_OF_CLUBS, QUEEN_OF_SPADES]);
-        h2.push_n(2, oj_cards_from_text("JcQs"));
+        h1.push_n([JACK_OF_CLUBS, QUEEN_OF_SPADES]);
+        h2.push_n(parse_cards("JcQs"));
         assert!(h1.equals(&h2));
 
         h1.push(KING_OF_HEARTS);
@@ -373,6 +397,6 @@ mod tests {
         assert_eq!(FOUR_OF_SPADES, h1.card_at(0).unwrap());
         assert_eq!(h2.len(), 5);
 
-        aOk(())
+        Ok(())
     }
 }

@@ -11,7 +11,8 @@ executables:
   oj: oj
 
 dependencies:
-  msgpack_dart: ^1.0.1
+  characters: ^1.1.0
+  jsonc: ^0.0.3
   collection: ^1.14.13
   min_max_heap: ^2.1.0
   # path: ^1.8.0

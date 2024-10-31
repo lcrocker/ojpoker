@@ -62,28 +62,26 @@
 
     <section class="multi-line-signature">
       
-  <div>
-    <ol class="annotation-list">
-        <li>@<a href="https://api.flutter.dev/flutter/dart-core/override-constant.html">override</a></li>
-    </ol>
-  </div>
 
 <span class="returntype"><a href="../../onejoker/Card.html">Card</a>?</span>
 <span class="name ">removeAt</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="removeAt-param-index"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">index</span></span></li>
 </ol>)
 
-      <div class="features"><span class="feature">override</span></div>
+      
 
     </section>
     
+<section class="desc markdown">
+  <p>Remove card at position <code>index</code>.</p>
+</section>
 
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">@override
-Card? removeAt(int index) {
-  return _cards.removeAt(index);
+  <pre class="language-dart"><code class="language-dart">Card? removeAt(int index) {
+  if (index &lt; 0 || index &gt;= cards.length) return null;
+  return cards.removeAt(index);
 }</code></pre>
 </section>
 

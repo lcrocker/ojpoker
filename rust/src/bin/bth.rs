@@ -44,7 +44,7 @@ impl Ord for EquivClassAndPerfectHash {
     }
 }
 
-fn main() -> aResult<()> {
+fn main() -> Result<(), OjError> {
     println!("Building lookup tables...");
     let hh = HandEvaluatorHigh::new();
     let mut heap: BinaryHeap<HandAndValue> = BinaryHeap::new();
@@ -75,7 +75,7 @@ fn main() -> aResult<()> {
         p_value = hv.value.value();
         p_equiv = equiv;
 
-        let hash = ojh_bitfield_u64co(hv.hand.as_slice()).unwrap();
+        let hash = ojh_bitfield_64co(hv.hand.as_slice()).unwrap();
         let mph = ojh_mp5_english(hash);
         ec_heap.push(EquivClassAndPerfectHash { eclass: equiv, phash: mph });
 
@@ -106,5 +106,5 @@ fn main() -> aResult<()> {
     }
     println!("],\n}}");
 
-    aOk(())
+    Ok(())
 }

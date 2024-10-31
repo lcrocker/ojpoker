@@ -62,17 +62,12 @@
 
     <section class="multi-line-signature">
       
-  <div>
-    <ol class="annotation-list">
-        <li>@<a href="https://api.flutter.dev/flutter/dart-core/override-constant.html">override</a></li>
-    </ol>
-  </div>
 
 <span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
 <span class="name ">dealAll</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="dealAll-param-n"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">n</span></span></li>
 </ol>)
 
-      <div class="features"><span class="feature">override</span></div>
+      
 
     </section>
     
@@ -85,11 +80,10 @@ the start of a hand of play, e.g. <code>d.dealAll(5);</code>.</p>
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">@override
-bool dealAll(int n) {
-  if (_cards.length &lt; n * hands.length) return false;
+  <pre class="language-dart"><code class="language-dart">bool dealAll(int n) {
+  if (cards.length &lt; n * hands.length) return false;
   for (var h in hands) {
-    h.pushN(n, _cards.popN(n));
+    h.pushN(popN(n));
   }
   return true;
 }</code></pre>

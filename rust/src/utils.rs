@@ -216,7 +216,28 @@ mod tests {
     use crate::errors::*;
 
     #[test]
-    fn test_binomial_coeffiecients() -> aResult<()> {
+    fn text_rand_range() -> Result<(), OjError> {
+        let mut array = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19];
+        let mut counts = [0; 20];
+
+        for _ in 0..1000000 {
+            oj_shuffle(&mut array[..]);
+            for i in 0..20 {
+                if 0 == array[i] {
+                    counts[i] += 1;
+                    break;
+                }
+            }
+        }
+        for i in 0..20 {
+            assert!(counts[i] > 49000);
+            assert!(counts[i] < 51000);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn test_binomial_coeffiecients() -> Result<(), OjError> {
         assert_eq!(1, oj_binomial(0,0));
         assert_eq!(0, oj_binomial(0,1));
         assert_eq!(1, oj_binomial(1,0));
@@ -286,6 +307,6 @@ mod tests {
                     oj_binomial(n, k));
             }
         }
-        aOk(())
+        Ok(())
     }
 }

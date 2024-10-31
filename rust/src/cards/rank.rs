@@ -34,37 +34,30 @@ pub enum Rank {
     Ace = 15,
 }
 
-const RANKS: [Rank; 15] = [ Rank::LowAce, Rank::Deuce,
+const RANKS: [Rank; 16] = [ Rank::None, Rank::LowAce, Rank::Deuce,
     Rank::Trey, Rank::Four, Rank::Five, Rank::Six, Rank::Seven,
     Rank::Eight, Rank::Nine, Rank::Ten, Rank::Jack,  Rank::Knight,
     Rank::Queen, Rank::King, Rank::Ace,];
-const CHARS: [char; 15] = [ 'A', '2', '3', '4', '5', '6', '7', '8',
+const CHARS: [char; 16] = [ '?', 'A', '2', '3', '4', '5', '6', '7', '8',
     '9', 'T', 'J', 'C', 'Q', 'K', 'A' ];
-const NAMES: [&str; 15] = [ "ace", "deuce", "trey", "four",
+const NAMES: [&str; 16] = [ "?", "ace", "deuce", "trey", "four",
     "five", "six", "seven", "eight", "nine", "ten", "jack", "knight",
     "queen", "king", "ace" ];
-const PLURALS: [&str; 15] = [ "aces", "deuces", "treys", "fours",
+const PLURALS: [&str; 16] = [ "?", "aces", "deuces", "treys", "fours",
     "fives", "sixes", "sevens", "eights", "nines", "tens", "jacks", 
     "knights", "queens", "kings", "aces" ];
 
 impl Rank {
     /// Convert integer to rank.
-    pub const fn from_i32_const(v: i32) -> Option<Rank> {
-        if v < 1 || v > 15 { return None; }
-        Some(RANKS[v as usize - 1])
+    pub const fn from_i32(v: i32) -> Rank {
+        if v < 0 || v > 15 { return Rank::None; }
+        RANKS[v as usize]
     }
 
-    /// Convert integer to rank.
-    pub fn from_i32(v: i32) -> aResult<Rank> {
-        if v < 1 || v > 15 {
-            return Err(anyhow!(OjError::NotRank(v.to_string())));
-        }
-        aOk(RANKS[v as usize - 1])
-    }
-
-    /// Convert character. High aces only.
-    pub fn from_char(c: char) -> aResult<Rank> {
-        aOk(match c {
+    /// Convert character.
+    pub const fn from_char(c: char) -> Rank {
+        match c {
+            '1' => Rank::LowAce,
             '2' => Rank::Deuce,
             '3' => Rank::Trey,
             '4' => Rank::Four,
@@ -79,59 +72,67 @@ impl Rank {
             'Q' => Rank::Queen,
             'K' => Rank::King,
             'A' => Rank::Ace,
-            _ => bail!(OjError::NotRank(c.to_string())),
-        })
+            _ => Rank::None,
+        }
     }
 
     /// Convert to char
-    pub fn to_char(&self) -> char {
-        debug_assert!(*self >= Rank::LowAce || *self <= Rank::Ace);
-        CHARS[*self as usize - 1]
+    pub const fn to_char(&self) -> char {
+        if (*self as usize) > 15 { return '?'; }
+        CHARS[*self as usize]
     }
 
     /// Produce "seven", "jack", etc.
-    pub fn name(&self) -> &str {
-        debug_assert!(*self >= Rank::LowAce || *self <= Rank::Ace);
-        NAMES[*self as usize - 1]
+    pub const fn name(&self) -> &str {
+        if (*self as usize) > 15 { return "?"; }
+        NAMES[*self as usize]
     }
 
     /// Because we have to deal with "sixes".
-    pub fn plural(&self) -> &str {
-        debug_assert!(*self >= Rank::LowAce || *self <= Rank::Ace);
-        PLURALS[*self as usize - 1]
+    pub const fn plural(&self) -> &str {
+        if (*self as usize) > 15 { return "?"; }
+        PLURALS[*self as usize]
     }
 
     /// Because we have to deal with "eight" and "ace".
-    pub fn article(&self) -> &str {
-        if *self == Rank::LowAce || *self == Rank::Ace ||
-            *self == Rank::Eight { return "an"; }
+    pub const fn article(&self) -> &str {
+        if (*self as usize) == 1 || (*self as usize) == 15 ||
+            (*self as usize) == 8 { return "an"; }
         "a"
     }
 }
 
 impl std::str::FromStr for Rank {
-    type Err = anyhow::Error;
+    type Err = OjError;
 
-    fn from_str(s: &str) -> aResult<Self, Self::Err> {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         let r = s.chars().next().ok_or(
             OjError::ParseEmpty(String::from("rank")))?;
-        let rank = Rank::from_char(r).or(
-            Err(OjError::NotRank(String::from(r))))?;
-        aOk(rank)
+        Ok(Rank::from_char(r))
     }
 }
 
-#[allow(clippy::from_over_into)]    // From would fail
-impl std::convert::Into<i32> for Rank {
-    fn into(self) -> i32 {
-        self as i32
+impl std::convert::From<i32> for Rank {
+    fn from(v: i32) -> Rank {
+        Rank::from_i32(v)
     }
 }
 
-#[allow(clippy::from_over_into)]    // From would fail
-impl std::convert::Into<char> for Rank {
-    fn into(self) -> char {
-        self.to_char()
+impl std::convert::From<Rank> for i32 {
+    fn from(r: Rank) -> i32 {
+        r as i32
+    }
+}
+
+impl std::convert::From<char> for Rank {
+    fn from(c: char) -> Rank {
+        Rank::from_char(c)
+    }
+}
+
+impl std::convert::From<Rank> for char {
+    fn from(r: Rank) -> char {
+        r.to_char()
     }
 }
 
@@ -149,7 +150,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_ranks() -> aResult<()> {
+    fn test_ranks() -> Result<(), OjError> {
         assert_eq!(Rank::LowAce as i32, 1);
      
         assert_eq!("ace", Rank::LowAce.name());
@@ -167,7 +168,7 @@ mod tests {
                     assert_eq!($n, Rank::$r.name());
                     assert_eq!($p, Rank::$r.plural());
                     assert_eq!($c, Rank::$r.to_char());
-                    assert_eq!(Rank::$r, Rank::from_char($c)?);
+                    assert_eq!(Rank::$r, Rank::from_char($c));
                     assert_eq!(Rank::$r, Rank::from_str(&String::from($c)[..])?);
                 }
             };
@@ -209,6 +210,6 @@ mod tests {
             Rank::King, Rank::Ace);
         assert_eq!("Nine Ten Jack Knight Queen King Ace", s);
 
-        aOk(())
+        Ok(())
     }
 }

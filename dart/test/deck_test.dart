@@ -23,7 +23,9 @@ void main() {
     test('english deck', () async {
       var d1 = Deck("english");
       d1.shuffle();
-      expect(d1.validCard(Card.LowAceOfSpades), Card.AceOfSpades);
+      var (v, c) = d1.validCard(Card.LowAceOfSpades);
+      expect(v, true);
+      expect(c, Card.AceOfSpades);
       expect(d1.length, 52);
 
       for (var c in englishCards) {
@@ -68,7 +70,9 @@ void main() {
     test('spanish deck', () async {
       var d1 = Deck("spanish");
       d1.shuffle();
-      expect(d1.validCard(Card.AceOfSpades), Card.LowAceOfSpades);
+      var (v, c) = d1.validCard(Card.AceOfSpades);
+      expect(v, true);
+      expect(c, Card.LowAceOfSpades);
       expect(d1.length, 40);
       expect(d1.size, 40);
 
@@ -133,9 +137,9 @@ void main() {
       expect(h2.toString(), "QdJc8h5s5c");
 
       h1.clear();
-      h1.pushN(5, cardsFromText("8h4s4h2c5s"));
+      h1.pushN(cardsFromText("8h4s4h2c5s"));
       h2.clear();
-      h2.pushN(5, cardsFromText("4h8h5s4s2c"));
+      h2.pushN(cardsFromText("4h8h5s4s2c"));
 
       expect(h1.length, 5);
       expect(h2.length, 5);
@@ -147,9 +151,9 @@ void main() {
       var h4 = d2.newHand();
       var h5 = d2.newHand();
 
-      h3.pushN(5, cardsFromText("TdTd9dKsJc"));
-      h4.pushN(5, cardsFromText("TdKs9dJcTd"));
-      h5.pushN(5, cardsFromText("Td9d9dKsJc"));
+      h3.pushN(cardsFromText("TdTd9dKsJc"));
+      h4.pushN(cardsFromText("TdKs9dJcTd"));
+      h5.pushN(cardsFromText("Td9d9dKsJc"));
 
       expect(h3.isEquivalentTo(h4), true);
       expect(h3.isEquivalentTo(h5), false);

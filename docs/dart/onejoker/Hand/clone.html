@@ -62,16 +62,11 @@
 
     <section class="multi-line-signature">
       
-  <div>
-    <ol class="annotation-list">
-        <li>@<a href="https://api.flutter.dev/flutter/dart-core/override-constant.html">override</a></li>
-    </ol>
-  </div>
 
 <span class="returntype"><a href="../../onejoker/Hand-class.html">Hand</a></span>
 <span class="name ">clone</span>(<wbr>)
 
-      <div class="features"><span class="feature">override</span></div>
+      
 
     </section>
     
@@ -80,11 +75,8 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">@override
-Hand clone() {
-  Hand res = Hand(deck);
-  res._cards.pushN(_cards.length, _cards);
-  return res;
+  <pre class="language-dart"><code class="language-dart">Hand clone() {
+  return Hand(master.name, parent, cards.toList());
 }</code></pre>
 </section>
 

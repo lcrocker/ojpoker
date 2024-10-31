@@ -64,7 +64,7 @@
       
 
 <span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
-<span class="name ">drawHand</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="drawHand-param-cards"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../../onejoker/Card.html">Card</a></span>&gt;</span></span> <span class="parameter-name">cards</span></span></li>
+<span class="name ">drawHand</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="drawHand-param-cards"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../../onejoker/Card.html">Card</a></span>&gt;</span></span> <span class="parameter-name">cards</span></span></li>
 </ol>)
 
       
@@ -76,10 +76,11 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">bool drawHand(List&lt;Card&gt; cards) {
+  <pre class="language-dart"><code class="language-dart">bool drawHand(Iterable&lt;Card&gt; cards) {
+  if (parent == null) return false;
   for (Card c in cards) {
-    if (deck.removeCard(c)) {
-      _cards.push(c);
+    if (parent!.removeCard(c)) {
+      push(c);
     } else {
       return false;
     }

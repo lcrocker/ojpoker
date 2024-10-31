@@ -62,17 +62,12 @@
 
     <section class="multi-line-signature">
       
-  <div>
-    <ol class="annotation-list">
-        <li>@<a href="https://api.flutter.dev/flutter/dart-core/override-constant.html">override</a></li>
-    </ol>
-  </div>
 
 <span class="returntype"><a href="../../onejoker/Hand-class.html">Hand</a></span>
-<span class="name ">newHand</span>(<wbr>[<ol class="parameter-list single-line"> <li><span class="parameter" id="newHand-param-size"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a>?</span> <span class="parameter-name">size</span></span></li>
+<span class="name ">newHand</span>(<wbr>[<ol class="parameter-list single-line"> <li><span class="parameter" id="newHand-param-size"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">size</span> = <span class="default-value">0</span></span></li>
 </ol>])
 
-      <div class="features"><span class="feature">override</span></div>
+      
 
     </section>
     
@@ -81,12 +76,11 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">@override
-Hand newHand([int? size]) {
-  var hand = Hand(this);
+  <pre class="language-dart"><code class="language-dart">Hand newHand([int size = 0]) {
+  var hand = Hand(this.master.name, this);
   hands.add(hand);
 
-  if (size != null) {
+  if (size &gt; 0) {
     hand.draw(size);
   }
   return hand;

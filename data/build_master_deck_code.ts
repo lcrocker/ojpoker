@@ -117,6 +117,12 @@ class MasterDeck {
         return decks[id - 1];
     }
 
+    factory MasterDeck.byIndex(int idx) {
+        return decks[idx - 1];
+    }
+
+    static const deckCount = ${deckDataIn.length};
+
     int get size => cardList.length;
 
     /// Does this deck contain the given card?
@@ -283,6 +289,13 @@ fn masterdeck_by_name(alias: &str) -> &'static MasterDeck {
 `        _ => &DECK_INFO[0],
     }
 }
+
+/// Retrieve pointer to [MasterDeck] by index (1-based)
+pub fn masterdeck_by_index(idx: usize) -> &'static MasterDeck {
+    &DECK_INFO[idx - 1]
+}
+/// How many decks are there?
+pub fn deck_count() -> usize { DECK_INFO.len() }
 
 macro_rules! masterdeck {
     ( $name:literal, $set:literal, $list:expr,

@@ -4,7 +4,7 @@ use onejoker::errors::*;
 use onejoker::cards::*;
 
 #[test]
-fn test_masterdecks() -> aResult<()> {
+fn test_masterdecks() -> Result<(), OjError> {
     for name in ["poker", "bug", "54", "razz", "lowball", "40", "48",
         "pan", "skat", "durak", "24", "bezique", "canasta", "pinochle"].iter() {
 
@@ -139,6 +139,5 @@ fn test_masterdecks() -> aResult<()> {
             _ => panic!(),
         }
     }
-
-    aOk(())
+    Ok(())
 }

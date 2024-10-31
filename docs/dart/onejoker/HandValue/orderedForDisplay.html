@@ -63,8 +63,8 @@
     <section class="multi-line-signature">
       
 
-<span class="returntype"><a href="../../onejoker/OrphanHand-class.html">OrphanHand</a></span>
-<span class="name ">orderedForDisplay</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="orderedForDisplay-param-h"><span class="type-annotation"><a href="../../onejoker/HandInterface-class.html">HandInterface</a></span> <span class="parameter-name">h</span></span></li>
+<span class="returntype"><a href="../../onejoker/Hand-class.html">Hand</a></span>
+<span class="name ">orderedForDisplay</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="orderedForDisplay-param-h"><span class="type-annotation"><a href="../../onejoker/Hand-class.html">Hand</a></span> <span class="parameter-name">h</span></span></li>
 </ol>)
 
       
@@ -80,11 +80,11 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">OrphanHand orderedForDisplay(HandInterface h) {
+  <pre class="language-dart"><code class="language-dart">Hand orderedForDisplay(Hand h) {
   List&lt;Card&gt; hIn = h.toList();
   assert(hIn.length == 5);
   assert(ranks.length == 5);
-  OrphanHand hOut = OrphanHand();
+  Hand hOut = h.copyFromIter([]);
 
   for (int i = 0; i &lt; ranks.length; i += 1) {
     Rank r = ranks[i];
@@ -98,7 +98,7 @@
       }
     }
     assert(fIndex &gt;= 0);
-    assert(found == hIn.removeAt(fIndex));
+    hIn.removeAt(fIndex);
     hOut.push(found);
   }
   assert(hOut.length == 5);

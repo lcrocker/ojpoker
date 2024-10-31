@@ -64,7 +64,7 @@
       
 
 <span class="returntype">V</span>
-<span class="name ">valueOf</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="valueOf-param-h"><span class="type-annotation"><a href="../../onejoker/HandInterface-class.html">HandInterface</a></span> <span class="parameter-name">h</span></span></li>
+<span class="name ">valueOf</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="valueOf-param-h"><span class="type-annotation"><a href="../../onejoker/Hand-class.html">Hand</a></span> <span class="parameter-name">h</span></span></li>
 </ol>)
 
       
@@ -76,10 +76,10 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">V valueOf(HandInterface h) {
-  if (h.length &lt; 5) {
+  <pre class="language-dart"><code class="language-dart">V valueOf(Hand h) {
+  if (h.length &lt; completeHand()) {
     return partialEvaluator(h);
-  } else if (h.length == 5) {
+  } else if (h.length == completeHand()) {
     return lookupEvaluator(h);
   } else {
     return bestOf(h);

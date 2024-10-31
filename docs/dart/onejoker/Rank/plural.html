@@ -81,8 +81,9 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">String get plural {
-  assert(index &gt;= Rank.LowAce.index &amp;&amp; index &lt;= Rank.Ace.index);
+  assert(index &gt;= Rank.None.index &amp;&amp; index &lt;= Rank.Ace.index);
   return [
+    &quot;?&quot;,
     &quot;aces&quot;,
     &quot;deuces&quot;,
     &quot;treys&quot;,
@@ -98,7 +99,7 @@
     &quot;queens&quot;,
     &quot;kings&quot;,
     &quot;aces&quot;,
-  ][index - 1];
+  ][index];
 }</code></pre>
 </section>
 

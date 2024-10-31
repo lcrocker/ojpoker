@@ -26,3 +26,6 @@ export 'src/troolean.dart';
 export 'src/utilities.dart';
 export 'src/cards/cards.dart';
 export 'src/poker/poker.dart';
+
+// ignore: constant_identifier_names
+const bool ONEJOKER_FULL_TESTS = true;

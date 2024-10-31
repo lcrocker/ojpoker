@@ -70,16 +70,23 @@
 
     </section>
     
+<section class="desc markdown">
+  <p>Fix cards for decks with low/high aces.</p>
+</section>
 
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">void aceFix() {
-  if (deck.master.lowAces) {
-    _cards.lowAceFix();
+  if (master.lowAces) {
+    for (int i = 0; i &lt; cards.length; i += 1) {
+      cards[i] = Card.lowAceFix(cards[i]);
+    }
   } else {
-    _cards.highAceFix();
+    for (int i = 0; i &lt; cards.length; i += 1) {
+      cards[i] = Card.highAceFix(cards[i]);
+    }
   }
 }</code></pre>
 </section>

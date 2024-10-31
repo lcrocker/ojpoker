@@ -1,5 +1,0 @@
-# This directory is where the binary MessagePack
-# files will be built.
-
-*.msgpack
-

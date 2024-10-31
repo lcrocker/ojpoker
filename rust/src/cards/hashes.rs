@@ -24,103 +24,135 @@ use crate::cards::*;
 use crate::utils::*;
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/FNV_Hash) | 32-bit FNV-1a hash
-pub fn ojh_fnv_u32(cards: &[Card]) -> aResult<u32> {
+pub fn ojh_fnv_32(cards: &[Card]) -> Result<u32, OjError> {
     let mut h: u32 = 0x811C9DC5;
 
     for c in cards {
         h ^= c.0 as u32;
         h = h.wrapping_mul(0x01000193);
     }
-    aOk(h)
+    Ok(h)
 }
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/FNV_Hash) | 64-bit FNV-1a hash
-pub fn ojh_fnv_u64(cards: &[Card]) -> aResult<u64> {
+pub fn ojh_fnv_64(cards: &[Card]) -> Result<u64, OjError> {
     let mut h: u64 = 0xCBF29CE484222325;
 
     for c in cards {
         h ^= c.0 as u64;
         h = h.wrapping_mul(0x100000001B3);
     }
-    aOk(h)
+    Ok(h)
 }
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/Positional_Hash) | 32-bit positional hash
-pub fn ojh_positional_u32c(cards: &[Card]) -> aResult<u32> {
+pub fn ojh_positional_32c(cards: &[Card]) -> Result<u32, OjError> {
     let mut max = 5;
     let mut h: u32 = 0;
 
     for c in cards {
         max -= 1;
         if max < 0 {
-            bail!(OjError::HashDomain(String::from("5 cards max")));
+            return Err(OjError::HashDomain(String::from("5 cards max")));
         }
         h <<= 6;
         h += (0x3F & c.0) as u32;
     }
-    aOk(h)
+    Ok(h)
 }
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/Positional_Hash) | 32-bit positional rank hash
-pub fn ojh_positional_u32csr(ranks: &[Rank]) -> aResult<u32>{
+pub fn ojh_positional_32cs(cards: &[Card]) -> Result<u32, OjError>{
+    let mut max = 8;
+    let mut h: u32 = 0;
+
+    for c in cards {
+        max -= 1;
+        if max < 0 {
+            return Err(OjError::HashDomain(String::from("8 ranks max")));
+        }
+        h <<= 4;
+        h += 0x0F & (c.rank() as u32);
+    }
+    Ok(h)
+}
+
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Positional_Hash) | 32-bit positional rank hash
+pub fn ojh_positional_32cr(ranks: &[Rank]) -> Result<u32, OjError>{
     let mut max = 8;
     let mut h: u32 = 0;
 
     for r in ranks {
         max -= 1;
         if max < 0 {
-            bail!(OjError::HashDomain(String::from("8 ranks max")));
+            return Err(OjError::HashDomain(String::from("8 ranks max")));
         }
         h <<= 4;
         h += 0x0F & (*r as u32);
     }
-    aOk(h)
+    Ok(h)
 }
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/Positional_Hash) | 64-bit positional hash
-pub fn ojh_positional_u64c(cards: &[Card]) -> aResult<u64> {
+pub fn ojh_positional_64c(cards: &[Card]) -> Result<u64, OjError> {
     let mut max = 10;
     let mut h: u64 = 0;
 
     for c in cards {
         max -= 1;
         if max < 0 {
-            bail!(OjError::HashDomain(String::from("10 cards max")));
+            return Err(OjError::HashDomain(String::from("10 cards max")));
         }
         h <<= 6;
         h += (0x3F & c.0) as u64;
     }
-    aOk(h)
+    Ok(h)
 }
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/Positional_Hash) | 64-bit positional rank hash
-pub fn ojh_positional_u64csr(ranks: &[Rank]) -> aResult<u64> {
+pub fn ojh_positional_64cs(cards: &[Card]) -> Result<u64, OjError> {
+    let mut max = 16;
+    let mut h: u64 = 0;
+
+    for c in cards {
+        max -= 1;
+        if max < 0 {
+            return Err(OjError::HashDomain(String::from("16 ranks max")));
+        }
+        h <<= 4;
+        h += (0x0F & (c.rank() as u8)) as u64;
+    }
+    Ok(h)
+}
+
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Positional_Hash) | 64-bit positional rank hash
+pub fn ojh_positional_64cr(ranks: &[Rank]) -> Result<u64, OjError> {
     let mut max = 16;
     let mut h: u64 = 0;
 
     for r in ranks {
         max -= 1;
         if max < 0 {
-            bail!(OjError::HashDomain(String::from("16 ranks max")));
+            return Err(OjError::HashDomain(String::from("16 ranks max")));
         }
         h <<= 4;
         h += (0x0F & (*r as u8)) as u64;
     }
-    aOk(h)
+    Ok(h)
 }
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/Bitfield_Hash) | 64-bit bitfield hash
-pub fn ojh_bitfield_u64co(cards: &[Card]) -> aResult<u64> {
+pub fn ojh_bitfield_64co(cards: &[Card]) -> Result<u64, OjError> {
     let mut h: u64 = 0;
 
     for c in cards {
         #[cfg(debug_assertions)]
         if 0 != (h & (1 << (c.0 as u64))) {
-            bail!(OjError::HashDomain(String::from("duplicate card")));
+            return Err(OjError::HashDomain(String::from("duplicate card")));
         }
         h |= 1 << (c.0 as u64);
     }
-    aOk(h)
+    Ok(h)
 }
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/Perfect_Hash) | Convert bitfield to MPH
@@ -148,51 +180,52 @@ pub fn ojh_mp5_english(f: u64) -> u32 {
 }
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/Prime_Hash) | 32-bit prime rank hash
-pub fn ojh_prime_u32cosr(ranks: &[Rank]) -> aResult<u32> {
+pub fn ojh_prime_32cor(ranks: &[Rank]) -> Result<u32, OjError> {
     let mut max = 5;
     let mut h: u32 = 1;
 
     for r in ranks {
         max -= 1;
         if max < 0 {
-            bail!(OjError::HashDomain(String::from("5 ranks max")));
+            return Err(OjError::HashDomain(String::from("5 ranks max")));
         }
         h *= PRIMES[0x0F & (*r as usize)];
     }
-    aOk(h)
+    Ok(h)
 }
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/Prime_Hash) | 64-bit prime hash
-pub fn ojh_prime_u64co(cards: &[Card]) -> aResult<u64> {
+pub fn ojh_prime_64co(cards: &[Card]) -> Result<u64, OjError> {
     let mut max = 7;
     let mut h: u64 = 1;
 
     for c in cards {
         max -= 1;
         if max < 0 {
-            bail!(OjError::HashDomain(String::from("7 cards max")));
+            return Err(OjError::HashDomain(String::from("7 cards max")));
         }
         h *= PRIMES[0x3F & (c.0 as usize)] as u64;
     }
-    aOk(h)
+    Ok(h)
 }
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/Prime_Hash) | 64-bit prime rank hash
-pub fn ojh_prime_u64cosr(ranks: &[Rank]) -> aResult<u64> {
+pub fn ojh_prime_64cor(ranks: &[Rank]) -> Result<u64, OjError> {
     let mut max = 10;
     let mut h: u64 = 1;
 
     for r in ranks {
         max -= 1;
         if max < 0 {
-            bail!(OjError::HashDomain(String::from("10 ranks max")));
+            return Err(OjError::HashDomain(String::from("10 ranks max")));
         }      
         h *= PRIMES[0x0F & (*r as usize)] as u64;
     }
-    aOk(h)
+    Ok(h)
 }
 
-const PRIMES: [u32; 64] = [
+/// List of first 64 odd primes
+pub const PRIMES: [u32; 64] = [
     3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59,
     61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137,
     139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227,

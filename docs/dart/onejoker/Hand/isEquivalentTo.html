@@ -62,17 +62,12 @@
 
     <section class="multi-line-signature">
       
-  <div>
-    <ol class="annotation-list">
-        <li>@<a href="https://api.flutter.dev/flutter/dart-core/override-constant.html">override</a></li>
-    </ol>
-  </div>
 
 <span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
-<span class="name ">isEquivalentTo</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="isEquivalentTo-param-other"><span class="type-annotation"><a href="../../onejoker/HandInterface-class.html">HandInterface</a></span> <span class="parameter-name">other</span></span></li>
+<span class="name ">isEquivalentTo</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="isEquivalentTo-param-other"><span class="type-annotation"><a href="../../onejoker/Hand-class.html">Hand</a></span> <span class="parameter-name">other</span></span></li>
 </ol>)
 
-      <div class="features"><span class="feature">override</span></div>
+      
 
     </section>
     
@@ -81,21 +76,27 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">@override
-bool isEquivalentTo(HandInterface other) {
-  if (other is! Hand) return false;
-  if (_cards.length != other.length) return false;
+  <pre class="language-dart"><code class="language-dart">bool isEquivalentTo(Hand other) {
+  if (cards.length != other.length) return false;
 
-  if (deck.master.dupsAllowed) {
-    return _cards.isEquivalentTo(other._cards);
-  } else {
-    int mask1 = 0, mask2 = 0;
-    for (int i = 0; i &lt; _cards.length; i += 1) {
-      mask1 |= (1 &lt;&lt; _cards.cardAt(i)!.index);
-      mask2 |= (1 &lt;&lt; other.cardAt(i)!.index);
+  &#47;&#47; Have to do the hard way if duplicates are possible.
+  if (master.dupsAllowed) {
+    List&lt;Card&gt; as = cards.toList();
+    List&lt;Card&gt; os = other.toList();
+    ojSort(as);
+    ojSort(os);
+
+    for (int i = 0; i &lt; as.length; i += 1) {
+      if (as[i] != os[i]) return false;
     }
-    return mask1 == mask2;
+    return true;
   }
+  int mask1 = 0, mask2 = 0;
+  for (int i = 0; i &lt; cards.length; i += 1) {
+    mask1 |= (1 &lt;&lt; cards[i].index);
+    mask2 |= (1 &lt;&lt; other.cards[i].index);
+  }
+  return mask1 == mask2;
 }</code></pre>
 </section>
 

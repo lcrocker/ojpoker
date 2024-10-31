@@ -9,7 +9,7 @@ final _oneCard = RegExp(r'\s*(Jk|Jb|Jw|([1-9TJCQKA])([cdhs]))');
 
 /// Enum for cards and their basic methods.
 /// (see [Card](http://github.com/lcrocker/ojpoker/wiki/Card) @ wiki)
-/// 
+///
 /// Numbers *very* important here,
 /// not just for compatibility but specific algorithms will fail
 /// if changed.
@@ -82,20 +82,23 @@ enum Card implements Comparable<Card> {
   AceOfSpades; // 63
 
   /// Create one from integer value
-  static Card? fromInt(int v) {
-    if (v < 1 || v > 63) return null;
+  static Card fromInt(int v) {
+    if (v < 1 || v > 63) return None;
     return Card.values[v];
   }
 
   /// Create one from rank and suit
   static Card fromRankSuit(Rank r, Suit s) {
+    if (r == Rank.None || s == Suit.None) {
+      return None;
+    }
     return Card.values[(r.index << 2) | (s.index - 1)];
   }
 
   /// Create one from text representation
-  static Card? fromText(String text) {
+  static Card fromText(String text) {
     var match = _oneCard.firstMatch(text);
-    if (match == null) return null;
+    if (match == null) return None;
 
     if (match.group(1) != null) {
       switch (match.group(1)) {
@@ -109,37 +112,36 @@ enum Card implements Comparable<Card> {
           if (match.group(2) != null && match.group(3) != null) {
             var r = Rank.fromChar(match.group(2)!);
             var s = Suit.fromChar(match.group(3)!);
-            assert(r != null && s != null);
-            return fromRankSuit(r!, s!);
+            return fromRankSuit(r, s);
           }
       }
     }
-    return null;
+    return None;
   }
 
   /// What's the rank of this card? Note that we use a shift on the number
   /// value; that's why the numbers are important. Note that jokers do not
   /// have rank or suit.
-  Rank? get rank {
+  Rank get rank {
     if (index < Card.LowAceOfClubs.index || index > Card.AceOfSpades.index) {
-      return null;
+      return Rank.None;
     }
     return Rank.values[index >> 2];
   }
 
   /// What's the rank of this card, with low aces made high?
-  Rank? get highRank {
+  Rank get highRank {
     if (index < Card.LowAceOfClubs.index || index > Card.AceOfSpades.index) {
-      return null;
+      return Rank.None;
     }
     if (index < Card.DeuceOfClubs.index) return Rank.Ace;
     return Rank.values[index >> 2];
   }
 
-  /// What's the suit of this card? Jokers have no suit.
-  Suit? get suit {
+  /// What's the suit of this card?
+  Suit get suit {
     if (index < Card.LowAceOfClubs.index || index > Card.AceOfSpades.index) {
-      return null;
+      return Suit.None;
     }
     return Suit.values[1 + (index & 3)];
   }
@@ -185,23 +187,24 @@ enum Card implements Comparable<Card> {
 
   /// Render to two-character text in standard format
   String toText() {
-    assert(isCard);
+    if (!isCard) return "??";
     if (Card.WhiteJoker.index == index) return "Jw";
     if (Card.BlackJoker.index == index) return "Jb";
     if (Card.Joker.index == index) return "Jk";
-    return "${rank!.toChar()}${suit!.toChar()}";
+    return "${rank.toChar()}${suit.toChar()}";
   }
 
   /// Render to two-character text with unicode suit symbols
   String toUnicode() {
-    assert(isCard);
+    if (!isCard) return "??";
     if (Card.WhiteJoker.index == index) return "Jw";
     if (Card.BlackJoker.index == index) return "Jb";
     if (Card.Joker.index == index) return "Jk";
-    return "${rank!.toChar()}${suit!.toUnicode()}";
+    return "${rank.toChar()}${suit.toUnicode()}";
   }
 
   static final List<String> unicodeSingles = [
+    "⁇",
     "🃟",
     "🂿",
     "🃏",
@@ -270,7 +273,7 @@ enum Card implements Comparable<Card> {
   /// Render to single-character unicode card image.
   String toUnicodeSingle() {
     assert(isCard);
-    return unicodeSingles[index - 1];
+    return unicodeSingles[index];
   }
 
   /// Full English name
@@ -279,7 +282,7 @@ enum Card implements Comparable<Card> {
     if (Card.WhiteJoker.index == index) return "white joker";
     if (Card.BlackJoker.index == index) return "black joker";
     if (Card.Joker.index == index) return "joker";
-    return "${rank!.name} of ${suit!.plural}";
+    return "${rank.name} of ${suit.plural}";
   }
 
   /// Make high aces low, leave other cards alone
@@ -359,7 +362,7 @@ Iterable<Card> cardsFromText(String text) sync* {
     }
     var r = Rank.fromChar(match.group(2)!);
     var s = Suit.fromChar(match.group(3)!);
-    if (r == null || s == null) {
+    if (r == Rank.None || s == Suit.None) {
       return;
     }
     yield Card.fromRankSuit(r, s);

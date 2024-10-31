@@ -79,8 +79,8 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">String toChar() {
-  assert(index &gt;= Suit.Club.index &amp;&amp; index &lt;= Suit.Spade.index);
-  return [&#39;c&#39;, &#39;d&#39;, &#39;h&#39;, &#39;s&#39;][index - 1];
+  assert(index &gt;= Suit.None.index &amp;&amp; index &lt;= Suit.Spade.index);
+  return [&#39;?&#39;, &#39;c&#39;, &#39;d&#39;, &#39;h&#39;, &#39;s&#39;][index];
 }</code></pre>
 </section>
 

@@ -81,8 +81,8 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">String get plural {
-  assert(index &gt;= Suit.Club.index &amp;&amp; index &lt;= Suit.Spade.index);
-  return [&quot;clubs&quot;, &quot;diamonds&quot;, &quot;hearts&quot;, &quot;spades&quot;][index - 1];
+  assert(index &gt;= Suit.None.index &amp;&amp; index &lt;= Suit.Spade.index);
+  return [&quot;?&quot;, &quot;clubs&quot;, &quot;diamonds&quot;, &quot;hearts&quot;, &quot;spades&quot;][index];
 }</code></pre>
 </section>
 
