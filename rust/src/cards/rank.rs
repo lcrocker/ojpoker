@@ -2,7 +2,7 @@
 
 use crate::errors::*;
 
-/// [wiki](https://github.com/lcrocker/tspoker/wiki/Rank) | Enum for card ranks.
+/// [wiki](https://github.com/lcrocker/tspoker/wiki/Rank) | Simple numeric enum for card ranks.
 /// Simple integer enum. Specific numbers do matter: I do a lot of math with
 /// them to optimize things, and the same numbers are used in the other
 /// languages in the project.
@@ -13,6 +13,7 @@ use crate::errors::*;
 /// for details.
 
 #[allow(dead_code)]
+#[repr(u8)]
 #[derive(PartialEq, PartialOrd, Eq, Ord, Clone, Copy, Debug, Hash)]
 #[allow(missing_docs)]
 pub enum Rank {
@@ -49,8 +50,8 @@ const PLURALS: [&str; 16] = [ "?", "aces", "deuces", "treys", "fours",
 
 impl Rank {
     /// Convert integer to rank.
-    pub const fn from_i32(v: i32) -> Rank {
-        if v < 0 || v > 15 { return Rank::None; }
+    pub const fn from_u8(v: u8) -> Rank {
+        if v > 15 { return Rank::None; }
         RANKS[v as usize]
     }
 
@@ -102,6 +103,12 @@ impl Rank {
     }
 }
 
+impl std::convert::From<u32> for Rank {
+    fn from(v: u32) -> Self {
+        Rank::from_u8(v as u8)
+    }
+}
+
 impl std::str::FromStr for Rank {
     type Err = OjError;
 
@@ -109,30 +116,6 @@ impl std::str::FromStr for Rank {
         let r = s.chars().next().ok_or(
             OjError::ParseEmpty(String::from("rank")))?;
         Ok(Rank::from_char(r))
-    }
-}
-
-impl std::convert::From<i32> for Rank {
-    fn from(v: i32) -> Rank {
-        Rank::from_i32(v)
-    }
-}
-
-impl std::convert::From<Rank> for i32 {
-    fn from(r: Rank) -> i32 {
-        r as i32
-    }
-}
-
-impl std::convert::From<char> for Rank {
-    fn from(c: char) -> Rank {
-        Rank::from_char(c)
-    }
-}
-
-impl std::convert::From<Rank> for char {
-    fn from(r: Rank) -> char {
-        r.to_char()
     }
 }
 

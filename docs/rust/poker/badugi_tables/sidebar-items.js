@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"static":["BADUGI_TABLE_1","BADUGI_TABLE_2"]};

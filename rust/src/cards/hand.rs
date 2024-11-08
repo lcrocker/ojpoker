@@ -4,100 +4,132 @@ use std::ops::{Index, IndexMut};
 use crate::utils::*;
 use crate::cards::*;
 
+const MAX_HAND_SIZE: usize = 22;
+
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/Hand) | Hand of cards
 /// A simple array of card objects with some utility methods.
-/// It is expected that most access will go through `push`/`pop``, which
-/// are fast, though things line `insert` and `remove` are available.
-#[derive(Clone, Debug)]
+/// It is expected that most access will go through `push()`/`pop()`, which
+/// are fast, though things like `insert()` and `remove()` are available.
+/// Limited to 22 cards. If you need more, you can use `Vec<Card>`. but you
+/// lose some error checking and convenience methods.
+#[derive(Clone, Copy)]
+#[repr(C)]
 pub struct Hand {
-    /// Associated [MasterDeck]
-    pub master: &'static MasterDeck,
-    /// Current contents
-    pub cards: Vec<Card>,
+    /// Array of [Card]s
+    pub cards: [Card; MAX_HAND_SIZE],
+    /// Number of cards in the hand
+    pub length: u8,
+    /// [DeckType] associated with this hand
+    pub deck_type: u8,
 }
 
 impl Hand {
-    /// Create new [Hand] associated with the named [MasterDeck].
-    pub fn new(m: &'static MasterDeck) -> Hand {
+    /// Create new [Hand] associated with the given [DeckType].
+    pub fn new(t: DeckType) -> Hand {
         Hand {
-            master: m,
-            cards: Vec::new(),
+            cards: [Card::default(); MAX_HAND_SIZE],
+            length: 0,
+            deck_type: t as u8,
         }
+    }
+
+    /// Create new [Hand] associated with the [DeckType] of the given name.
+    pub fn new_by_name(dname: &str) -> Hand {
+        Hand {
+            cards: [Card::default(); MAX_HAND_SIZE],
+            length: 0,
+            deck_type: DeckType::by_name(dname) as u8,
+        }
+    }
+
+    /// Initial sort for new hand
+    pub fn sorted(mut self) -> Self {
+        self.sort();
+        self
+    }
+
+    /// Return the [DeckType] associated with this hand.
+    #[inline]
+    pub fn deck_type(&self) -> DeckType {
+        DeckType::from_u8(self.deck_type)
+    }
+
+    /// How many cards in the hand?
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.length as usize
+    }
+
+    #[inline]
+    /// Is the hand empty?
+    pub fn is_empty(&self) -> bool {
+        0 == self.length
+    }
+
+    #[inline]
+    /// Is the hand not empty?
+    pub fn is_not_empty(&self) -> bool {
+        0 != self.length
+    }
+
+    #[inline]
+    /// Empty the hand
+    pub fn clear(&mut self) {
+        self.length = 0;
     }
 
     /// Initialize new hand
     pub fn init<I>(mut self, iter: I) -> Self
     where I: IntoIterator<Item = Card> {
         self.clear();
-        self.push_n(iter);
+        self.push_all(iter);
         self
     }
 
     /// Export Vec of [Card]s.
     pub fn to_vec(&self) -> Vec<Card> {
-        self.cards.clone()
+        self.cards[..(self.length as usize)].to_vec()
     }
 
-    /// Export Vec of [Rank]s.
-    pub fn ranks(&self) -> Vec<Rank> {
-        self.cards.iter().map(|c| c.rank()).collect()
-    }
-
+    #[inline]
     /// Point to a slice of the underlying [Card] array.
     pub fn as_slice(&self) -> &[Card] {
-        &self.cards[..]
+        &self.cards[..(self.length as usize)]
     }
 
+    #[inline]
     /// Point to a slice of the underlying [Card] array.
     pub fn as_mut_slice(&mut self) -> &mut [Card] {
-        &mut self.cards[..]
+        &mut self.cards[..(self.length as usize)]
     }
 
-    /// How many cards in the hand?
-    pub fn len(&self) -> usize {
-        self.cards.len()
-    }
-
-    /// Is the hand empty?
-    pub fn is_empty(&self) -> bool {
-        self.cards.is_empty()
-    }
-
-    /// Is the hand not empty?
-    pub fn is_not_empty(&self) -> bool {
-        ! self.cards.is_empty()
-    }
-
-    /// Does the hand contain the given [Card]?
-    pub fn contains(&self, card: Card) -> bool {
-        if let Some(c) = self.valid_card(card) {
-            return self.cards.contains(&c)
-        }
-        false
-    }
-
-    /// Empty the hand
-    pub fn clear(&mut self) {
-        self.cards.clear();
-    }
-
-    /// Given a [Card], return the same card if valid for our [MasterDeck]
-    /// or panic. Correct ace values if needed.
-    pub fn valid_card(&self, cin: Card) -> Option<Card> {
-        let cout: Card = if self.master.low_aces {
-            Card::low_ace_fix(cin)
-        } else {
-            Card::high_ace_fix(cin)
-        };
-        if self.master.has(cout) {
-            return Some(cout);
+    /// Find given card in the hand, return index
+    pub fn index_of(&self, card: Card) -> Option<usize> {
+        if let Some(c) = self.deck_type().valid_card(card) {
+            for i in 0..(self.length as usize) {
+                if c == self.cards[i] {
+                    return Some(i);
+                }
+            }
         }
         None
     }
 
+    /// Does the hand contain the given [Card]?
+    pub fn contains(&self, card: Card) -> bool {
+        if let Some(c) = self.deck_type().valid_card(card) {
+            for i in 0..(self.length as usize) {
+                if c == self.cards[i] {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
     /// Return the [Card] at the given index, or `None` if out of range.
     pub fn card_at(&self, index: usize) -> Option<Card> {
-        if index >= self.cards.len() {
+        if index >= (self.length as usize) {
             return None;
         }
         Some(self.cards[index])
@@ -105,27 +137,24 @@ impl Hand {
 
     /// Set the [Card] at the given index, or return `false` if out of range.
     pub fn set_card_at(&mut self, index: usize, card: Card) -> bool {
-        if index >= self.cards.len() {
+        if index >= (self.length as usize) {
             return false;
         }
-        if let Some(c) = self.valid_card(card) {
+        if let Some(c) = self.deck_type().valid_card(card) {
             self.cards[index] = c;
             return true;
         }
         false
     }
 
-    /// Set all cards in hand
-    pub fn set<I>(&mut self, iter: I) -> bool
-    where I: IntoIterator<Item = Card> {
-        self.clear();
-        self.push_n(iter)
-    }
-
     /// Push a [Card] onto the end of the hand.
     pub fn push(&mut self, card: Card) -> bool {
-        if let Some(c) = self.valid_card(card) {
-            self.cards.push(c);
+        if (self.length as usize) >= MAX_HAND_SIZE {
+            return false;
+        }
+        if let Some(c) = self.deck_type().valid_card(card) {
+            self.cards[self.length as usize] = c;
+            self.length += 1;
             return true;
         }
         false
@@ -133,38 +162,92 @@ impl Hand {
 
     /// Pop a [Card] from the end of the hand.
     pub fn pop(&mut self) -> Option<Card> {
-        self.cards.pop()
+        if self.is_empty() {
+            return None;
+        }
+        self.length -= 1;
+        Some(self.cards[self.length as usize])
     }
 
     /// Push a collection of [Card]s onto the end of the hand.
-    pub fn push_n<I>(&mut self, iter: I) -> bool
+    pub fn push_n<I>(&mut self, n: usize, iter: I) -> usize
     where I: IntoIterator<Item = Card> {
-        let mut all_ok = true;
+        let mut pushed: usize = 0;
 
         for c in iter {
-            if !self.push(c) {
-                all_ok = false;
+            if (self.length as usize) >= MAX_HAND_SIZE {
+                break;
+            }
+            if let Some(cout) = self.deck_type().valid_card(c) {
+                self.cards[self.length as usize] = cout;
+                self.length += 1;    
+                pushed += 1;
+
+                if pushed >= n {
+                    break;
+                }
             }
         }
-        all_ok
+        pushed
     }
 
+    /// Push a collection of [Card]s onto the end of the hand.
+    pub fn push_all<I>(&mut self, iter: I) -> usize
+    where I: IntoIterator<Item = Card> {
+        let mut pushed: usize = 0;
+
+        for c in iter {
+            if (self.length as usize) >= MAX_HAND_SIZE {
+                break;
+            }
+            if let Some(cout) = self.deck_type().valid_card(c) {
+                self.cards[self.length as usize] = cout;
+                self.length += 1;    
+                pushed += 1;
+            }
+        }
+        pushed
+    }
+    
     /// Pop `n` [Card]s from the end of the hand.
     pub fn pop_n(&mut self, n: usize) -> impl Iterator<Item = Card> {
-        let count = if self.cards.len() < n { self.cards.len() } else { n };
+        let count =
+            if (self.length as usize) < n {
+                self.length as usize
+            } else { n };
         let mut v: Vec<Card> = Vec::new();
 
         for _ in 0..count {
-            v.push(self.cards.pop().expect("already checked length"));
+            v.push(self.pop().expect("already checked length"));
         }
         v.into_iter()
     }
 
+    /// Pop `n` [Card]s from the end of the hand.
+    pub fn pop_all(&mut self) -> impl Iterator<Item = Card> {
+        let v = self.cards[..(self.length as usize)].to_vec();
+        self.length = 0;
+        v.into_iter()
+    }
+
+    /// Set all cards in hand
+    pub fn set<I>(&mut self, iter: I) -> bool
+    where I: IntoIterator<Item = Card> {
+        self.length = 0;
+        0 != self.push_all(iter)
+    }
+  
     /// Insert a [Card] at the given index.
     pub fn insert_at(&mut self, index: usize, card: Card) -> bool {
-        if index <= self.cards.len() {
-            if let Some(c) = self.valid_card(card) {
-                self.cards.insert(index, c);
+        if index <= (self.length as usize) &&
+            (self.length as usize) < MAX_HAND_SIZE {
+
+            if let Some(c) = self.deck_type().valid_card(card) {
+                for i in (index..(self.length as usize)).rev() {
+                    self.cards[i + 1] = self.cards[i];
+                }
+                self.cards[index] = c;
+                self.length += 1;
                 return true;
             }
         }
@@ -173,17 +256,22 @@ impl Hand {
 
     /// Remove the [Card] at the given index.
     pub fn remove_at(&mut self, index: usize) -> Option<Card> {
-        if index >= self.cards.len() {
+        if index >= (self.length as usize) {
             return None;
         }
-        Some(self.cards.remove(index))
+        let ret = self.cards[index];
+        for i in index..(self.length as usize - 1) {
+            self.cards[i] = self.cards[i + 1];
+        }
+        self.length -= 1;
+        Some(ret)
     }
 
     /// Remove the given [Card] from the hand if present.
     pub fn remove_card(&mut self, card: Card) -> bool {
-        for i in 0..self.cards.len() {
+        for i in 0..(self.length as usize) {
             if self.cards[i] == card {
-                self.cards.remove(i);
+                self.remove_at(i);
                 return true;
             }
         }
@@ -192,17 +280,19 @@ impl Hand {
 
     /// Truncate the [Hand] to the given length.
     pub fn truncate(&mut self, n: usize) {
-        self.cards.truncate(n);
+        if n < (self.length as usize) {
+            self.length = n as u8;
+        }
     }
 
     /// Shuffle the [Hand] in place.
     pub fn shuffle(&mut self) {
-        oj_shuffle(&mut self.cards[..]);
+        oj_shuffle(&mut self.cards[..(self.length as usize)]);
     }
 
     /// Sort the [Hand] in place.
     pub fn sort(&mut self) {
-        oj_sort(&mut self.cards[..]);
+        oj_sort(&mut self.cards[..(self.length as usize)]);
     }
 
     /// Return an iterator over all `n`-card combinations of the hand.
@@ -212,10 +302,10 @@ impl Hand {
 
     /// Return true if the hands are identical: i.e., same cards in same order.
     pub fn equals(&self, other: &Self) -> bool {
-        if self.cards.len() != other.cards.len() {
+        if self.length != other.length {
             return false;
         }
-        for i in 0..self.cards.len() {
+        for i in 0..(self.length as usize) {
             if self.cards[i] != other.cards[i] {
                 return false;
             }
@@ -225,30 +315,40 @@ impl Hand {
 
     /// Return true if the hands are equivalent: i.e., same cards in any order.
     pub fn is_equivalent_to(&self, other: &Self) -> bool {
-        if self.cards.len() != other.cards.len() {
+        if self.length as usize != other.length as usize {
             return false;
         }
-        let mut ss: Vec<Card> = self.cards.clone();
-        let mut os: Vec<Card> = other.cards.clone();
-        oj_sort(&mut ss[..]);
-        oj_sort(&mut os[..]);
-
-        for i in 0..self.cards.len() {
-            if ss[i] != os[i] {
-                return false;
+        if self.deck_type().dups_allowed() {
+            let mut ss: Hand = *self;
+            let mut os: Hand = *other;
+            oj_sort(&mut ss.cards[..(ss.length as usize)]);
+            oj_sort(&mut os.cards[..(os.length as usize)]);
+    
+            for i in 0..(self.length as usize) {
+                if ss.cards[i] != os.cards[i] {
+                    return false;
+                }
             }
+            return true;
         }
-        true
+        let mut ss: u64 = 0;
+        let mut os: u64 = 0;
+
+        for i in 0..(self.length as usize) {
+            ss |= 1 << self.cards[i].0 as u64;
+            os |= 1 << other.cards[i].0 as u64;
+        }
+        ss == os
     }
 
-    /// Fix the ace values in the [Hand] to match the [MasterDeck].
+    /// Fix the ace values in the [Hand] to match the [DeckType].
     pub fn ace_fix(&mut self) {
-        if self.master.low_aces {
-            for i in 0..self.cards.len() {
+        if self.deck_type().low_aces() {
+            for i in 0..(self.length as usize) {
                 self.cards[i] = Card::low_ace_fix(self.cards[i]);
             }
         } else {
-            for i in 0..self.cards.len() {
+            for i in 0..(self.length as usize) {
                 self.cards[i] = Card::high_ace_fix(self.cards[i]);
             }
         }
@@ -260,7 +360,7 @@ impl Hand {
         oj_sort(indices);   // descending is important!
 
         for i in indices {
-            if *i > self.len() {
+            if *i > self.length as usize {
                 ok = false;
             } else {
                 self.remove_at(*i);
@@ -272,13 +372,14 @@ impl Hand {
 
 impl Index<usize> for Hand {
     type Output = Card;
-
+    #[inline]
     fn index(&self, index: usize) -> &Self::Output {
         &self.cards[index]
     }
 }
 
 impl IndexMut<usize> for Hand {
+    #[inline]
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.cards[index]
     }
@@ -287,14 +388,35 @@ impl IndexMut<usize> for Hand {
 impl std::fmt::Display for Hand {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let mut s: String = "".to_string();
-        if !self.cards.is_empty() {
+        if !self.is_empty() {
             let mut v: Vec<String> = Vec::new();
-            for c in self.cards.iter() {
-                v.push(c.to_string());
+            for i in 0..(self.length as usize) {
+                v.push(self.cards[i].to_string());
             }
             s = v.join("");
         }
         write!(f, "{}", s)
+    }
+}
+
+impl std::fmt::Debug for Hand {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let mut s: String = "".to_string();
+
+        if self.is_not_empty() {
+            let mut v: Vec<String> = Vec::new();
+            for i in 0..(self.length as usize) {
+                v.push(self.cards[i].to_string());
+            }
+            s = v.join("");
+        }
+        write!(f, "[{},{}]", self.deck_type().name(), s)
+    }
+}
+
+impl std::default::Default for Hand {
+    fn default() -> Self {
+        Hand::new(DeckType::default())
     }
 }
 
@@ -385,9 +507,10 @@ struct CardCombinationIter {
 impl CardCombinationIter {
     pub fn new(hand: &Hand, k: usize) -> CardCombinationIter {
         let source = hand.to_vec();
-        let dest: Hand = hand.clone().init(source.iter().take(k).cloned());
-        let mut indices: Vec<usize> = Vec::with_capacity(k);
+        let mut dest: Hand = *hand;
+        dest.truncate(k);
 
+        let mut indices: Vec<usize> = Vec::with_capacity(k);
         for i in 0..k {
             indices.push(i);
         }
@@ -406,7 +529,7 @@ impl Iterator for CardCombinationIter {
             self.dest.cards[i] = self.source[self.indices[i]];
         }
         self.done = oj_next_combination(&mut self.indices, self.source.len());
-        Some(self.dest.clone())
+        Some(self.dest)
     }
 }
 
@@ -421,7 +544,7 @@ mod tests {
 
     #[test]
     fn test_hand_methods() -> Result<(), OjError> {
-        let d = Deck::new("default");
+        let d = Deck::default();
         let mut h = d.new_hand();
         assert_eq!(h.len(), 0);
         assert!(h.is_empty());
@@ -437,7 +560,7 @@ mod tests {
         assert!(h.is_empty());
         assert!(! h.contains(FOUR_OF_SPADES));
 
-        h.set(parse_cards("4sJc9d"));
+        h.set(cards!("4s", "Jc", "9d"));
         assert_eq!(h.len(), 3);
         assert_eq!(h.card_at(0).unwrap(), FOUR_OF_SPADES);
         assert_eq!(h.card_at(1).unwrap(), JACK_OF_CLUBS);
@@ -458,7 +581,7 @@ mod tests {
 
         /* Push and pop
          */
-        let d2 = Deck::new("onejoker");
+        let d2 = Deck::new(DeckType::OneJoker);
         h = d2.new_hand().init([FOUR_OF_SPADES]);
         assert_eq!(h.len(), 1);
         assert_eq!(h.card_at(0).unwrap(), FOUR_OF_SPADES);
@@ -479,7 +602,7 @@ mod tests {
         assert_eq!(h.to_string(), "9dQs");
 
         h.set([ TEN_OF_CLUBS, JACK_OF_CLUBS ]);
-        h.push_n([
+        h.push_all([
             QUEEN_OF_CLUBS, KING_OF_CLUBS, ACE_OF_CLUBS
         ]);
         assert_eq!(h.to_string(), "TcJcQcKcAc");
@@ -491,7 +614,7 @@ mod tests {
 
         /* insert and remove
          */
-        h = d2.new_hand().init(parse_cards("4sJc9d"));
+        h = d2.new_hand().init(cards!("4s", "Jc", "9d"));
         h.insert_at(1, JOKER);
         assert_eq!(h.to_string(), "4sJkJc9d");
         h.insert_at(0, TEN_OF_DIAMONDS);
@@ -517,7 +640,7 @@ mod tests {
         /* shuffle and sort
          */
 
-        h = d2.new_hand().init(parse_cards("3h5h8dTh3c4h7sJkQs7d"));
+        h = d2.new_hand().init(ojc_parse("3h5h8dTh3c4h7sJkQs7d"));
         h.shuffle();
         assert_eq!(h.len(), 10);
         assert!(h.contains(FIVE_OF_HEARTS));

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["HandLevel"],"fn":["ojp_best_of","ojp_best_value_of","ojp_default_eval_full","ojp_default_eval_quick","ojp_default_hand_value","ojp_valid_hand_for_game"],"struct":["HandValue"],"type":["HandEvaluatorFull","HandEvaluatorQuick"]};

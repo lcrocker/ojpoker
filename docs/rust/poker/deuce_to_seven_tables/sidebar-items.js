@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"static":["DEUCE_TO_SEVEN_TABLE_1","DEUCE_TO_SEVEN_TABLE_2"]};

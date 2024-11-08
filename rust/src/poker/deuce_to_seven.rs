@@ -1,193 +1,127 @@
-//! [wiki](https://github.com/lcrocker/ojpoker/wiki/HandValueDeuceToSeven) | Deuce-to-seven low poker hands
+//! [wiki](https://github.com/lcrocker/ojpoker/wiki/DeuceToSeven) | Deuce-to-seven "Kansas City" low poker hands
 
 use crate::errors::*;
 use crate::cards::*;
-use crate::poker::hand_value::*;
-use crate::poker::eval_state::*;
+use crate::poker::*;
 
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/HandValueDeuceToSeven) | Representing deuce-to-seven low poker hands.
-/// `HandValue` subclass for deuce-to-seven low hands.
-pub type HandValueDeuceToSeven = HandValue<HandLevelDeuceToSeven>;
+/// Full English name of hand, e.g. "aces and fours with a jack".
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_deuce_to_seven_full_name) | Describe deuce-to-seven low hands
+pub fn ojp_deuce_to_seven_full_name(v: &HandValue) -> String {
+    macro_rules! sng {
+        ($x:literal) => { v.hand[$x as usize].rank().name() }
+    }
+    macro_rules! plr {
+        ($x:literal) => { v.hand[$x as usize].rank().plural() }
+    }
+    macro_rules! art {
+        ($x:literal) => { v.hand[$x as usize].rank().article() }
+    }
 
-impl HandValueDeuceToSeven {
-    /// Create a new `HandValueDeuceToSeven`] object.
-    pub fn new(level: HandLevelDeuceToSeven, ranks: &[Rank]) -> HandValueDeuceToSeven {
-        let ranks = ranks.to_vec();
-        let value = oj_low_hand_value_function(level.index(), &ranks[..]);
-
-        HandValueDeuceToSeven {
-            level,
-            ranks,
-            value,
-        }
+    match HandLevel::from_u8(v.level) {
+        HandLevel::StraightFlush => {
+            if v.hand[0].rank() == Rank::Ace {
+                String::from("royal flush")
+            } else {
+                format!("{}-high straight flush", sng!(0))
+            }
+        },
+        HandLevel::Quads => {
+            format!("four {} with {} {}", plr!(0), art!(4), sng!(4))
+        },
+        HandLevel::FullHouse => {
+            format!("{} full of {}", plr!(0), plr!(3))
+        },
+        HandLevel::Flush => {
+            format!("flush: {}, {}, {}, {}, {}", sng!(0), sng!(1), sng!(2), sng!(3), sng!(4))
+        },
+        HandLevel::Straight => {
+            format!("{}-high straight", sng!(0))
+        },
+        HandLevel::Trips => {
+            format!("three {}, {}, {}", plr!(0), sng!(3), sng!(4))
+        },
+        HandLevel::TwoPair => {
+            format!("{} and {} with {} {}", plr!(0), plr!(2), art!(4), sng!(4))
+        },
+        HandLevel::Pair => {
+            format!("pair of {}, {}, {}, {}", plr!(0), sng!(2), sng!(3), sng!(4))
+        },
+        HandLevel::NoPair => {
+            format!("{}, {}, {}, {}, {}", sng!(0), sng!(1), sng!(2), sng!(3), sng!(4))
+        },
+        _ => String::from("unknown hand"),
     }
 }
 
-impl HandValueTrait for HandValueDeuceToSeven {
-    /// Final numeric comparator
-    fn value(&self) -> u64 { self.value }
-
-    /// Best hand for this game
-    fn best() -> HandValueDeuceToSeven {
-        HandValueDeuceToSeven {
-            level: HandLevelDeuceToSeven::NoPair,
-            ranks: vec![Rank::Seven, Rank::Five, Rank::Four, Rank::Trey, Rank::Deuce],
-            value: 0,
-        }
-    }
-
-    /// Worst hand for this game
-    fn worst() -> HandValueDeuceToSeven {
-        HandValueDeuceToSeven {
-            level: HandLevelDeuceToSeven::StraightFlush,
-            ranks: vec![Rank::Ace, Rank::King, Rank::Queen, Rank::Jack, Rank::Ten],
-            value: 0x7FFFFFFFFFFFFFFF,
-        }
-    }
-
-    /// Full English name of hand, e.g. "aces and fours with a jack".
-    fn full_name(&self) -> String {
-        let r1: Vec<&str> = self.ranks.iter().map(|r| r.name()).collect();
-        let r2: Vec<&str> = self.ranks.iter().map(|r| r.plural()).collect();
-        let r3: Vec<&str> = self.ranks.iter().map(|r| r.article()).collect();
-
-        match self.level {
-            HandLevelDeuceToSeven::StraightFlush => {
-                if self.ranks[0] == Rank::Ace {
-                    String::from("royal flush")
-                } else {
-                    format!("{}-high straight flush", r1[0])
-                }
-            },
-            HandLevelDeuceToSeven::Quads => {
-                format!("four {} with {} {}", r2[0], r3[4], r1[4])
-            },
-            HandLevelDeuceToSeven::FullHouse => {
-                format!("{} full of {}", r2[0], r2[3])
-            },
-            HandLevelDeuceToSeven::Flush => {
-                format!("flush: {}, {}, {}, {}, {}", r1[0], r1[1], r1[2], r1[3], r1[4])
-            },
-            HandLevelDeuceToSeven::Straight => {
-                format!("{}-high straight", r1[0])
-            },
-            HandLevelDeuceToSeven::Trips => {
-                format!("three {}, {}, {}", r2[0], r1[3], r1[4])
-            },
-            HandLevelDeuceToSeven::TwoPair => {
-                format!("{} and {} with {} {}", r2[0], r2[2], r3[4], r1[4])
-            },
-            HandLevelDeuceToSeven::Pair => {
-                format!("pair of {}, {}, {}, {}", r2[0], r1[2], r1[3], r1[4])
-            },
-            HandLevelDeuceToSeven::NoPair => {
-                format!("{}, {}, {}, {}, {}", r1[0], r1[1], r1[2], r1[3], r1[4])
-            },
-        }
-    }
-
-    fn ordered_for_display(&self, h: &Hand) -> Result<Hand, OjError> {
-        oj_default_ordered_for_display(h, &self.ranks[..])
-    }
+fn curried_evaluator_full(h: &Hand) -> Result<HandValue, OjError> {
+    ojp_default_eval_full(h, HandScale::DeuceToSeven)
 }
 
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/HandEvaluatorDeuceToSeven) | Traditional "DeuceToSeven" poker hand evaluator
-/// Data for DeuceToSeven-hand evaluator
-#[allow(dead_code)] // TODO
-pub struct HandEvaluatorDeuceToSeven {
+fn curried_evaluator_quick(h: &Hand) -> u32 {
+    ojp_default_eval_quick(h, HandScale::DeuceToSeven)
 }
 
-impl HandEvaluatorDeuceToSeven {
-    /// Create a new `HandEvaluatorDeuceToSeven` object.
-    pub fn new() -> HandEvaluatorDeuceToSeven {
-        HandEvaluatorDeuceToSeven {
+cfg_if::cfg_if! {
+    if #[cfg(feature = "deuce-to-seven-tables")] {
+        use crate::poker::deuce_to_seven_tables::*;
+
+        /// Quick lookup table evaluator
+        fn lookup_deuce_to_seven(h: &Hand) -> u32 {
+            let h = ojh_mp5_english(ojh_bitfield_64co(h.as_slice()).
+                expect("should have been checked by this time"));
+            DEUCE_TO_SEVEN_TABLE_1[h as usize] as u32
+        }
+
+        /// Full high poker hand evaluator
+        /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_deuce_to_seven_eval_full) | Deuce-to-seven full evaluator
+        pub fn ojp_deuce_to_seven_eval_full(h: &Hand) -> Result<HandValue, OjError> {
+            if h.len() < 5 {
+                return curried_evaluator_full(h);
+            }
+            let ec = if 5 == h.len() {
+                lookup_deuce_to_seven(h)
+            } else {
+                ojp_best_value_of(h, HandScale::DeuceToSeven, lookup_deuce_to_seven)
+            };
+            let vv = DEUCE_TO_SEVEN_TABLE_2[ec as usize];
+            let mut v = HandValue::new_with_value(*h, HandScale::DeuceToSeven,
+                vv.0, ec as u32);
+            v.order_for_display(&vv.1);
+            Ok(v)
+        }
+
+        /// Value-only high poker hand evaluator
+        /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_deuce_to_seven_eval_quick) | Deuce-to-seven quick evaluator
+        pub fn ojp_deuce_to_seven_eval_quick(h: &Hand) -> u32 {
+            if 5 == h.len(){
+                return lookup_deuce_to_seven(h)
+            }
+            if h.len() < 5 {
+                return curried_evaluator_quick(h);
+            }
+            ojp_best_value_of(h, HandScale::DeuceToSeven, lookup_deuce_to_seven)
+        }
+    } else {
+        /// Full high poker hand evaluator
+        /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_deuce_to_seven_eval_full) | Deuce-to-seven full evaluator
+        pub fn ojp_deuce_to_seven_eval_full(h: &Hand) -> Result<HandValue, OjError> {
+            if h.len() > 5 {
+                return ojp_best_of(h, HandScale::DeuceToSeven,
+                    curried_evaluator_full);
+            }
+            curried_evaluator_full(h)
+        }
+
+        /// Value-only high poker hand evaluator
+        /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_deuce_to_seven_eval_quick) | Deuce-to-seven quick evaluator
+        pub fn ojp_deuce_to_seven_eval_quick(h: &Hand) -> u32 {
+            if h.len() > 5 {
+                return ojp_best_value_of(h, HandScale::DeuceToSeven,
+                    curried_evaluator_quick);
+            }
+            curried_evaluator_quick(h)
         }
     }
-}
-
-impl HandEvaluatorTrait<HandValueDeuceToSeven> for HandEvaluatorDeuceToSeven {
-    /// Evaluate traditional DeuceToSeven poker hands.
-    fn reference_evaluator(&self, hand: &Hand) -> Result<HandValueDeuceToSeven, OjError> {
-        assert!(all_valid_cards(hand) > 0);
-        assert!(all_valid_cards(hand) <= Self::COMPLETE_HAND);
-        let mut st = EvaluatorState::new(hand);
-
-        st.check_flush();
-        st.wheel_is_straight = false;
-        st.check_straight();
-        
-        if st.straight == Some(true) && st.flush == Some(true) {
-            return Ok(HandValueDeuceToSeven::new(
-                HandLevelDeuceToSeven::StraightFlush, &st.ranks[..]))
-        }
-
-        if st.flush == Some(true) {
-            debug_assert!(st.straight == Some(false));
-            return Ok(HandValueDeuceToSeven::new(
-                HandLevelDeuceToSeven::Flush, &st.ranks[..]));
-        }
-
-        if st.straight == Some(true) {
-            debug_assert!(st.flush == Some(false));
-            return Ok(HandValueDeuceToSeven::new(
-                HandLevelDeuceToSeven::Straight, &st.ranks[..]));
-        }
-        st.check_quads();
-
-        if st.quads == Some(true) {
-            return Ok(HandValueDeuceToSeven::new(
-                HandLevelDeuceToSeven::Quads, &st.ranks[..]));
-        }
-        st.check_full_house();
-
-        if st.full_house == Some(true) {
-            return Ok(HandValueDeuceToSeven::new(
-                HandLevelDeuceToSeven::FullHouse, &st.ranks[..]));
-        }
-        st.check_trips();
-
-        if st.trips == Some(true) {
-            return Ok(HandValueDeuceToSeven::new(
-                HandLevelDeuceToSeven::Trips, &st.ranks[..]));
-        }
-        st.check_two_pair();
-
-        if st.two_pair == Some(true) {
-            return Ok(HandValueDeuceToSeven::new(
-                HandLevelDeuceToSeven::TwoPair, &st.ranks[..]));
-        }
-        st.check_one_pair();
-
-        if st.pair == Some(true) {
-            return Ok(HandValueDeuceToSeven::new(
-                HandLevelDeuceToSeven::Pair, &st.ranks[..]));
-        }
-        debug_assert!(st.all_checks_complete());
-        debug_assert!(st.verify_no_pair());
-
-        Ok(HandValueDeuceToSeven::new(
-            HandLevelDeuceToSeven::NoPair, &st.ranks[..]))
-    }
-}
-
-impl Default for HandEvaluatorDeuceToSeven {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-fn all_valid_cards(hand: &Hand) -> usize {
-    let mut count = 0;
-
-    for c in hand {
-        if c.suit() == Suit::None { return 0; }
-        let r = c.rank();
-        if r == Rank::None || r == Rank::LowAce || r == Rank::Knight {
-            return 0;
-        }
-        count += 1;
-    }
-    count
 }
 
 /*
@@ -200,124 +134,106 @@ mod tests {
 
     #[test]
     fn test_hand_evaluator_deuce_to_seven() -> Result<(), OjError> {
-        let eval = HandEvaluatorDeuceToSeven::new();
-        let deck = Deck::new("poker");
+        let deck = Deck::new_by_name("poker");
         let mut hand= deck.new_hand();
-        let mut best: u64 = 0x7FFFFFFFFFFFFFFF;
+        let mut best: u32 = 0xFFFFFFFF;
 
-        hand.push_n(parse_cards("8cJc9c7cTc"));
-        let mut v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelDeuceToSeven::StraightFlush);
+        hand.set(cards!("8c","Jc","9c","7c","Tc"));
+        let mut v1 = ojp_deuce_to_seven_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::StraightFlush as u8);
 
-        hand.clear();
-        hand.push_n(parse_cards("Td7d8d9dJd"));
-        let mut v2 = eval.value_of(&hand)?;
+        hand.set(cards!("Td","7d","8d","9d","Jd"));
+        let mut v2 = ojp_deuce_to_seven_eval_full(&hand)?;
         assert_eq!(v1, v2);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.clear();
-        hand.push_n(parse_cards("4cJc4s4d4h"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelDeuceToSeven::Quads);
+        hand.set(cards!("4c","Jc","4s","4d","4h"));
+        v1 = ojp_deuce_to_seven_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::Quads as u8);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.clear();
-        hand.push_n(parse_cards("KcKd8d8cKh"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelDeuceToSeven::FullHouse);
+        hand.set(cards!("Kc","Kd","8d","8c","Kh"));
+        v1 = ojp_deuce_to_seven_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::FullHouse as u8);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.clear();
-        hand.push_n(parse_cards("8c8hKc8dKs"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelDeuceToSeven::FullHouse);
+        hand.set(cards!("8c","8h","Kc","8d","Ks"));
+        v1 = ojp_deuce_to_seven_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::FullHouse as u8);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.clear();
-        hand.push_n(parse_cards("4sAs5s3s2s"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelDeuceToSeven::Flush);
+        hand.set(cards!("4s","As","5s","3s","2s"));
+        v1 = ojp_deuce_to_seven_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::Flush as u8);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.clear();
-        hand.push_n(parse_cards("5hTh7h4hJh"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelDeuceToSeven::Flush);
+        hand.set(cards!("5h","Th","7h","4h","Jh"));
+        v1 = ojp_deuce_to_seven_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::Flush as u8);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.clear();
-        hand.push_n(parse_cards("QdKhAcJcTd"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelDeuceToSeven::Straight);
+        hand.set(cards!("Qd","Kh","Ac","Jc","Td"));
+        v1 = ojp_deuce_to_seven_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::Straight as u8);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.clear();
-        hand.push_n(parse_cards("7d9s8dTsJh"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelDeuceToSeven::Straight);
+        hand.set(cards!("7d","9s","8d","Ts","Jh"));
+        v1 = ojp_deuce_to_seven_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::Straight as u8);
 
-        hand.clear();
-        hand.push_n(parse_cards("9h7dTsJc8h"));
-        v2 = eval.value_of(&hand)?;
+        hand.set(cards!("9h","7d","Ts","Jc","8h"));
+        v2 = ojp_deuce_to_seven_eval_full(&hand)?;
         assert_eq!(v1, v2);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.clear();
-        hand.push_n(parse_cards("2h5s2c2d9c"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelDeuceToSeven::Trips);
+        hand.set(cards!("2h","5s","2c","2d","9c"));
+        v1 = ojp_deuce_to_seven_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::Trips as u8);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.clear();
-        hand.push_n(parse_cards("5sTsKsTd5c"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelDeuceToSeven::TwoPair);
+        hand.set(cards!("5s","Ts","Ks","Td","5c"));
+        v1 = ojp_deuce_to_seven_eval_full(&hand)?;
+        assert_eq!(HandLevel::from_u8(v1.level), HandLevel::TwoPair);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.clear();
-        hand.push_n(parse_cards("3h2s9c3s8h"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelDeuceToSeven::Pair);
+        hand.set(cards!("3h","2s","9c","3s","8h"));
+        v1 = ojp_deuce_to_seven_eval_full(&hand)?;
+        assert_eq!(HandLevel::from_u8(v1.level), HandLevel::Pair);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.clear();
-        hand.push_n(parse_cards("2dAh5s3s4s"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelDeuceToSeven::NoPair);
+        hand.set(cards!("2d","Ah","5s","3s","4s"));
+        v1 = ojp_deuce_to_seven_eval_full(&hand)?;
+        assert_eq!(HandLevel::from_u8(v1.level), HandLevel::NoPair);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.clear();
-        hand.push_n(parse_cards("8d3d4cKcTh"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelDeuceToSeven::NoPair);
+        hand.set(cards!("8d","3d","4c","Kc","Th"));
+        v1 = ojp_deuce_to_seven_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::NoPair as u8);
 
-        hand.clear();
-        hand.push_n(parse_cards("4c8sKsTd3h"));
-        v2 = eval.value_of(&hand)?;
+        hand.set(cards!("4c","8s","Ks","Td","3h"));
+        v2 = ojp_deuce_to_seven_eval_full(&hand)?;
         assert_eq!(v1, v2);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.clear();
-        hand.push_n(parse_cards("5h2s3h7s4h"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelDeuceToSeven::NoPair);
+        hand.set(cards!("5h","2s","3h","7s","4h"));
+        v1 = ojp_deuce_to_seven_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::NoPair as u8);
 
-        hand.clear();
-        hand.push_n(parse_cards("3s4h7d2d5d"));
-        v2 = eval.value_of(&hand)?;
+        hand.set(cards!("3s","4h","7d","2d","5d"));
+        v2 = ojp_deuce_to_seven_eval_full(&hand)?;
         assert_eq!(v1, v2);
         assert!(v1.value < best);
 

@@ -6,29 +6,44 @@ edition = "2021"
 
 [profile.release]
 codegen-units = 1
+opt-level = 3
 debug = 1
+debug-assertions = false
+overflow-checks = false
 lto = "fat"
 panic = "abort"
 
 [profile.dev]
+opt-level = 0
+debug = 2
+debug-assertions = true
+overflow-checks = true
 strip = false
 panic = "unwind"
 split-debuginfo = "unpacked"
 
-[build]
-rustflags = [ "-Clink-arg=-fuse-ld=lld", "-Ctarget-cpu=native" ]
-
 [dependencies]
+cfg-if = "1.0.0"
 json5 = "0.4.1"
+paste = "1.0.15"
 serde = { version = "1.0.214", features = ["derive"] }
+static_assertions = "1.1.0"
 
 [[bin]]
-name = "bth"
-path = "src/bin/bth.rs"
+name = "bt"
+path = "src/bin/bt.rs"
 doc = false
 
 [[bin]]
-name = "primes"
-path = "src/bin/primes.rs"
+name = "btl"
+path = "src/bin/btl.rs"
 doc = false
+
+[features]
+default = []
+high-hand-tables = []
+ace-to-five-tables = []
+deuce-to-seven-tables = []
+ace-to-six-tables = []
+badugi-tables = []
 

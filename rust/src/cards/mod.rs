@@ -6,6 +6,7 @@ pub use suit::*;
 pub mod rank;
 pub use rank::*;
 
+#[macro_use]
 pub mod card;
 pub use card::*;
 
@@ -15,11 +16,12 @@ pub use card_parse::*;
 pub mod hashes;
 pub use hashes::*;
 
-pub mod master_deck;
-pub use master_deck::*;
+pub mod deck_type;
+pub use deck_type::*;
+
+pub mod deck;
+pub use deck::*;
 
 pub mod hand;
 pub use hand::*;
 
-pub mod deck;
-pub use deck::*;

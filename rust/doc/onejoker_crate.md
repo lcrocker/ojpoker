@@ -14,15 +14,15 @@ Licensed <https://creativecommons.org/publicdomain/zero/1.0/>
 use onejoker::*;
 
 fn main() -> Result<(), OjError> {
-    let mut d = Deck::new("poker").shuffled();
+    let mut d = Deck::new(DeckType::English).shuffled();
     let h1 = d.new_hand().init(d.draw(5));
     let h2 = d.new_hand().init(d.draw(5));
 
     println!("Player 1: [{}], Player 2: [{}]", h1, h2);
 
-    let high = HandEvaluatorHigh::new();
-    let v1 = high.value_of(&h1)?;
-    let v2 = high.value_of(&h2)?;
+    let eval = HandScale::by_name("poker").eval_full();
+    let v1 = eval(&h1)?;
+    let v2 = eval(&h2)?;
 
     if v1 < v2 {
         println!("Player 1 wins with [{}]", v1.full_name());

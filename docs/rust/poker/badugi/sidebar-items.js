@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["HandEvaluatorBadugi"],"type":["HandValueBadugi"]};
+window.SIDEBAR_ITEMS = {"fn":["ojp_badugi_eval_full","ojp_badugi_eval_quick","ojp_badugi_full_name"]};

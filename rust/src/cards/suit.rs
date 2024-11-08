@@ -9,12 +9,12 @@
 
 use crate::errors::*;
 
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Suit) | Simple integer enum.
-/// Specific numbers do matter: I do a lot of math with
-/// them to optimize things, and the same numbers are used in the other
-/// languages in the project.
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Suit) | A simple numeric enum for card suits.
+/// Specific numbers do matter: I do a lot of math with them to optimize
+/// things, and the same numbers are used in the other languages.
 
 #[allow(dead_code)]
+#[repr(u8)]
 #[derive(PartialEq, PartialOrd, Eq, Ord, Clone, Copy, Debug, Hash)]
 pub enum Suit {
     /// Joker, etc.
@@ -38,8 +38,8 @@ const PLURALS: [&str; 5] = [ "?", "clubs", "diamonds", "hearts", "spades" ];
 
 impl Suit {
     /// Convert integer to suit.
-    pub const fn from_i32(v: i32) -> Suit {
-        if v < 0 || v > 4 { return Suit::None; }
+    pub const fn from_u8(v: u8) -> Suit {
+        if v > 4 { return Suit::None; }
         SUITS[v as usize]
     }
 
@@ -84,33 +84,15 @@ impl Suit {
     pub const fn article(&self) -> &str { "a" }
 }
 
+impl std::convert::From<u32> for Suit {
+    fn from(v: u32) -> Suit {
+        Suit::from_u8(v as u8)
+    }
+}
+
 impl std::fmt::Display for Suit {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
-    }
-}
-
-impl std::convert::From<i32> for Suit {
-    fn from(v: i32) -> Suit {
-        Suit::from_i32(v)
-    }
-}
-
-impl std::convert::From<Suit> for i32 {
-    fn from(s: Suit) -> i32 {
-        s as i32
-    }
-}
-
-impl std::convert::From<char> for Suit {
-    fn from(c: char) -> Suit {
-        Suit::from_char(c)
-    }
-}
-
-impl std::convert::From<Suit> for char {
-    fn from(s: Suit) -> char {
-        s.to_char()
     }
 }
 

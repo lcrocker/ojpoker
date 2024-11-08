@@ -5,12 +5,13 @@ use std::time::SystemTime;
 
 static SEED: OnceLock<Mutex<[u32; 4]>> = OnceLock::new();
 
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Rand) | A simple xoshiro128++ PRNG
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/PRNG) | A simple xoshiro128++ PRNG
 /// I know, I know, first rule of PRNG club is don't roll your own,
 /// just use the library.
 /// But I'm pretty sure I'm one of the few people who understands this stuff
 /// well enough to bend that rule a bit, and I just don't like the standard
 /// library of either Dart or Rust for this application.
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/oj_rand_next32) | Get next 32 random bitsp
 pub fn oj_rand_next32() -> u32 {
     let mut s = SEED.get_or_init(|| {
         let _seed = SystemTime::now().
@@ -37,7 +38,7 @@ pub fn oj_rand_next32() -> u32 {
     result
 }
 
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Range_Uniform) | Random integer within range
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/oj_rand_range) | Random integer within range
 /// Return a random integer uniformly distributed in range [0, limit)
 /// with no division, using rejection sampling. The mask `m` is created
 /// to minimize rejections, which will be at worst 50%.
@@ -59,8 +60,7 @@ pub fn oj_rand_range(limit: usize) -> usize {
     0
 }
 
-/// # [wiki](https://github.com/lcrocker/ojpoker/wiki/Shuffle) | Standard Fisher-Yates shuffle
-/// Standard shuffle using our own PRNG.
+/// # [wiki](https://github.com/lcrocker/ojpoker/wiki/oj_shuffle) | Standard Fisher-Yates shuffle
 pub fn oj_shuffle<T>(a: &mut [T]) {
     if a.len() < 2 { return; }
 
@@ -98,7 +98,7 @@ macro_rules! compare_and_swap {
     }
 }
 
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Sort) | Slightly specialized heapsort
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/oj_sort) | Slightly specialized heapsort
 /// Heapsort optimized for small sets like poker hands, and in descending order which is
 /// most useful for ranking and displaying poker hands.
 pub fn oj_sort<T: PartialOrd>(a: &mut [T]) {
@@ -142,22 +142,7 @@ pub fn oj_sort<T: PartialOrd>(a: &mut [T]) {
     }
 }
 
-// pub fn oj_next_combination(a: &mut [usize], n: usize) -> bool {
-//     let k = a.len();
-
-//     for i in (0..k).rev() {
-//         if a[i] < n - k + i + 1 {
-//             a[i] += 1;
-//             for j in (i + 1)..k {
-//                 a[j] = a[j - 1] + 1;
-//             }
-//             return true;
-//         }
-//     }
-//     false
-// }
-
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Next_Combination) | Iterate over combinations
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/oj_next_combination) | Iterate over combinations
 /// Given an array of indices into a larger array, increment the 0-based
 /// indices to the next k-combination, returning true when done.
 pub fn oj_next_combination(a: &mut [usize], n: usize) -> bool {
@@ -179,7 +164,7 @@ pub fn oj_next_combination(a: &mut [usize], n: usize) -> bool {
     false
 }
 
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Binomial) | Calculate binomial coefficient
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/oj_binomial) | Calculate binomial coefficient
 /// Calculate the binomial coefficient "n choose k" using a lookup table.
 /// Is only valid for n, k in the range 0..=63.
 #[inline(always)]
@@ -216,7 +201,7 @@ mod tests {
     use crate::errors::*;
 
     #[test]
-    fn text_rand_range() -> Result<(), OjError> {
+    fn test_rand_range() -> Result<(), OjError> {
         let mut array = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19];
         let mut counts = [0; 20];
 

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"static":["HIGH_HAND_TABLE_1","HIGH_HAND_TABLE_2"]};

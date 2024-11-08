@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["HandEvaluatorHigh"],"type":["HandValueHigh"]};
+window.SIDEBAR_ITEMS = {"fn":["ojp_high_eval_full","ojp_high_eval_quick","ojp_high_full_name"]};

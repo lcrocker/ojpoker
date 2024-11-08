@@ -5,7 +5,6 @@
  * @brief Remove old generated files and build everything from scratch.
  */
 
-import { buildMasterDeckAll } from "./data/build_master_deck_code.ts";
 import { buildDocsAll } from "./build_docs_all.ts";
 
 let SCRIPT_DIR: string | undefined = undefined;
@@ -27,16 +26,7 @@ function rm(fname: string): Promise<void> {
     });
 }
 
-function deleteAll() {
-    const promises = [];
-
-    promises.push(rm(`${sdir()}/dart/lib/master_deck.dart`));
-    promises.push(rm(`${sdir()}/rust/src/cards/master_deck.rs`));
-    return Promise.all(promises);
-}
-
 if (import.meta.main) {
-    await deleteAll();
-    await buildMasterDeckAll();
     await buildDocsAll();
 }
+

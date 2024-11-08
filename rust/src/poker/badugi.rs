@@ -1,202 +1,311 @@
-//! [wiki](https://github.com/lcrocker/ojpoker/wiki/HandValueBadugi) | Badugi hand values
+//! [wiki](https://github.com/lcrocker/ojpoker/wiki/Badugi) | Badugi hand values
 
-use crate::utils::*;
 use crate::errors::*;
+use crate::utils::*;
 use crate::cards::*;
-use crate::poker::hand_value::*;
+use crate::poker::*;
 
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/HandValueBadugi) | Badugi hand values
-pub type HandValueBadugi = HandValue<HandLevelBadugi>;
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_badugi_full_name) | Describe Badugi hands
+pub fn ojp_badugi_full_name(v: &HandValue) -> String {
+    macro_rules! sng {
+        ($x:literal) => { v.hand[$x as usize].rank().name() }
+    }
 
-impl HandValueBadugi {
-    /// Create a new `HandValueBadugi` object.
-    pub fn new(level: HandLevelBadugi, ranks: &[Rank], value: u64) -> HandValueBadugi {
-        HandValueBadugi {
-            level,
-            ranks: ranks.to_vec(),
-            value,
-        }
+    match HandLevel::from_u8(v.level) {
+        HandLevel::FourCard => {
+            if Rank::Four == v.hand[0].rank() {
+                String::from("perfect badugi")
+            } else {
+                format!("four-card {}, {}, {}, {}", sng!(0), sng!(1), sng!(2), sng!(3))
+            }
+        },
+        HandLevel::ThreeCard => {
+            format!("three-card {}, {}, {}", sng!(0), sng!(1), sng!(2))
+        },
+        HandLevel::TwoCard => {
+            format!("two-card {}, {}", sng!(0), sng!(1))
+        },
+        HandLevel::OneCard => {
+            format!("one-card {}", sng!(0))
+        },
+        _ => String::from("unknown hand"),
     }
 }
 
-impl HandValueTrait for HandValueBadugi {
-    /// Final numeric comparator
-    fn value(&self) -> u64 { self.value }
+// Return 0xFFFFFFFF if not a badugi, or the 32-bit hand value
+fn badugi_value(cards: &[Card]) -> u32 {
+    let mut suits: u32 = 0;
+    let mut ranks: u32 = 0;
 
-    /// Best hand for this game
-    fn best() -> HandValueBadugi {
-        HandValueBadugi {
-            level: HandLevelBadugi::FourCard,
-            ranks: vec![Rank::Four, Rank::Trey, Rank::Deuce, Rank::LowAce],
-            value: 0,
-        }
-    }
-
-    /// Worst hand for this game
-    fn worst() -> HandValueBadugi {
-        HandValueBadugi {
-            level: HandLevelBadugi::OneCard,
-            ranks: vec![Rank::King],
-            value: 0x7FFFFFFFFFFFFFFF,
-        }
-    }
-
-    /// Full English name of hand, e.g. "aces and fours with a jack".
-    fn full_name(&self) -> String {
-        let r1: Vec<&str> = self.ranks.iter().map(|r| r.name()).collect();
-
-        match self.level {
-            HandLevelBadugi::FourCard => {
-                if self.ranks[0] == Rank::Four {
-                    format!("perfect badugi")
-                } else {
-                    format!("four-card {}, {}, {}, {}", r1[0], r1[1], r1[2], r1[3])
-                }
-            },
-            HandLevelBadugi::ThreeCard => {
-                format!("three-card {}, {}, {}", r1[0], r1[1], r1[2])
-            },
-            HandLevelBadugi::TwoCard => {
-                format!("two-card {}, {}", r1[0], r1[1])
-            },
-            HandLevelBadugi::OneCard => {
-                format!("one-card {}", r1[0])
-            },
-        }
-    }
-
-    fn ordered_for_display(&self, h: &Hand) -> Result<Hand, OjError> {
-        oj_default_ordered_for_display(h, &self.ranks[..])
-    }
-}
-
-fn badugi_rank_value(cards: &[Card]) -> (u64, Vec<Rank>) {
-    let mut ranks: Vec<Rank> = cards.iter().map(|c| c.rank()).collect();
-    oj_sort(&mut ranks[..]);
-    let value: u64 =
-        oj_low_hand_value_function(5 - cards.len() as u32, &ranks);
-    (value, ranks)
-}
-
-fn is_badugi(cards: &[Card]) -> bool {
-    let mut rank_set: u32 = 0;
-    let mut suit_set: u32 = 0;
-
+    let mut v: u32 = 0;
     for c in cards {
-        let r = c.rank() as u32;
-        if 0 == r {
-            return false;
-        }
-        let p_set = rank_set;
-        rank_set |= 1 << r;
-        if p_set == rank_set {
-            return false;
-        }
-
         let s = c.suit() as u32;
-        if 0 == s {
-            return false;
+        let r = c.rank() as u32;
+
+        if 0 != (suits & (1 << s)) || 0 != (ranks & (1 << r)) {
+            return 0xFFFFFFFF;
         }
-        let p_set = suit_set;
-        suit_set |= 1 << s;
-        if p_set == suit_set {
-            return false;
-        }
+        suits |= 1 << s;
+        ranks |= 1 << r;
+
+        v <<= 4;
+        v += c.rank() as u32;
     }
-    true
+    v + (4 - cards.len() as u32) * HandScale::Badugi.multiplier()
 }
 
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/HandEvaluatorBadugi) | Badugi evaluator
-#[allow(dead_code)] // TODO
-pub struct HandEvaluatorBadugi;
-
-impl HandEvaluatorBadugi {
-    /// Create a new `HandEvaluatorBadugi` object.
-    pub fn new() -> HandEvaluatorBadugi {
-        HandEvaluatorBadugi {
-        }
-    }
+enum BadugiEvaluatorState {
+    Initial,
+    NotFour,
+    NotThree,
+    NotTwo
 }
 
-impl HandEvaluatorTrait<HandValueBadugi> for HandEvaluatorBadugi {
-    const COMPLETE_HAND: usize = 4;
+fn badugi_evaluator_full(hand: &Hand)
+->  Result<HandValue, OjError> {
+    const G: HandScale = HandScale::Badugi;
+    debug_assert!(ojp_valid_hand_for_game(hand, G));
 
-    /// Evaluate traditional high poker hands.
-    fn reference_evaluator(&self, hand: &Hand) -> Result<HandValueBadugi, OjError> {
-        assert!(all_valid_cards(hand) > 0);
-        assert!(all_valid_cards(hand) <= Self::COMPLETE_HAND);
-        let h4 = hand.clone();
+    let mut h = *hand;
+    oj_sort(h.as_mut_slice());
+    let mut state = BadugiEvaluatorState::Initial;
 
-        if hand.len() == 4 && is_badugi(hand.as_slice()) {
-            let (v, ranks) = badugi_rank_value(h4.as_slice());
-            return Ok(HandValueBadugi::new(
-                HandLevelBadugi::FourCard, &ranks[..], v));
-        }
-        let mut best_value: u64 = 0x7FFFFFFFFFFFFFFF;
-        let mut best_ranks: Vec<Rank> = Vec::new();
+    loop {
+        match state {
+            BadugiEvaluatorState::Initial => {
+                if h.len() < 4 {
+                    state = BadugiEvaluatorState::NotFour;
+                    continue;
+                }
+                let v= badugi_value(h.as_slice());
+                if 0xFFFFFFFF == v {
+                    state = BadugiEvaluatorState::NotFour;
+                    continue;
+                }
+                return Ok(HandValue::new_with_value(h, G,
+                    HandLevel::FourCard, v));
+            },
+            BadugiEvaluatorState::NotFour => {
+                if h.len() < 3 {
+                    state = BadugiEvaluatorState::NotThree;
+                    continue;
+                }
+                let mut best_hand: Hand = G.worst().hand;
+                let mut best_value = 0xFFFFFFFF;
+                let mut v: u32;
 
-        if hand.len() >= 3 {
-            for h3 in hand.combinations(3) {
-                if is_badugi(h3.as_slice()) {
-                    let (v, ranks) = badugi_rank_value(h3.as_slice());
+                for h3 in h.combinations(3) {
+                    v = badugi_value(h3.as_slice());
                     if v < best_value {
                         best_value = v;
-                        best_ranks = ranks;
+                        best_hand = h3;
                     }
                 }
-            }
-        }
-        if best_value != 0x7FFFFFFFFFFFFFFF {
-            return Ok(HandValueBadugi::new(
-                HandLevelBadugi::ThreeCard, &best_ranks[..], best_value));
-        }
+                if 0xFFFFFFFF == best_value {
+                    state = BadugiEvaluatorState::NotThree;
+                    continue;
+                }
+                for i in 0..3 {
+                    let j = h.index_of(best_hand[i]);
+                    if let Some(j) = j {
+                        if i != j {
+                            h.cards.swap(i, j);
+                        }
+                    }
+                }
+                h.truncate(3);
+                return Ok(HandValue::new_with_value(h, G,
+                    HandLevel::ThreeCard, best_value));
+            },
+            BadugiEvaluatorState::NotThree => {
+                if h.len() < 2 {
+                    state = BadugiEvaluatorState::NotTwo;
+                    continue;
+                }
+                let mut best_hand: Hand = G.worst().hand;
+                let mut best_value = 0xFFFFFFFF;
+                let mut v: u32;
 
-        if hand.len() >= 2 {
-            for h2 in hand.combinations(2) {
-                if is_badugi(h2.as_slice()) {
-                    let (v, ranks) = badugi_rank_value(h2.as_slice());
+                for h2 in h.combinations(2) {
+                    v = badugi_value(h2.as_slice());
                     if v < best_value {
                         best_value = v;
-                        best_ranks = ranks;
+                        best_hand = h2;
                     }
                 }
-            }
-        }
-        if best_value != 0x7FFFFFFFFFFFFFFF {
-            return Ok(HandValueBadugi::new(
-                HandLevelBadugi::TwoCard, &best_ranks[..], best_value));
-        }
+                if 0xFFFFFFFF == best_value {
+                    state = BadugiEvaluatorState::NotTwo;
+                    continue;
+                }
+                for i in 0..2 {
+                    let j = h.index_of(best_hand[i]);
+                    if let Some(j) = j {
+                        if i != j {
+                            h.cards.swap(i, j);
+                        }
+                    }
+                }
+                h.truncate(2);
+                return Ok(HandValue::new_with_value(h, G,
+                HandLevel::TwoCard, best_value));
+            },
+            BadugiEvaluatorState::NotTwo => {
+                let mut least = 0;
 
-        let mut least_card= hand[0];
-        for i in 1..hand.len() {
-            if hand[i] < least_card {
-                least_card = hand[i];
+                for i in 1..h.len() {
+                    if h[i].rank() < h[least].rank() {
+                        least = i;
+                    }
+                }
+                if 0 != least {
+                    h.cards.swap(0, least);
+                }
+                h.truncate(1);
+                return Ok(HandValue::new_with_value(h, G,
+                    HandLevel::OneCard,
+                    3 * G.multiplier() + h[0].rank() as u32));
             }
         }
-        return Ok(HandValueBadugi::new(
-            HandLevelBadugi::OneCard, &[least_card.rank()],
-            40000000 + least_card.rank() as u64));
     }
 }
 
-impl Default for HandEvaluatorBadugi {
-    fn default() -> Self {
-        Self::new()
+fn badugi_evaluator_quick(hand: &Hand) -> u32 {
+    const G: HandScale = HandScale::Badugi;
+    debug_assert!(ojp_valid_hand_for_game(hand, G));
+
+    let mut h = *hand;
+    oj_sort(h.as_mut_slice());
+    let mut state = BadugiEvaluatorState::Initial;
+
+    loop {
+        match state {
+            BadugiEvaluatorState::Initial => {
+                if h.len() < 4 {
+                    state = BadugiEvaluatorState::NotFour;
+                    continue;
+                }
+                let v= badugi_value(h.as_slice());
+                if 0xFFFFFFFF == v {
+                    state = BadugiEvaluatorState::NotFour;
+                    continue;
+                }
+                return v;
+            },
+            BadugiEvaluatorState::NotFour => {
+                if h.len() < 3 {
+                    state = BadugiEvaluatorState::NotThree;
+                    continue;
+                }
+                let mut best_value = 0xFFFFFFFF;
+                let mut v: u32;
+
+                for h3 in h.combinations(3) {
+                    v = badugi_value(h3.as_slice());
+                    if v < best_value {
+                        best_value = v;
+                    }
+                }
+                if 0xFFFFFFFF == best_value {
+                    state = BadugiEvaluatorState::NotThree;
+                    continue;
+                }
+                return best_value;
+            },
+            BadugiEvaluatorState::NotThree => {
+                if h.len() < 2 {
+                    state = BadugiEvaluatorState::NotTwo;
+                    continue;
+                }
+                let mut best_value = 0xFFFFFFFF;
+                let mut v: u32;
+
+                for h2 in h.combinations(2) {
+                    v = badugi_value(h2.as_slice());
+                    if v < best_value {
+                        best_value = v;
+                    }
+                }
+                if 0xFFFFFFFF == best_value {
+                    state = BadugiEvaluatorState::NotTwo;
+                    continue;
+                }
+                return best_value;
+            },
+            BadugiEvaluatorState::NotTwo => {
+                let mut least = 0;
+
+                for i in 1..h.len() {
+                    if h[i].rank() < h[least].rank() {
+                        least = i;
+                    }
+                }
+                return 3 * G.multiplier() + h[least].rank() as u32;
+            }
+        }
     }
 }
 
-fn all_valid_cards(hand: &Hand) -> usize {
-    let mut count = 0;
+cfg_if::cfg_if! {
+    if #[cfg(feature = "badugi-tables")] {
+        use crate::poker::badugi_tables::*;
 
-    for c in hand {
-        if c.suit() == Suit::None { return 0; }
-        let r = c.rank();
-        if r == Rank::None || r == Rank::Ace || r == Rank::Knight {
-            return 0;
+        /// Quick lookup table evaluator
+        fn lookup_badugi(h: &Hand) -> u32 {
+            let hash = ojh_mp4_low(ojh_bitfield_64co(h.as_slice()).
+            expect("should have been checked by this time"));
+            BADUGI_TABLE_1[hash as usize] as u32
         }
-        count += 1;
+
+        /// Full ace-to-five poker hand evaluator
+        /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_badugi_eval_full) | Full Badugi hand evaluator
+        pub fn ojp_badugi_eval_full(h: &Hand) -> Result<HandValue, OjError> {
+            if h.len() < 4 {
+                return badugi_evaluator_full(h);
+            }
+            let ec = if 4 == h.len() {
+                lookup_badugi(h)
+            } else {
+                ojp_best_value_of(h, HandScale::Badugi, lookup_badugi)
+            };
+            let vv = BADUGI_TABLE_2[ec as usize];
+            let mut v = HandValue::new_with_value(*h, HandScale::Badugi,
+                vv.0, ec as u32);
+            v.order_for_display(&vv.1);
+            Ok(v)
+        }
+
+        /// Value-only high poker hand evaluator
+        /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_badugi_eval_quick) | Quick Badugi hand evaluator
+        pub fn ojp_badugi_eval_quick(h: &Hand) -> u32 {
+            if 4 == h.len(){
+                return lookup_badugi(h);
+            }
+            if h.len() < 4 {
+                return badugi_evaluator_quick(h);
+            }
+            ojp_best_value_of(h, HandScale::Badugi, lookup_badugi)
+        }
+    } else {
+        /// Full ace-to-five hand evaluator
+        /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_badugi_eval_full) | Full Badugi hand evaluator
+        pub fn ojp_badugi_eval_full(h: &Hand) -> Result<HandValue, OjError> {
+            if h.len() > 4 {
+                return ojp_best_of(h, HandScale::Badugi,
+                    badugi_evaluator_full);
+            }
+            badugi_evaluator_full(h)
+        }
+
+        /// Value-only ace-to-five hand evaluator
+        /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_badugi_eval_quick) | Quick Badugi hand evaluator
+        pub fn ojp_badugi_eval_quick(h: &Hand) -> u32 {
+            if h.len() > 4 {
+                return ojp_best_value_of(h, HandScale::Badugi,
+                    badugi_evaluator_quick);
+            }
+            badugi_evaluator_quick(h)
+        }
     }
-    count
 }
 
 /*
@@ -209,94 +318,93 @@ mod tests {
 
     #[test]
     fn test_hand_evaluator_badugi() -> Result<(), OjError> {
-        let eval = HandEvaluatorBadugi::new();
-        let deck = Deck::new("low");
-        let mut hand= deck.new_hand().init(parse_cards("KsKhKdKc"));
-        let mut best: u64 = 0x7FFFFFFFFFFFFFFF;
+        let deck = Deck::new_by_name("low");
+        let mut hand= deck.new_hand().init(cards!("Ks","Kh","Kd","Kc"));
+        let mut best: u32 = 0xFFFFFFFF;
 
-        let mut v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelBadugi::OneCard);
-        assert_eq!(v1.ranks[0], Rank::King);
+        let mut v1 = ojp_badugi_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::OneCard as u8);
+        assert_eq!(v1.hand[0].rank(), Rank::King);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.set(parse_cards("AdAcAhAs"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelBadugi::OneCard);
-        assert_eq!(v1.ranks[0], Rank::LowAce);
+        hand.set(cards!("Ad","Ac","Ah","As"));
+        v1 = ojp_badugi_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::OneCard as u8);
+        assert_eq!(v1.hand[0].rank(), Rank::LowAce);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.set(parse_cards("3d9dAdKd"));
-        let mut v2 = eval.value_of(&hand)?;
+        hand.set(cards!("3d","9d","Ad","Kd"));
+        let mut v2 = ojp_badugi_eval_full(&hand)?;
         assert_eq!(v1, v2);
-        assert_eq!(v1.ranks[0], Rank::LowAce);
+        assert_eq!(v1.hand[0].rank(), Rank::LowAce);
 
-        hand.set(parse_cards("Jd5cJh7c"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelBadugi::TwoCard);
+        hand.set(cards!("Jd","5c","Jh","7c"));
+        v1 = ojp_badugi_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::TwoCard as u8);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.set(parse_cards("Kd5dJcKc"));
-        v2 = eval.value_of(&hand)?;
+        hand.set(cards!("Kd","5d","Jc","Kc"));
+        v2 = ojp_badugi_eval_full(&hand)?;
         assert_eq!(v1, v2);
-        assert_eq!(v1.ranks[0], Rank::Jack);
-        assert_eq!(v1.ranks[1], Rank::Five);
+        assert_eq!(v1.hand[0].rank(), Rank::Jack);
+        assert_eq!(v1.hand[1].rank(), Rank::Five);
 
-        hand.set(parse_cards("7d4c7s9c"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelBadugi::TwoCard);
-        assert_eq!(v1.ranks[0], Rank::Seven);
-        assert_eq!(v1.ranks[1], Rank::Four);
+        hand.set(cards!("7d","4c","7s","9c"));
+        v1 = ojp_badugi_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::TwoCard as u8);
+        assert_eq!(v1.hand[0].rank(), Rank::Seven);
+        assert_eq!(v1.hand[1].rank(), Rank::Four);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.set(parse_cards("2hTc2s5h"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelBadugi::ThreeCard);
-        assert_eq!(v1.ranks[0], Rank::Ten);
-        assert_eq!(v1.ranks[1], Rank::Five);
-        assert_eq!(v1.ranks[2], Rank::Deuce);
+        hand.set(cards!("2h","Tc","2s","5h"));
+        v1 = ojp_badugi_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::ThreeCard as u8);
+        assert_eq!(v1.hand[0].rank(), Rank::Ten);
+        assert_eq!(v1.hand[1].rank(), Rank::Five);
+        assert_eq!(v1.hand[2].rank(), Rank::Deuce);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.set(parse_cards("4s3c9d9h"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelBadugi::ThreeCard);
-        assert_eq!(v1.ranks[0], Rank::Nine);
-        assert_eq!(v1.ranks[1], Rank::Four);
-        assert_eq!(v1.ranks[2], Rank::Trey);
+        hand.set(cards!("4s","3c","9d","9h"));
+        v1 = ojp_badugi_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::ThreeCard as u8);
+        assert_eq!(v1.hand[0].rank(), Rank::Nine);
+        assert_eq!(v1.hand[1].rank(), Rank::Four);
+        assert_eq!(v1.hand[2].rank(), Rank::Trey);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.set(parse_cards("TcJdKhQs"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelBadugi::FourCard);
-        assert_eq!(v1.ranks[0], Rank::King);
-        assert_eq!(v1.ranks[1], Rank::Queen);
-        assert_eq!(v1.ranks[2], Rank::Jack);
-        assert_eq!(v1.ranks[3], Rank::Ten);
+        hand.set(cards!("Tc","Jd","Kh","Qs"));
+        v1 = ojp_badugi_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::FourCard as u8);
+        assert_eq!(v1.hand[0].rank(), Rank::King);
+        assert_eq!(v1.hand[1].rank(), Rank::Queen);
+        assert_eq!(v1.hand[2].rank(), Rank::Jack);
+        assert_eq!(v1.hand[3].rank(), Rank::Ten);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.set(parse_cards("3c2d4s5h"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelBadugi::FourCard);
-        assert_eq!(v1.ranks[0], Rank::Five);
-        assert_eq!(v1.ranks[1], Rank::Four);
-        assert_eq!(v1.ranks[2], Rank::Trey);
-        assert_eq!(v1.ranks[3], Rank::Deuce);
+        hand.set(cards!("3c","2d","4s","5h"));
+        v1 = ojp_badugi_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::FourCard as u8);
+        assert_eq!(v1.hand[0].rank(), Rank::Five);
+        assert_eq!(v1.hand[1].rank(), Rank::Four);
+        assert_eq!(v1.hand[2].rank(), Rank::Trey);
+        assert_eq!(v1.hand[3].rank(), Rank::Deuce);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.set(parse_cards("Ac3d4s2h"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelBadugi::FourCard);
-        assert_eq!(v1.ranks[0], Rank::Four);
-        assert_eq!(v1.ranks[1], Rank::Trey);
-        assert_eq!(v1.ranks[2], Rank::Deuce);
-        assert_eq!(v1.ranks[3], Rank::LowAce);
+        hand.set(cards!("Ac","3d","4s","2h"));
+        v1 = ojp_badugi_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::FourCard as u8);
+        assert_eq!(v1.hand[0].rank(), Rank::Four);
+        assert_eq!(v1.hand[1].rank(), Rank::Trey);
+        assert_eq!(v1.hand[2].rank(), Rank::Deuce);
+        assert_eq!(v1.hand[3].rank(), Rank::LowAce);
         assert!(v1.value < best);
 
         Ok(())

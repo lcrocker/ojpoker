@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["HandEvaluatorAceToFive"],"type":["HandValueAceToFive"]};
+window.SIDEBAR_ITEMS = {"fn":["ojp_ace_to_five_eval_full","ojp_ace_to_five_eval_quick","ojp_ace_to_five_full_name"]};

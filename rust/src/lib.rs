@@ -11,6 +11,7 @@ pub use utils::{
     oj_next_combination, oj_binomial,
 };
 
+#[macro_use]
 pub mod cards;
 pub use cards::suit::Suit;
 pub use cards::rank::Rank;
@@ -33,28 +34,49 @@ pub use cards::card::{
     KING_OF_CLUBS, KING_OF_DIAMONDS, KING_OF_HEARTS, KING_OF_SPADES,
     ACE_OF_CLUBS, ACE_OF_DIAMONDS, ACE_OF_HEARTS, ACE_OF_SPADES,
 };
-pub use cards::card_parse::parse_cards;
+
+pub use cards::card_parse::ojc_parse;
+pub use cards::deck_type::DeckType;
 
 pub use cards::hashes::{
     ojh_fnv_32, ojh_fnv_64, ojh_positional_32c, ojh_positional_32cs,
-    ojh_positional_32cr, ojh_positional_64c, ojh_positional_64cs,
-    ojh_positional_64cr, ojh_bitfield_64co, ojh_prime_32cor,
-    ojh_prime_64co, ojh_prime_64cor, ojh_mp5_english,
+    ojh_positional_64c, ojh_positional_64cs, ojh_bitfield_64co,
+    ojh_prime_32cos, ojh_prime_64co, ojh_prime_64cos,
+    ojh_mp5_english, ojh_mp5_low, ojh_mp4_low, ojh_positional_32cs_mp5_low,
 };
 
-pub use cards::hand::Hand;
 pub use cards::deck::Deck;
+pub use cards::hand::Hand;
 
 pub mod poker;
-pub use poker::hand_value::{
-    HandLevelTrait,
-    HandLevelHigh, HandLevelPaiGow, HandLevelStripped, HandLevelManilla,
-    HandLevelMexican, HandLevelAceToFive, HandLevelDeuceToSeven,
-    HandLevelAceToSix, HandLevelBadugi, HandLevelActionRazz,
-    HandValueTrait, HandValue, HandEvaluatorTrait,
+pub use poker::hand_scale::HandScale;
+
+pub use poker::hand_evaluation::{
+    HandLevel, HandValue, HandEvaluatorFull, HandEvaluatorQuick,
+    ojp_default_hand_value, ojp_best_of, ojp_best_value_of,
+    ojp_default_eval_full, ojp_default_eval_quick,
+    ojp_valid_hand_for_game,
 };
-pub use poker::high_hand::{ HandValueHigh, HandEvaluatorHigh };
-pub use poker::ace_to_five::{ HandValueAceToFive, HandEvaluatorAceToFive };
-pub use poker::deuce_to_seven::{ HandValueDeuceToSeven, HandEvaluatorDeuceToSeven };
-pub use poker::ace_to_six::{ HandValueAceToSix, HandEvaluatorAceToSix };
-pub use poker::badugi::{ HandValueBadugi, HandEvaluatorBadugi };
+
+pub use poker::high_hand::{
+    ojp_high_full_name, ojp_high_eval_full, ojp_high_eval_quick,
+};
+
+pub use poker::ace_to_five::{
+    ojp_ace_to_five_full_name, ojp_ace_to_five_eval_full,
+    ojp_ace_to_five_eval_quick,
+};
+
+pub use poker::deuce_to_seven::{
+    ojp_deuce_to_seven_full_name, ojp_deuce_to_seven_eval_full,
+    ojp_deuce_to_seven_eval_quick,
+};
+
+pub use poker::ace_to_six::{
+    ojp_ace_to_six_full_name, ojp_ace_to_six_eval_full,
+    ojp_ace_to_six_eval_quick,
+};
+
+pub use poker::badugi::{
+    ojp_badugi_full_name, ojp_badugi_eval_full, ojp_badugi_eval_quick,
+};

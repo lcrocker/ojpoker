@@ -1,25 +1,50 @@
 #![doc = include_str!("../../doc/poker_module.md")]
 
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Hand_Value) | Poker hand values base class
-pub mod hand_value;
-pub use hand_value::*;
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Hand_Scale) | Poker game info
+pub mod hand_scale;
+pub use hand_scale::*;
 
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Evaluator_State) | State machine for evaluating poker hands
-pub mod eval_state;
-pub use eval_state::*;
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Hand_Evaluation) | State machine for evaluating poker hands
+pub mod hand_evaluation;
+pub use hand_evaluation::*;
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/High_Hand) | Traditional "high" poker hands
 pub mod high_hand;
-pub use high_hand::{HandValueHigh, HandEvaluatorHigh};
+pub use high_hand::*;
 
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/High_Hand_Tables) | High hand lookup tables
+#[cfg(feature = "high-hand-tables")]
+pub mod high_hand_tables;
+
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Ace_To_Five) | Ace-To-Seven low poker hands
 pub mod ace_to_five;
-pub use ace_to_five::{HandValueAceToFive, HandEvaluatorAceToFive};
+pub use ace_to_five::*;
 
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Deuce_To_Seven_Tables) | Deuce-to-seven lookup tables
+#[cfg(feature = "ace-to-five-tables")]
+pub mod ace_to_five_tables;
+
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Deuce_To_Seven) | Deuce-to-seven low poker hands
 pub mod deuce_to_seven;
-pub use deuce_to_seven::{HandValueDeuceToSeven, HandEvaluatorDeuceToSeven};
+pub use deuce_to_seven::*;
 
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Deuce_To_Seven_Tables) | Deuce-to-seven lookup tables
+#[cfg(feature = "deuce-to-seven-tables")]
+pub mod deuce_to_seven_tables;
+
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Ace_To_Six) | Ace-to-six lowhands
 pub mod ace_to_six;
-pub use ace_to_six::{HandValueAceToSix, HandEvaluatorAceToSix};
+pub use ace_to_six::*;
 
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Ace_To_Six_Tables) | Ace-to-six lookup tables
+#[cfg(feature = "ace-to-six-tables")]
+pub mod ace_to_six_tables;
+
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Badugi) | Badugi hands
 pub mod badugi;
-pub use badugi::{HandValueBadugi, HandEvaluatorBadugi};
+pub use badugi::*;
+
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Badugi_Tables) | Badugi lookup tables
+#[cfg(feature = "badugi-tables")]
+pub mod badugi_tables;
+

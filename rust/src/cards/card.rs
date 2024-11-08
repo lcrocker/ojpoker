@@ -1,5 +1,6 @@
 //! [wiki](https://github.com/lcrocker/ojpoker/wiki/Card) | A simple card object wrapping a u8.
 
+use paste::paste;
 use crate::errors::*;
 use crate::cards::rank::*;
 use crate::cards::suit::*;
@@ -9,44 +10,71 @@ use crate::cards::suit::*;
 pub type Ordinal = u8;  // some machines might be faster with u32?
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/Card) | Card class
-/// A simple one-element tuple object wrapping an `Ordinal` value,
+/// A simple new-type wrapper around the `Ordinal` value,
 /// which is just an alias for u8.
 
 #[allow(dead_code)]
-#[derive(PartialEq, PartialOrd, Eq, Ord, Copy, Clone, Hash)]
+#[derive(PartialEq, PartialOrd, Eq, Ord, Copy, Clone, Hash, Default)]
 pub struct Card(pub Ordinal);
 
-const UNICODE_SINGLES: [&str; 63] = [
-    "🃟","🂿","🃏","🃑","🃁","🂱","🂡","🃒","🃂","🂲","🂢","🃓","🃃","🂳","🂣",
-    "🃔","🃄","🂴","🂤","🃕","🃅","🂵","🂥","🃖","🃆","🂶","🂦","🃗","🃇","🂷","🂧",
-    "🃘","🃈","🂸","🂨","🃙","🃉","🂹","🂩","🃚","🃊","🂺","🂪","🃛","🃋","🂻","🂫",
-    "🃜","🃌","🂼","🃜","🃝","🃍","🂽","🂭","🃞","🃎","🂾","🂮","🃑","🃁","🂱","🂡",
-];
+#[macro_export]
+/// Make const Card object from string
+macro_rules! card {
+    ( $x:literal ) => { Card::from_const_str($x) };
+}
+
+#[macro_export]
+/// Make const array of Card objects from string literals
+macro_rules! cards {
+    ( $( $x:literal ),* ) => {
+        [ $( Card::from_const_str($x), )* ]
+    };
+}
+
+// These are used in the impl block below to create the methods
+// is_club(), is_four(), etc. for each suit and rank.
+
+macro_rules! is_suit {
+    ( $x:ident, $v:literal ) => {
+        paste! {
+            #[allow(missing_docs)]
+            pub const fn [<is_ $x>](&self) -> bool {
+                if self.0 < LOW_ACE_OF_CLUBS.0 || self.0 > ACE_OF_SPADES.0 { return false; }
+                $v == self.0 & 3
+            }
+        }
+    };
+}
+
+macro_rules! is_rank {
+    ( $x:ident, $v:literal ) => {
+        paste! {
+            #[allow(missing_docs)]
+            pub const fn [<is_ $x>](&self) -> bool {
+                if self.0 < LOW_ACE_OF_CLUBS.0 || self.0 > ACE_OF_SPADES.0 { return false; }
+                $v == (self.0 >> 2)
+            }    
+        }
+    };
+}
 
 impl Card {
     /// Create a new `Card` from an integer value.
-    pub const fn from_i32_const(v: i32) -> Option<Card> {
+    pub const fn from_i32(v: i32) -> Option<Card> {
         if v < WHITE_JOKER.0 as i32 || v > ACE_OF_SPADES.0 as i32 {
             return None;
         }
         Some(Card(v as Ordinal))
     }
 
-    /// Create a new `Card` from an integer value.
-    pub fn from_i32(v: i32) -> Result<Card, OjError> {
-        if v < WHITE_JOKER.0 as i32 || v > ACE_OF_SPADES.0 as i32 {
-            return Err(OjError::NotCard(v.to_string()));
-        }
-        Ok(Card(v as Ordinal))
-    }
-
     /// Create a new `Card` from a `Rank` and a `Suit`. If the `Rank` and
     /// `Suit` objects are valid, this cannot fail, so it returns a real `Card`,
     /// not an Option.
-    pub fn from_rank_suit(r: Rank, s: Suit) -> Card {
-        debug_assert!(r >= Rank::None && r <= Rank::Ace);
-        debug_assert!(s >= Suit::None && s <= Suit::Spade);
-        if r == Rank::None || s == Suit::None {
+    #[inline]
+    pub const fn from_rank_suit(r: Rank, s: Suit) -> Card {
+        debug_assert!(r as u32 <= 15);
+        debug_assert!(s as u32 <= 4);
+        if r as u32 == 0 || s as u32 == 0 {
             return Card(0);
         }
         Card(((r as Ordinal) << 2) + (s as Ordinal) - 1)
@@ -54,63 +82,86 @@ impl Card {
 
     /// Return a card value unmolested, unless it's a high ace, in which case
     /// return the low ace of the same suit.
-    pub fn low_ace_fix(v: Card) -> Card {
-        if v < ACE_OF_CLUBS || v > ACE_OF_SPADES { return v }
+    #[inline]
+    pub const fn low_ace_fix(v: Card) -> Card {
+        if v.0 < ACE_OF_CLUBS.0 || v.0 > ACE_OF_SPADES.0 { return v }
         Card(v.0 - ACE_OF_CLUBS.0 + LOW_ACE_OF_CLUBS.0)
     }
 
     /// Return a card value unmolested, unless it's a low ace, in which case
     /// return the high ace of the same suit.
-    pub fn high_ace_fix(v: Card) -> Card {
-        if v < LOW_ACE_OF_CLUBS || v > LOW_ACE_OF_SPADES { return v }
+    #[inline]
+    pub const fn high_ace_fix(v: Card) -> Card {
+        if v.0 < LOW_ACE_OF_CLUBS.0 || v.0 > LOW_ACE_OF_SPADES.0 { return v }
         Card(v.0 + ACE_OF_CLUBS.0 - LOW_ACE_OF_CLUBS.0)
     }
 
     /// Rank of the card, if any.
-    pub fn rank(&self) -> Rank {
-        if *self < LOW_ACE_OF_CLUBS || *self > ACE_OF_SPADES {
+    #[inline]
+    pub const fn rank(&self) -> Rank {
+        if self.0 < LOW_ACE_OF_CLUBS.0 || self.0 > ACE_OF_SPADES.0 {
             return Rank::None;
         }
-        Rank::from_i32((self.0 as i32) >> 2)
+        Rank::from_u8(self.0 >> 2)
     }
 
     /// Suit of the card if any. `None` for jokers or illegal values.
-    pub fn suit(&self) -> Suit {
-        if *self < LOW_ACE_OF_CLUBS || *self > ACE_OF_SPADES {
+    #[inline]
+    pub const fn suit(&self) -> Suit {
+        if self.0 < LOW_ACE_OF_CLUBS.0 || self.0 > ACE_OF_SPADES.0 {
             return Suit::None;
         }
-        Suit::from_i32((0x03 & (self.0 as i32)) + 1)
+        Suit::from_u8((0x03 & self.0) + 1)
     }
 
     /// Does the object represent an actual card, and not a sentinel value?
-    pub fn is_card(&self) -> bool {
-        *self >= WHITE_JOKER && *self <= ACE_OF_SPADES
+    pub const fn is_card(&self) -> bool {
+        self.0 >= WHITE_JOKER.0 && self.0 <= ACE_OF_SPADES.0
     }
 
     /// Is the card a diamond, heart, or red/colored joker?
-    pub fn is_red(&self) -> bool {
-        if *self == JOKER { return true }
-        if *self < LOW_ACE_OF_CLUBS || *self > ACE_OF_SPADES { return false }
+    pub const fn is_red(&self) -> bool {
+        if self.0 == JOKER.0 { return true }
+        if self.0 < LOW_ACE_OF_CLUBS.0 || self.0 > ACE_OF_SPADES.0 { return false }
         1 == (self.0 & 3) || 2 == (self.0 & 3)
     }
 
     /// Is the card a club, spade, or black/generic joker?
-    pub fn is_black(&self) -> bool {
-        if *self == BLACK_JOKER { return true }
-        if *self < LOW_ACE_OF_CLUBS || *self > ACE_OF_SPADES { return false }
+    pub const fn is_black(&self) -> bool {
+        if self.0 == BLACK_JOKER.0 { return true }
+        if self.0 < LOW_ACE_OF_CLUBS.0 || self.0 > ACE_OF_SPADES.0 { return false }
         0 == (self.0 & 3) || 3 == (self.0 & 3)
     }
 
     /// Is the card any kind of joker?
-    pub fn is_joker(&self) -> bool {
-        *self >= WHITE_JOKER && *self <= JOKER
+    pub const fn is_joker(&self) -> bool {
+        self.0 >= WHITE_JOKER.0 && self.0 <= JOKER.0
     }
 
     /// Is the card an ace (high or low)?
-    pub fn is_ace(&self) -> bool {
-        if *self < LOW_ACE_OF_CLUBS || *self > ACE_OF_SPADES { return false; }
-        *self < DEUCE_OF_CLUBS || *self > KING_OF_SPADES
+    pub const fn is_ace(&self) -> bool {
+        if self.0 < LOW_ACE_OF_CLUBS.0 || self.0 > ACE_OF_SPADES.0 { return false; }
+        self.0 < DEUCE_OF_CLUBS.0 || self.0 > KING_OF_SPADES.0
     }
+
+    is_suit!(club, 0);
+    is_suit!(diamond, 1);
+    is_suit!(heart, 2);
+    is_suit!(spade, 3);
+
+    is_rank!(deuce, 2);
+    is_rank!(trey, 3);
+    is_rank!(four, 4);
+    is_rank!(five, 5);
+    is_rank!(six, 6);
+    is_rank!(seven, 7);
+    is_rank!(eight, 8);
+    is_rank!(nine, 9);
+    is_rank!(ten, 10);
+    is_rank!(jack, 11);
+    is_rank!(knight, 12);
+    is_rank!(queen, 13);
+    is_rank!(king, 14);
 
     /// Produce text output form with Unicode suit symbol.
     pub fn to_unicode(&self) -> String {
@@ -149,9 +200,27 @@ impl Card {
                 self.rank().name(), self.suit().plural())
         }
     }
+
+    /// Const function to create a `Card` from a string literal.
+    pub const fn from_const_str(st: &str) -> Card {
+        let r: char = st.as_bytes()[0] as char;
+        let s: char = st.as_bytes()[1] as char;
+
+        if 'J' == r && 'k' == s { return Card(3); }
+        if 'J' == r && 'b' == s { return Card(2); }
+        if 'J' == r && 'w' == s { return Card(1); }
+        Card::from_rank_suit(Rank::from_char(r), Suit::from_char(s))
+    }
 }
 
-const CARD_NAMES: [&str; 63] = [ "Jw", "Jb", "Jk",
+const UNICODE_SINGLES: [&str; 63] = [
+    "🃟","🂿","🃏","🃑","🃁","🂱","🂡","🃒","🃂","🂲","🂢","🃓","🃃","🂳","🂣",
+    "🃔","🃄","🂴","🂤","🃕","🃅","🂵","🂥","🃖","🃆","🂶","🂦","🃗","🃇","🂷","🂧",
+    "🃘","🃈","🂸","🂨","🃙","🃉","🂹","🂩","🃚","🃊","🂺","🂪","🃛","🃋","🂻","🂫",
+    "🃜","🃌","🂼","🃜","🃝","🃍","🂽","🂭","🃞","🃎","🂾","🂮","🃑","🃁","🂱","🂡",
+];
+
+const CARD_NAMES: [&str; 64] = [ "??", "Jw", "Jb", "Jk",
     "Ac", "Ad", "Ah", "As", "2c", "2d", "2h", "2s", "3c", "3d", "3h", "3s",
     "4c", "4d", "4h", "4s", "5c", "5d", "5h", "5s", "6c", "6d", "6h", "6s",
     "7c", "7d", "7h", "7s", "8c", "8d", "8h", "8s", "9c", "9d", "9h", "9s",
@@ -160,7 +229,7 @@ const CARD_NAMES: [&str; 63] = [ "Jw", "Jb", "Jk",
 
 impl std::fmt::Debug for Card {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", CARD_NAMES[self.0 as usize - 1])
+        write!(f, "{}", CARD_NAMES[self.0 as usize])
     }
 }
 impl std::fmt::Display for Card {
@@ -193,13 +262,6 @@ impl std::str::FromStr for Card {
             return Err(OjError::NotSuit(String::from(st)));
         }
         Ok(Card::from_rank_suit(r, s))
-    }
-}
-
-#[allow(clippy::from_over_into)]
-impl std::convert::Into<i32> for Card {
-    fn into(self) -> i32 {
-        self.0 as i32
     }
 }
 
@@ -306,9 +368,11 @@ cardconst!(ACE_OF_SPADES, 63);
                     assert_eq!($t, $x.to_string());
                     assert_eq!($u, $x.to_unicode());
                     assert_eq!(UNICODE_SINGLES[$v as usize - 1], $x.to_unicode_single());
+        
                     if Rank::$r != Rank::LowAce {
                         assert_eq!($x, Card::from_str($t).unwrap());
                         assert_eq!($x, Card::from_str($u).unwrap());
+                        assert_eq!($x, card!($t));
                     }
                     assert_eq!($t, format!("{}", $x));
                     assert_eq!($t, format!("{:?}", $x));
@@ -464,10 +528,15 @@ cardconst!(ACE_OF_SPADES, 63);
         cardtests!(WHITE_JOKER, 1, false, false, "Jw", "white joker");
         cardtests!(BLACK_JOKER, 2, false, true, "Jb", "black joker");
         cardtests!(JOKER, 3, true, false, "Jk", "joker");
-        
+
+        assert_eq!(LOW_ACE_OF_CLUBS, card!("1c"));
+        assert_eq!(LOW_ACE_OF_DIAMONDS, card!("1d"));
+        assert_eq!(LOW_ACE_OF_HEARTS, card!("1h"));
+        assert_eq!(LOW_ACE_OF_SPADES, card!("1s"));
+
         assert!(! Card(65).is_card());
         assert!(! Card(0).is_card());
-        assert!(Card::from_i32(65).is_err());
+        assert!(Card::from_i32(65).is_none());
 
         assert!(LOW_ACE_OF_SPADES < DEUCE_OF_CLUBS);
         assert!(KING_OF_SPADES < ACE_OF_CLUBS);
@@ -475,6 +544,5 @@ cardconst!(ACE_OF_SPADES, 63);
 
         Ok(())
     }
-
 }
 

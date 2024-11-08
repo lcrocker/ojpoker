@@ -1,4 +1,4 @@
-//! [wiki](https://github.com/lcrocker/ojpoker/wiki/parse_cards) | A function for reading cards from text.
+//! [wiki](https://github.com/lcrocker/ojpoker/wiki/Parsing_Cards) | A function for reading cards from text.
 
 use crate::cards::{Card, Rank, Suit, JOKER, BLACK_JOKER, WHITE_JOKER};
 enum CardParseState {
@@ -38,7 +38,7 @@ impl<'a> Iterator for CardParseIter<'a> {
                         ' ' | '\t' | '\n' | '\r' => {
                             self.state = CardParseState::Initial;
                         },
-                        '1'..='9' | 'T' | 'J' | 'Q' | 'K' | 'A' => {
+                        '1'..='9' | 'T' | 'J' | 'C' | 'Q' | 'K' | 'A' => {
                             self.state = CardParseState::OneChar(r);
                         },
                         '[' => {
@@ -58,7 +58,7 @@ impl<'a> Iterator for CardParseIter<'a> {
                         ' ' | '\t' | '\n' | '\r' => {
                             self.state = CardParseState::PreCard;
                         },
-                        '1'..='9' | 'T' | 'J' | 'Q' | 'K' | 'A' => {
+                        '1'..='9' | 'T' | 'J' | 'C' | 'Q' | 'K' | 'A' => {
                             self.state = CardParseState::OneChar(r);
                         },
                         _ => {
@@ -95,8 +95,8 @@ impl<'a> Iterator for CardParseIter<'a> {
     }
 }
 
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/parse_cards) | A function for reading cards from text.
-pub fn parse_cards(text: &str) -> impl Iterator<Item = Card> + '_ {
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojc_parse) | A function for reading cards from text.
+pub fn ojc_parse(text: &str) -> impl Iterator<Item = Card> + '_ {
     CardParseIter::new(text.chars())
 }
 
@@ -107,25 +107,24 @@ pub fn parse_cards(text: &str) -> impl Iterator<Item = Card> + '_ {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::cards::deck::Deck;
     use crate::errors::OjError;
     use crate::utils::oj_rand_range;
+    use crate::cards::{Deck, DeckType};
  
     #[test]
     fn test_cards() -> Result<(), OjError> {
-        let mut deck = Deck::new("allcards");
+        let mut deck = Deck::new(DeckType::AllCards);
 
         for _ in 0..1000 {
             let len = 1 + oj_rand_range(4) +
                 oj_rand_range(4) + oj_rand_range(4);
 
-            deck.refill_shuffled();
+            deck.refill_and_shuffle();
             let h = deck.new_hand().init(deck.draw(len));
 
             let text = h.to_string();
-            let mut h2 = deck.new_hand();
+            let h2 = deck.new_hand().init(ojc_parse(&text));
 
-            h2.push_n(parse_cards(&text));
             assert!(h.equals(&h2));
         }
         Ok(())

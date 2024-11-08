@@ -1,162 +1,114 @@
-//! [wiki](https://github.com/lcrocker/ojpoker/wiki/HandValueAceToFive) | Ace-to-five low hand values
+//! [wiki](https://github.com/lcrocker/ojpoker/wiki/AceToFive) | Ace-to-five low hand values
 
 use crate::errors::*;
 use crate::cards::*;
-use crate::poker::hand_value::*;
-use crate::poker::eval_state::*;
+use crate::poker::*;
 
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/HandValueAceToFive) | Ace-to-five low poker hands
-/// `HandValue` subclass for low poker hands
-pub type HandValueAceToFive = HandValue<HandLevelAceToFive>;
+/// Full English name of hand, e.g. "aces and fours with a jack".
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_ace_to_five_full_name) | Describe ace-to-five hand
+pub fn ojp_ace_to_five_full_name(v: &HandValue) -> String {
+    macro_rules! sng {
+        ($x:literal) => { v.hand[$x as usize].rank().name() }
+    }
+    macro_rules! plr {
+        ($x:literal) => { v.hand[$x as usize].rank().plural() }
+    }
+    macro_rules! art {
+        ($x:literal) => { v.hand[$x as usize].rank().article() }
+    }
 
-impl HandValueAceToFive {
-    /// Create a new `HandValueHigh`] object.
-    pub fn new(level: HandLevelAceToFive, ranks: &[Rank]) -> HandValueAceToFive {
-        let ranks = ranks.to_vec();
-        let value = oj_low_hand_value_function(level.index(), &ranks[..]);
-
-        HandValueAceToFive {
-            level,
-            ranks,
-            value,
-        }
+    match HandLevel::from_u8(v.level) {
+        HandLevel::Quads => {
+            format!("four {} with {} {}", plr!(0), art!(4), sng!(4))
+        },
+        HandLevel::FullHouse => {
+            format!("{} full of {}", plr!(0), plr!(3))
+        },
+        HandLevel::Trips => {
+            format!("three {}, {}, {}", plr!(0), sng!(3), sng!(4))
+        },
+        HandLevel::TwoPair => {
+            format!("{} and {} with {} {}", plr!(0), plr!(2), art!(4), sng!(4))
+        },
+        HandLevel::Pair => {
+            format!("pair of {}, {}, {}, {}", plr!(0), sng!(2), sng!(3), sng!(4))
+        },
+        HandLevel::NoPair => {
+            format!("{}, {}, {}, {}, {}", sng!(0), sng!(1), sng!(2), sng!(3), sng!(4))
+        },
+        _ => String::from("unknown hand"),
     }
 }
 
-impl HandValueTrait for HandValueAceToFive {
-    /// Final numeric comparator
-    fn value(&self) -> u64 { self.value }
+fn curried_evaluator_full(h: &Hand) -> Result<HandValue, OjError> {
+    ojp_default_eval_full(h, HandScale::AceToFive)
+}
 
-    /// Best hand for this game
-    fn best() -> HandValueAceToFive {
-        HandValueAceToFive {
-            level: HandLevelAceToFive::NoPair,
-            ranks: vec![Rank::Five, Rank::Four, Rank::Trey, Rank::Deuce, Rank::LowAce],
-            value: 0,
+fn curried_evaluator_quick(h: &Hand) -> u32 {
+    ojp_default_eval_quick(h, HandScale::AceToFive)
+}
+
+cfg_if::cfg_if! {
+    if #[cfg(feature = "ace-to-five-tables")] {
+        use crate::poker::ace_to_five_tables::*;
+
+        /// Quick lookup table evaluator
+        fn lookup_ace_to_five(h: &Hand) -> u32 {
+            let h = ojh_positional_32cs_mp5_low(h.as_slice()).
+            expect("should have been checked by this time");
+            ACE_TO_FIVE_TABLE_1[h as usize] as u32
         }
-    }
 
-    /// Worst hand for this game
-    fn worst() -> HandValueAceToFive {
-        HandValueAceToFive {
-            level: HandLevelAceToFive::Quads,
-            ranks: vec![Rank::King, Rank::King, Rank::King, Rank::King, Rank::Queen],
-            value: 0x7FFFFFFFFFFFFFFF,
-        }
-    }
-
-    /// Full English name of hand, e.g. "aces and fours with a jack".
-    fn full_name(&self) -> String {
-        let r1: Vec<&str> = self.ranks.iter().map(|r| r.name()).collect();
-        let r2: Vec<&str> = self.ranks.iter().map(|r| r.plural()).collect();
-        let r3: Vec<&str> = self.ranks.iter().map(|r| r.article()).collect();
-
-        match self.level {
-            HandLevelAceToFive::Quads => {
-                format!("four {} with {} {}", r2[0], r3[4], r1[4])
-            },
-            HandLevelAceToFive::FullHouse => {
-                format!("{} full of {}", r2[0], r2[3])
-            },
-            HandLevelAceToFive::Trips => {
-                format!("three {}, {}, {}", r2[0], r1[3], r1[4])
-            },
-            HandLevelAceToFive::TwoPair => {
-                format!("{} and {} with {} {}", r2[0], r2[2], r3[4], r1[4])
-            },
-            HandLevelAceToFive::Pair => {
-                format!("pair of {}, {}, {}, {}", r2[0], r1[2], r1[3], r1[4])
-            },
-            HandLevelAceToFive::NoPair => {
-                format!("{}, {}, {}, {}, {}", r1[0], r1[1], r1[2], r1[3], r1[4])
+        /// Full ace-to-five poker hand evaluator
+        /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_ace_to_five_eval_full) | Ace-to-five full evaluator 
+        pub fn ojp_ace_to_five_eval_full(h: &Hand) -> Result<HandValue, OjError> {
+            if h.len() < 5 {
+                return curried_evaluator_full(h);
             }
+            let ec = if 5 == h.len() {
+                lookup_ace_to_five(h)
+            } else {
+                ojp_best_value_of(h, HandScale::AceToFive, lookup_ace_to_five)
+            };
+            let vv = ACE_TO_FIVE_TABLE_2[ec as usize];
+            let mut v = HandValue::new_with_value(*h, HandScale::AceToFive,
+                vv.0, ec as u32);
+            v.order_for_display(&vv.1);
+            Ok(v)
+        }
+
+        /// Value-only high poker hand evaluator
+        /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_ace_to_five_eval_quick) | Ace-to-five quick evaluator
+        pub fn ojp_ace_to_five_eval_quick(h: &Hand) -> u32 {
+            if 5 == h.len(){
+                return lookup_ace_to_five(h);
+            }
+            if h.len() < 5 {
+                return curried_evaluator_quick(h);
+            }
+            ojp_best_value_of(h, HandScale::AceToFive, lookup_ace_to_five)
+        }
+    } else {
+        /// Full ace-to-five hand evaluator
+        /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_ace_to_five_eval_full) | Ace-to-five full evaluator
+        pub fn ojp_ace_to_five_eval_full(h: &Hand) -> Result<HandValue, OjError> {
+            if h.len() > 5 {
+                return ojp_best_of(h, HandScale::AceToFive,
+                    curried_evaluator_full);
+            }
+            curried_evaluator_full(h)
+        }
+
+        /// Value-only ace-to-five hand evaluator
+        /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_ace_to_five_eval_quick) | Ace-to-five quick evaluator
+        pub fn ojp_ace_to_five_eval_quick(h: &Hand) -> u32 {
+            if h.len() > 5 {
+                return ojp_best_value_of(h, HandScale::AceToFive,
+                    curried_evaluator_quick);
+            }
+            curried_evaluator_quick(h)
         }
     }
-
-    fn ordered_for_display(&self, h: &Hand) -> Result<Hand, OjError> {
-        oj_default_ordered_for_display(h, &self.ranks[..])
-    }
-}
-
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/HandEvaluatorHigh) | Traditional "high" poker hand evaluator
-/// Data for high-hand evaluator
-#[allow(dead_code)] // TODO
-pub struct HandEvaluatorAceToFive {
-}
-
-impl HandEvaluatorAceToFive {
-    /// Create a new `HandEvaluatorHigh` object.
-    pub fn new() -> HandEvaluatorAceToFive {
-        HandEvaluatorAceToFive {
-        }
-    }
-}
-
-impl HandEvaluatorTrait<HandValueAceToFive> for HandEvaluatorAceToFive {
-    /// Evaluate traditional high poker hands.
-    fn reference_evaluator(&self, hand: &Hand) -> Result<HandValueAceToFive, OjError> {
-        assert!(all_valid_cards(hand) > 0);
-        assert!(all_valid_cards(hand) <= Self::COMPLETE_HAND);
-        let mut st = EvaluatorState::new(hand);
-
-        st.straight = Some(false);
-        st.flush = Some(false);
-        st.check_quads();
-
-        if st.quads == Some(true) {
-            return Ok(HandValueAceToFive::new(
-                HandLevelAceToFive::Quads, &st.ranks[..]));
-        }
-        st.check_full_house();
-
-        if st.full_house == Some(true) {
-            return Ok(HandValueAceToFive::new(
-                HandLevelAceToFive::FullHouse, &st.ranks[..]));
-        }
-        st.check_trips();
-
-        if st.trips == Some(true) {
-            return Ok(HandValueAceToFive::new(
-                HandLevelAceToFive::Trips, &st.ranks[..]));
-        }
-        st.check_two_pair();
-
-        if st.two_pair == Some(true) {
-            return Ok(HandValueAceToFive::new(
-                HandLevelAceToFive::TwoPair, &st.ranks[..]));
-        }
-        st.check_one_pair();
-
-        if st.pair == Some(true) {
-            return Ok(HandValueAceToFive::new(
-                HandLevelAceToFive::Pair, &st.ranks[..]));
-        }
-        debug_assert!(st.all_checks_complete());
-        debug_assert!(st.verify_no_pair());
-
-        Ok(HandValueAceToFive::new(
-            HandLevelAceToFive::NoPair, &st.ranks[..]))
-    }
-}
-
-impl Default for HandEvaluatorAceToFive {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-fn all_valid_cards(hand: &Hand) -> usize {
-    let mut count = 0;
-
-    for c in hand {
-        if c.suit() == Suit::None { return 0; }
-        let r = c.rank();
-        if r == Rank::None || r == Rank::Ace || r == Rank::Knight {
-            return 0;
-        }
-        count += 1;
-    }
-    count
 }
 
 /*
@@ -169,96 +121,82 @@ mod tests {
 
     #[test]
     fn test_hand_evaluator_ace_to_five() -> Result<(), OjError> {
-        let eval = HandEvaluatorAceToFive::new();
-        let deck = Deck::new("low");
+        let deck = Deck::new_by_name("low");
         let mut hand= deck.new_hand();
-        let mut best: u64 = 0x7FFFFFFFFFFFFFFF;
+        let mut best: u32 = 0xFFFFFFFF;
 
-        hand.push_n(parse_cards("KsKhKdKcQs"));
-        let mut v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelAceToFive::Quads);
+        hand.set(cards!("Ks","Kh","Kd","Kc","Qs"));
+        let mut v1 = ojp_ace_to_five_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::Quads as u8);
 
-        hand.clear();
-        hand.push_n(parse_cards("KdQcKcKhKs"));
-        let mut v2 = eval.value_of(&hand)?;
+        hand.set(cards!("Kd","Qc","Kc","Kh","Ks"));
+        let mut v2 = ojp_ace_to_five_eval_full(&hand)?;
         assert_eq!(v1, v2);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.clear();
-        hand.push_n(parse_cards("Jd5cJcJh5s"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelAceToFive::FullHouse);
+        hand.set(cards!("Jd","5c","Jc","Jh","5s"));
+        v1 = ojp_ace_to_five_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::FullHouse as u8);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.clear();
-        hand.push_n(parse_cards("5d5cJs5hJc"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelAceToFive::FullHouse);
+        hand.set(cards!("5d","5c","Js","5h","Jc"));
+        v1 = ojp_ace_to_five_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::FullHouse as u8);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.clear();
-        hand.push_n(parse_cards("7d4c7s7hKc"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelAceToFive::Trips);
+        hand.set(cards!("7d","4c","7s","7h","Kc"));
+        v1 = ojp_ace_to_five_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::Trips as u8);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.clear();
-        hand.push_n(parse_cards("2dTc2s3hTs"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelAceToFive::TwoPair);
+        hand.set(cards!("2d","Tc","2s","3h","Ts"));
+        v1 = ojp_ace_to_five_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::TwoPair as u8);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.clear();
-        hand.push_n(parse_cards("4s3c9d9hQc"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelAceToFive::Pair);
+        hand.set(cards!("4s","3c","9d","9h","Qc"));
+        v1 = ojp_ace_to_five_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::Pair as u8);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.clear();
-        hand.push_n(parse_cards("TsJsKs9sQs"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelAceToFive::NoPair);
+        hand.set(cards!("Ts","Js","Ks","9s","Qs"));
+        v1 = ojp_ace_to_five_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::NoPair as u8);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.clear();
-        hand.push_n(parse_cards("KhTd9sQcJc"));
-        v2 = eval.value_of(&hand)?;
+        hand.set(cards!("Kh","Td","9s","Qc","Jc"));
+        v2 = ojp_ace_to_five_eval_full(&hand)?;
         assert_eq!(v1, v2);
 
-        hand.clear();
-        hand.push_n(parse_cards("Kc3d9d6h2d"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelAceToFive::NoPair);
+        hand.set(cards!("Kc","3d","9d","6h","2d"));
+        v1 = ojp_ace_to_five_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::NoPair as u8);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.clear();
-        hand.push_n(parse_cards("6c9c3cKc2c"));
-        v2 = eval.value_of(&hand)?;
+        hand.set(cards!("6c","9c","3c","Kc","2c"));
+        v2 = ojp_ace_to_five_eval_full(&hand)?;
         assert_eq!(v1, v2);
 
-        hand.clear();
-        hand.push_n(parse_cards("5c3d4s7s2d"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelAceToFive::NoPair);
+        hand.set(cards!("5c","3d","4s","7s","2d"));
+        v1 = ojp_ace_to_five_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::NoPair as u8);
         assert!(v1.value < best);
         best = v1.value;
 
-        hand.clear();
-        hand.push_n(parse_cards("Ah2c4s5d3d"));
-        v1 = eval.value_of(&hand)?;
-        assert_eq!(v1.level, HandLevelAceToFive::NoPair);
+        hand.set(cards!("Ah","2c","4s","5d","3d"));
+        v1 = ojp_ace_to_five_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::NoPair as u8);
         assert!(v1.value < best);
 
         Ok(())
     }
 
 }
-

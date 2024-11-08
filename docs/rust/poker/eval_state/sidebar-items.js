@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":["POKER_RANK_ORDER"],"struct":["EvaluatorState"]};

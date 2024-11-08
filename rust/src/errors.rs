@@ -1,14 +1,16 @@
-//! [wiki](https://github.com/lcrocker/ojpoker/wiki/Rust_Errors) | Library-related error types.
+//! [wiki](https://github.com/lcrocker/ojpoker/wiki/OjError) | Library-related error types.
 
 use crate::cards::*;
 
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Rust_Errors) | Library-related error types.
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/OjError) | Library-related error types.
 #[derive(Debug, Clone)]
 pub enum OjError {
     /// Function not implemented
     NotImplemented(String),
     /// Test failure
     TestFailure(String),
+    /// Internal
+    Internal(String),
     /// IO error
     IO(String),
     /// Number or text is not a valid card rank.
@@ -44,6 +46,8 @@ impl std::fmt::Display for OjError {
                 => write!(f, "function '{}' not implemented", s),
             OjError::TestFailure(s)
                 => write!(f, "test failure: {}", s),
+            OjError::Internal(s)
+                => write!(f, "internal error: {}", s),
             OjError::IO(s)
                 => write!(f, "IO error: {}", s),
             OjError::NotRank(r)

@@ -1,4 +1,3 @@
-//@ tests/hash_test.rs
 
 use std::fs;
 use serde::Deserialize;
@@ -26,7 +25,7 @@ fn ranks_identical(h1: &Hand, h2: &Hand) -> bool {
 }
 
 fn reorder(h: &Hand) -> Hand {
-    let mut ret = h.clone();
+    let mut ret = *h;
     if h.len() < 2 {
         return ret;
     }
@@ -45,20 +44,19 @@ fn reorder(h: &Hand) -> Hand {
 }
 
 fn resuit(h: &Hand) -> Hand {
-    let mut ret = h.clone();
+    let mut ret = *h;
     for i in 0..h.len() {
-        let mut s = ret[i].suit() as i32;
+        let mut s = ret[i].suit() as u8;
         if s > 0 {
             s += 1;
             if s > 4 {
                 s = 1;
             }
-            ret[i] = Card::from_rank_suit(h[i].rank(), Suit::from_i32(s));
+            ret[i] = Card::from_rank_suit(h[i].rank(), Suit::from_u8(s));
         }
     }
     ret
 }
-
 
 #[test]
 fn test_hash_data_file() -> Result<(), OjError> {
@@ -67,13 +65,13 @@ fn test_hash_data_file() -> Result<(), OjError> {
 
     for i in 0..data.hands.len() {
         let mut deck =
-            Deck::new(data.decks[data.hands[i].0 as usize - 1].as_str());
+            Deck::new_by_name(data.decks[data.hands[i].0 as usize - 1].as_str());
         deck.shuffle();
 
-        let mut h1 = deck.new_hand();
-        let mut h2 = deck.new_hand();
-        h1.push_n(parse_cards(data.hands[i].1.as_str()));
-        h2.push_n(parse_cards(h1.to_string().as_str()));
+        let h1 = deck.new_hand().init(
+            ojc_parse(data.hands[i].1.as_str()));
+        let h2 = deck.new_hand().init(
+            ojc_parse(h1.to_string().as_str()));
 
         let h3 = reorder(&h1);
         let h4 = resuit(&h1);
@@ -93,7 +91,7 @@ fn test_hash_data_file() -> Result<(), OjError> {
         assert_eq!(ojh_fnv_64(h1.as_slice())? == ojh_fnv_64(h4.as_slice())?,
             h1.equals(&h4));
 
-        if !deck.master.dups_allowed {
+        if !deck.deck_type.dups_allowed() {
             assert_eq!(ojh_bitfield_64co(h1.as_slice())?, ojh_bitfield_64co(h2.as_slice())?);
             assert_eq!(ojh_bitfield_64co(h1.as_slice())?, ojh_bitfield_64co(h3.as_slice())?);
             assert_eq!(ojh_bitfield_64co(h1.as_slice())? == ojh_bitfield_64co(h4.as_slice())?,
@@ -105,11 +103,6 @@ fn test_hash_data_file() -> Result<(), OjError> {
             ranks_identical(&h1, &h3));
         assert_eq!(ojh_positional_64cs(h1.as_slice())?, ojh_positional_64cs(h4.as_slice())?);
 
-        assert_eq!(ojh_positional_64cr(&h1.ranks())?, ojh_positional_64cr(&h2.ranks())?);
-        assert_eq!(ojh_positional_64cr(&h1.ranks())? == ojh_positional_64cr(&h3.ranks())?,
-            ranks_identical(&h1, &h3));
-        assert_eq!(ojh_positional_64cr(&h1.ranks())?, ojh_positional_64cr(&h4.ranks())?);
-
         if h1.len() > 10 { continue; }
         assert_eq!(ojh_positional_64c(h1.as_slice())?, ojh_positional_64c(h2.as_slice())?);
         assert_eq!(ojh_positional_64c(h1.as_slice())? == ojh_positional_64c(h3.as_slice())?,
@@ -117,20 +110,15 @@ fn test_hash_data_file() -> Result<(), OjError> {
         assert_eq!(ojh_positional_64c(h1.as_slice())? == ojh_positional_64c(h4.as_slice())?,
             h1.equals(&h4));
 
-        assert_eq!(ojh_prime_64cor(&h1.ranks())?, ojh_prime_64cor(&h2.ranks())?);
-        assert_eq!(ojh_prime_64cor(&h1.ranks())?, ojh_prime_64cor(&h3.ranks())?);
-        assert_eq!(ojh_prime_64cor(&h1.ranks())?, ojh_prime_64cor(&h4.ranks())?);
+        assert_eq!(ojh_prime_64cos(h1.as_slice())?, ojh_prime_64cos(h2.as_slice())?);
+        assert_eq!(ojh_prime_64cos(h1.as_slice())?, ojh_prime_64cos(h3.as_slice())?);
+        assert_eq!(ojh_prime_64cos(h1.as_slice())?, ojh_prime_64cos(h4.as_slice())?);
 
         if h1.len() > 8 { continue; }
         assert_eq!(ojh_positional_32cs(h1.as_slice())?, ojh_positional_32cs(h2.as_slice())?);
         assert_eq!(ojh_positional_32cs(h1.as_slice())? == ojh_positional_32cs(h3.as_slice())?,
             ranks_identical(&h1, &h3));
         assert_eq!(ojh_positional_32cs(h1.as_slice())?, ojh_positional_32cs(h4.as_slice())?);
-
-        assert_eq!(ojh_positional_32cr(&h1.ranks())?, ojh_positional_32cr(&h2.ranks())?);
-        assert_eq!(ojh_positional_32cr(&h1.ranks())? == ojh_positional_32cr(&h3.ranks())?,
-            ranks_identical(&h1, &h3));
-        assert_eq!(ojh_positional_32cr(&h1.ranks())?, ojh_positional_32cr(&h4.ranks())?);
 
         if h1.len() > 7 { continue; }
         assert_eq!(ojh_prime_64co(h1.as_slice())?, ojh_prime_64co(h2.as_slice())?);
@@ -145,9 +133,9 @@ fn test_hash_data_file() -> Result<(), OjError> {
         assert_eq!(ojh_positional_32c(h1.as_slice())? == ojh_positional_32c(h4.as_slice())?,
             h1.equals(&h4));
 
-        assert_eq!(ojh_prime_32cor(&h1.ranks())?, ojh_prime_32cor(&h2.ranks())?);
-        assert_eq!(ojh_prime_32cor(&h1.ranks())?, ojh_prime_32cor(&h3.ranks())?);
-        assert_eq!(ojh_prime_32cor(&h1.ranks())?, ojh_prime_32cor(&h4.ranks())?);
+        assert_eq!(ojh_prime_32cos(h1.as_slice())?, ojh_prime_32cos(h2.as_slice())?);
+        assert_eq!(ojh_prime_32cos(h1.as_slice())?, ojh_prime_32cos(h3.as_slice())?);
+        assert_eq!(ojh_prime_32cos(h1.as_slice())?, ojh_prime_32cos(h4.as_slice())?);
     }
     Ok(())
 }

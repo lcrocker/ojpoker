@@ -14,22 +14,6 @@ function sdir(): string {
     return SCRIPT_DIR;
 }
 
-async function testDart() {
-    const cmd = new Deno.Command(
-        "dart", {
-        args: [ "test" ],
-        cwd: `${sdir()}/dart`,
-        stdin: "inherit",
-        stdout: "inherit",
-    });
-    const child = cmd.spawn();
-    const st = await child.status;
-
-    if (! st.success) {
-        throw new Error("Dart tests failed");
-    }
-}
-
 async function testRust() {
     const cmd = new Deno.Command(
         "cargo", {
@@ -48,6 +32,5 @@ async function testRust() {
 
 if (import.meta.main) {
     // Not parallelizing so I can watch the output
-    await testDart();
     await testRust();
 }
