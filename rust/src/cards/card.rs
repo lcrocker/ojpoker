@@ -18,13 +18,16 @@ pub type Ordinal = u8;  // some machines might be faster with u32?
 pub struct Card(pub Ordinal);
 
 #[macro_export]
-/// Make const Card object from string
+/// Make const Card object from string. For example, `card!("Ac")`
+/// is equivalent to the constant `ACE_OF_CLUBS`.
 macro_rules! card {
     ( $x:literal ) => { Card::from_const_str($x) };
 }
 
 #[macro_export]
-/// Make const array of Card objects from string literals
+/// Make const array of Card objects from string literals.
+/// For example, `cards!("Ac", "2d", "3h")` is equivalent to
+/// `[ACE_OF_CLUBS, DEUCE_OF_DIAMONDS, TREY_OF_HEARTS]`.
 macro_rules! cards {
     ( $( $x:literal ),* ) => {
         [ $( Card::from_const_str($x), )* ]

@@ -6,6 +6,7 @@ use crate::cards::*;
 static DEFAULT_DECK_TYPE: AtomicU8 = AtomicU8::new(1);
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/DeckType) | Represents a new, full deck
+/// 
 /// Contains information about the kinds of decks used in various card games.
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
