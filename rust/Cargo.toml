@@ -23,7 +23,6 @@ panic = "unwind"
 split-debuginfo = "unpacked"
 
 [dependencies]
-cfg-if = "1.0.0"
 json5 = "0.4.1"
 paste = "1.0.15"
 serde = { version = "1.0.214", features = ["derive"] }
@@ -42,6 +41,7 @@ doc = false
 [features]
 default = []
 high-hand-tables = []
+stripped-deck-tables = []
 ace-to-five-tables = []
 deuce-to-seven-tables = []
 ace-to-six-tables = []

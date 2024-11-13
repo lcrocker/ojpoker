@@ -6,6 +6,14 @@ use crate::poker::*;
 
 /// Full english name of hand e.g. "king-high straight"
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_high_full_name) | Full english name of hand
+/// ```rust
+/// use onejoker::*;
+///
+/// let hand = Hand::new(DeckType::English).init(cards!("9s","As","9d","Ks","Ah"));
+/// let v = ojp_high_eval_full(&hand).unwrap();
+/// println!("{}", ojp_high_full_name(&v));
+/// // Output: "aces and nines with a king"
+/// ```
 pub fn ojp_high_full_name(v: &HandValue) -> String {
     macro_rules! sng {
         ($x:literal) => { v.hand[$x as usize].rank().name() }
@@ -16,7 +24,7 @@ pub fn ojp_high_full_name(v: &HandValue) -> String {
     macro_rules! art {
         ($x:literal) => { v.hand[$x as usize].rank().article() }
     }
-    
+
     match HandLevel::from_u8(v.level) {
         HandLevel::StraightFlush => {
             if v.hand[0].rank() == Rank::Ace {
@@ -61,67 +69,176 @@ fn curried_evaluator_quick(h: &Hand) -> u32 {
     ojp_default_eval_quick(h, HandScale::HighHand)
 }
 
-cfg_if::cfg_if! {
-    if #[cfg(feature = "high-hand-tables")] {
-        use crate::poker::high_hand_tables::*;
+#[cfg(feature = "high-hand-tables")]
+use crate::poker::high_hand_tables::*;
 
-        /// Quick lookup table evaluator
-        fn lookup_high(h: &Hand) -> u32 {
-            let h = ojh_mp5_english(ojh_bitfield_64co(h.as_slice()).
-                expect("should have been checked by this time"));
-            HIGH_HAND_TABLE_1[h as usize] as u32
-        }
+#[cfg(feature = "high-hand-tables")]
+/// Quick lookup table evaluator
+fn lookup_high(h: &Hand) -> u32 {
+    let h = ojh_mp5_english(ojh_bitfield_64co(h.as_slice()).
+        expect("should have been checked by this time"));
+    HIGH_HAND_TABLE_1[h as usize] as u32
+}
 
-        /// Full high poker hand evaluator
-        /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_high_eval_full) | Full high poker hand evaluator
-        pub fn ojp_high_eval_full(h: &Hand) -> Result<HandValue, OjError> {
-            if h.len() < 5 {
-                return curried_evaluator_full(h);
-            }
-            let ec = if 5 == h.len() {
-                lookup_high(h)
-            } else {
-                ojp_best_value_of(h, HandScale::HighHand, lookup_high)
-            };
-            let vv = HIGH_HAND_TABLE_2[ec as usize];
-            let mut v = HandValue::new_with_value(*h, HandScale::HighHand,
-                vv.0, ec as u32);
-            v.order_for_display(&vv.1);
-            Ok(v)
-        }
-
-        /// Value-only high poker hand evaluator
-        /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_high_eval_quick) | Value-only high poker hand evaluator
-        pub fn ojp_high_eval_quick(h: &Hand) -> u32 {
-            if 5 == h.len() {
-                return lookup_high(h);
-            }
-            if h.len() < 5 {
-                return curried_evaluator_quick(h);
-            }
-            ojp_best_value_of(h, HandScale::HighHand, lookup_high)
-        }
-    } else {
-        /// Full high poker hand evaluator
-        /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_high_eval_full) | Full high poker hand evaluator
-        pub fn ojp_high_eval_full(h: &Hand) -> Result<HandValue, OjError> {
-            if h.len() > 5 {
-                return ojp_best_of(h, HandScale::HighHand,
-                    curried_evaluator_full);
-            }
-            curried_evaluator_full(h)
-        }
-
-        /// Value-only high poker hand evaluator
-        /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_high_eval_quick) | Value-only high poker hand evaluator
-        pub fn ojp_high_eval_quick(h: &Hand) -> u32 {
-            if h.len() > 5 {
-                return ojp_best_value_of(h, HandScale::HighHand,
-                    curried_evaluator_quick);
-            }
-            curried_evaluator_quick(h)
-        }
+#[cfg(feature = "high-hand-tables")]
+/// Full high poker hand evaluator
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_high_eval_full) | Full high poker hand evaluator
+pub fn ojp_high_eval_full(h: &Hand) -> Result<HandValue, OjError> {
+    if h.len() < 5 {
+        return curried_evaluator_full(h);
     }
+    let ec = if 5 == h.len() {
+        lookup_high(h)
+    } else {
+        ojp_best_value_of(h, HandScale::HighHand, lookup_high)
+    };
+    let vv = HIGH_HAND_TABLE_2[ec as usize];
+    let mut v = HandValue::new_with_value(*h, HandScale::HighHand,
+        vv.0, ec as u32);
+    v.order_for_display(&vv.1);
+    Ok(v)
+}
+
+#[cfg(feature = "high-hand-tables")]
+/// Value-only high poker hand evaluator
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_high_eval_quick) | Value-only high poker hand evaluator
+pub fn ojp_high_eval_quick(h: &Hand) -> u32 {
+    if 5 == h.len() {
+        return lookup_high(h);
+    }
+    if h.len() < 5 {
+        return curried_evaluator_quick(h);
+    }
+    ojp_best_value_of(h, HandScale::HighHand, lookup_high)
+}
+
+#[cfg(not(feature = "high-hand-tables"))]
+/// Full high poker hand evaluator
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_high_eval_full) | Full high poker hand evaluator
+/// ```rust
+/// use onejoker::*;
+///
+/// let hand = Hand::new(DeckType::English).init(cards!("9s","As","9d","Ks","Ah"));
+/// let v = ojp_high_eval_full(&hand).unwrap();
+/// println!("[{}]: {}", v.hand, v.full_name());
+/// // Output: "[AsAh9s9dKs]: aces and nines with a king"
+/// ```
+pub fn ojp_high_eval_full(h: &Hand) -> Result<HandValue, OjError> {
+    if h.len() > 5 {
+        return ojp_best_of(h, HandScale::HighHand,
+            curried_evaluator_full);
+    }
+    curried_evaluator_full(h)
+}
+
+#[cfg(not(feature = "high-hand-tables"))]
+/// Value-only high poker hand evaluator
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_high_eval_quick) | Value-only high poker hand evaluator
+/// ```rust
+/// use onejoker::*;
+///
+/// let h1 = Hand::new(DeckType::English).init(cards!("9s","As","9d","Ks","Ah"));
+/// let h2 = Hand::new(DeckType::English).init(cards!("9c","Ac","9h","Td","Ad"));
+/// let v1 = ojp_high_eval_quick(&h1);
+/// let v2 = ojp_high_eval_quick(&h2);
+/// assert!(v1 < v2);   // king kicker beats ten kicker
+/// ```
+pub fn ojp_high_eval_quick(h: &Hand) -> u32 {
+    if h.len() > 5 {
+        return ojp_best_value_of(h, HandScale::HighHand,
+            curried_evaluator_quick);
+    }
+    curried_evaluator_quick(h)
+}
+
+fn curried_evaluator_stripped_full(h: &Hand) -> Result<HandValue, OjError> {
+    ojp_default_eval_full(h, HandScale::Stripped)
+}
+
+fn curried_evaluator_stripped_quick(h: &Hand) -> u32 {
+    ojp_default_eval_quick(h, HandScale::Stripped)
+}
+
+#[cfg(feature = "stripped-deck-tables")]
+use crate::poker::stripped_deck_tables::*;
+
+#[cfg(feature = "stripped-deck-tables")]
+/// Quick lookup table evaluator
+fn lookup_stripped(h: &Hand) -> u32 {
+    let h = ojh_mp5_stripped(ojh_bitfield_64co(h.as_slice()).
+        expect("should have been checked by this time"));
+    STRIPPED_DECK_TABLE_1[h as usize] as u32
+}
+
+#[cfg(feature = "stripped-deck-tables")]
+/// Full stripped deck poker hand evaluator
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_stripped_eval_full) | Full stripped deck poker hand evaluator
+pub fn ojp_stripped_eval_full(h: &Hand) -> Result<HandValue, OjError> {
+    if h.len() < 5 {
+        return curried_evaluator_stripped_full(h);
+    }
+    let ec = if 5 == h.len() {
+        lookup_stripped(h)
+    } else {
+        ojp_best_value_of(h, HandScale::Stripped, lookup_stripped)
+    };
+    let vv = STRIPPED_DECK_TABLE_2[ec as usize];
+    let mut v = HandValue::new_with_value(*h, HandScale::Stripped,
+        vv.0, ec as u32);
+    v.order_for_display(&vv.1);
+    Ok(v)
+}
+
+#[cfg(feature = "stripped-deck-tables")]
+/// Value-only stripped deck poker hand evaluator
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_stripped_eval_quick) | Value-only stripped deck poker hand evaluator
+pub fn ojp_stripped_eval_quick(h: &Hand) -> u32 {
+    if 5 == h.len() {
+        return lookup_stripped(h);
+    }
+    if h.len() < 5 {
+        return curried_evaluator_stripped_quick(h);
+    }
+    ojp_best_value_of(h, HandScale::Stripped, lookup_stripped)
+}
+
+#[cfg(not(feature = "stripped-deck-tables"))]
+/// Full stripped deck poker hand evaluator
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_stripped_eval_full) | Full stripped deck poker hand evaluator
+/// ```rust
+/// use onejoker::*;
+///
+/// let hand = Hand::new(DeckType::Stripped).init(cards!("9s","As","9d","Ks","Ah"));
+/// let v = ojp_stripped_eval_full(&hand).unwrap();
+/// println!("[{}]: {}", v.hand, v.full_name());
+/// // Output: "[AsAh9s9dKs]: aces and nines with a king"
+/// ```
+pub fn ojp_stripped_eval_full(h: &Hand) -> Result<HandValue, OjError> {
+    if h.len() > 5 {
+        return ojp_best_of(h, HandScale::Stripped,
+            curried_evaluator_stripped_full);
+    }
+    curried_evaluator_stripped_full(h)
+}
+
+#[cfg(not(feature = "stripped-deck-tables"))]
+/// Value-only stripped deck poker hand evaluator
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_stripped_eval_quick) | Value-only stripped deck poker hand evaluator
+/// ```rust
+/// use onejoker::*;
+///
+/// let h1 = Hand::new(DeckType::Stripped).init(cards!("9s","As","9d","Ks","Ah"));
+/// let h2 = Hand::new(DeckType::Stripped).init(cards!("9c","Ac","9h","Td","Ad"));
+/// let v1 = ojp_stripped_eval_quick(&h1);
+/// let v2 = ojp_stripped_eval_quick(&h2);
+/// assert!(v1 < v2);   // king kicker beats ten kicker
+/// ```
+pub fn ojp_stripped_eval_quick(h: &Hand) -> u32 {
+    if h.len() > 5 {
+        return ojp_best_value_of(h, HandScale::Stripped,
+            curried_evaluator_stripped_quick);
+    }
+    curried_evaluator_stripped_quick(h)
 }
 
 /*
@@ -136,7 +253,7 @@ mod tests {
     fn test_hand_evaluator_high() -> Result<(), OjError> {
         let deck = Deck::new_by_name("poker");
         let mut hand= deck.new_hand();
-        let mut best: u32 = 0xFFFFFFFF;
+        let mut best: u32 = 0xFFFF_FFFF;
 
         hand.set(cards!("2c","3h","7c","4d","5d"));
         let mut v1 = ojp_high_eval_full(&hand)?;
@@ -239,5 +356,100 @@ mod tests {
 
         Ok(())
     }
-}
 
+    #[test]
+    fn test_hand_evaluator_stripped() -> Result<(), OjError> {
+        let deck = Deck::new_by_name("manila");
+        let mut hand= deck.new_hand();
+        let mut best: u32 = 0xFFFF_FFFF;
+
+        hand.set(cards!("8c","9h","7c","Jd","Kd"));
+        let mut v1 = ojp_stripped_eval_full(&hand)?;
+        assert_eq!(HandLevel::from_u8(v1.level), HandLevel::NoPair);
+
+        hand.set(cards!("9h","8s","7c","Kh","Jd"));
+        let mut v2 = ojp_stripped_eval_full(&hand)?;
+        assert_eq!(v1, v2);
+        assert!(v1.value < best);
+        best = v1.value;
+
+        hand.set(cards!("9d","7d","Qc","Kc","Th"));
+        v1 = ojp_stripped_eval_full(&hand)?;
+        assert_eq!(HandLevel::from_u8(v1.level), HandLevel::NoPair);
+
+        hand.set(cards!("Qc","9s","Ks","Td","7h"));
+        v2 = ojp_stripped_eval_full(&hand)?;
+        assert_eq!(v1, v2);
+        assert!(v1.value < best);
+        best = v1.value;
+
+        hand.set(cards!("7h","Qd","9c","7d","Ts"));
+        v1 = ojp_stripped_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::Pair as u8);
+        assert!(v1.value < best);
+        best = v1.value;
+
+        hand.set(cards!("Th","8c","8d","Ad","Tc"));
+        v1 = ojp_stripped_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::TwoPair as u8);
+        assert!(v1.value < best);
+        best = v1.value;
+
+        hand.set(cards!("9h","7d","9c","9s","Kd"));
+        v1 = ojp_stripped_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::Trips as u8);
+        assert!(v1.value < best);
+        best = v1.value;
+
+        hand.set(cards!("7d","9h","8d","Ts","Js"));
+        v1 = ojp_stripped_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::Straight as u8);
+
+        hand.set(cards!("9c","7d","Tc","Jc","8h"));
+        v2 = ojp_stripped_eval_full(&hand)?;
+        assert_eq!(v1, v2);
+        assert!(v1.value < best);
+        best = v1.value;
+
+        hand.set(cards!("Kd","As","Js","Th","Qh"));
+        v1 = ojp_stripped_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::Straight as u8);
+        assert!(v1.value < best);
+        best = v1.value;
+
+        hand.set(cards!("7s","7h","Ac","7d","Ad"));
+        v1 = ojp_stripped_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::FullHouse as u8);
+        assert!(v1.value < best);
+        best = v1.value;
+
+        hand.set(cards!("Ac","As","7d","7h","Ah"));
+        v1 = ojp_stripped_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::FullHouse as u8);
+        assert!(v1.value < best);
+        best = v1.value;
+
+        hand.set(cards!("7d","Td","8d","Ad","Qd"));
+        v1 = ojp_stripped_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::Flush as u8);
+        assert!(v1.value < best);
+        best = v1.value;
+
+        hand.set(cards!("8c","8s","8d","8h","Kd"));
+        v1 = ojp_stripped_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::Quads as u8);
+        assert!(v1.value < best);
+        best = v1.value;
+
+        hand.set(cards!("Ts","Qs","9s","Js","Ks"));
+        v1 = ojp_stripped_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::StraightFlush as u8);
+
+        hand.set(cards!("Qh","9h","Kh","Th","Jh"));
+        v2 = ojp_stripped_eval_full(&hand)?;
+        assert_eq!(v1, v2);
+        assert!(v1.value < best);
+
+        Ok(())
+    }
+}

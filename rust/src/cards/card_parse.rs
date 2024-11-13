@@ -95,7 +95,17 @@ impl<'a> Iterator for CardParseIter<'a> {
     }
 }
 
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojc_parse) | A function for reading cards from text.
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojc_parse) | A function for reading cards from text
+/// ```rust
+/// use onejoker::*;
+///
+/// let text = "  [2h 3s Td Kc Jk 7c Ad]";
+/// let cards: Vec<Card> = ojc_parse(text).collect();
+/// assert_eq!(cards.len(), 7);
+/// assert_eq!(cards[0], card!("2h"));
+/// assert_eq!(cards[4], card!("Jk"));
+/// assert_eq!(cards[6], card!("Ad"));
+/// ```
 pub fn ojc_parse(text: &str) -> impl Iterator<Item = Card> + '_ {
     CardParseIter::new(text.chars())
 }
@@ -110,7 +120,7 @@ mod tests {
     use crate::errors::OjError;
     use crate::utils::oj_rand_range;
     use crate::cards::{Deck, DeckType};
- 
+
     #[test]
     fn test_cards() -> Result<(), OjError> {
         let mut deck = Deck::new(DeckType::AllCards);

@@ -15,8 +15,8 @@ pub use utils::{
 pub mod cards;
 pub use cards::suit::Suit;
 pub use cards::rank::Rank;
+pub use cards::card::Card;
 pub use cards::card::{
-    Ordinal, Card,
     WHITE_JOKER, BLACK_JOKER, JOKER,
     LOW_ACE_OF_CLUBS, LOW_ACE_OF_DIAMONDS, LOW_ACE_OF_HEARTS, LOW_ACE_OF_SPADES,
     DEUCE_OF_CLUBS, DEUCE_OF_DIAMONDS, DEUCE_OF_HEARTS, DEUCE_OF_SPADES,
@@ -42,7 +42,8 @@ pub use cards::hashes::{
     ojh_fnv_32, ojh_fnv_64, ojh_positional_32c, ojh_positional_32cs,
     ojh_positional_64c, ojh_positional_64cs, ojh_bitfield_64co,
     ojh_prime_32cos, ojh_prime_64co, ojh_prime_64cos,
-    ojh_mp5_english, ojh_mp5_low, ojh_mp4_low, ojh_positional_32cs_mp5_low,
+    ojh_mp5_english, ojh_mp5_low, ojh_mp4_english, ojh_mp4_low,
+    ojh_positional_32cs_mp5_low, ojh_mp5_stripped,
 };
 
 pub use cards::deck::Deck;
@@ -60,11 +61,18 @@ pub use poker::hand_evaluation::{
 
 pub use poker::high_hand::{
     ojp_high_full_name, ojp_high_eval_full, ojp_high_eval_quick,
+    ojp_stripped_eval_full, ojp_stripped_eval_quick,
+};
+
+pub use poker::pai_gow::{
+    ojp_pai_gow_full_name,
+    ojp_pai_gow_eval_full_no_bug, ojp_pai_gow_eval_quick_no_bug,
 };
 
 pub use poker::ace_to_five::{
     ojp_ace_to_five_full_name, ojp_ace_to_five_eval_full,
-    ojp_ace_to_five_eval_quick,
+    ojp_ace_to_five_eval_quick, ojp_action_razz_full_name,
+    ojp_action_razz_eval_full, ojp_action_razz_eval_quick,
 };
 
 pub use poker::deuce_to_seven::{
@@ -79,4 +87,5 @@ pub use poker::ace_to_six::{
 
 pub use poker::badugi::{
     ojp_badugi_full_name, ojp_badugi_eval_full, ojp_badugi_eval_quick,
+    ojp_badeucy_eval_full, ojp_badeucy_eval_quick,
 };

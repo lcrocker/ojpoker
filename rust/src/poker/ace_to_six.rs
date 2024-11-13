@@ -6,46 +6,25 @@ use crate::poker::*;
 
 /// Full English name of hand, e.g. "aces and fours with a jack".
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_ace_to_six_full_name) | Describe ace-to-six hand
+/// ```rust
+/// use onejoker::*;
+///
+/// let hand = Hand::new(DeckType::Low).init(cards!("9s","6s","7c","5h","8c"));
+/// let v = ojp_ace_to_six_eval_full(&hand).unwrap();
+/// println!("{}", ojp_ace_to_six_full_name(&v));
+/// // Output: "nine-high straight"
+/// ```
+
 pub fn ojp_ace_to_six_full_name(v: &HandValue) -> String {
     macro_rules! sng {
         ($x:literal) => { v.hand[$x as usize].rank().name() }
     }
-    macro_rules! plr {
-        ($x:literal) => { v.hand[$x as usize].rank().plural() }
-    }
-    macro_rules! art {
-        ($x:literal) => { v.hand[$x as usize].rank().article() }
-    }
 
     match HandLevel::from_u8(v.level) {
-        HandLevel::StraightFlush => {
-            format!("{}-high straight flush", sng!(0))
-        },
-        HandLevel::Quads => {
-            format!("four {} with {} {}", plr!(0), art!(4), sng!(4))
-        },
-        HandLevel::FullHouse => {
-            format!("{} full of {}", plr!(0), plr!(3))
-        },
-        HandLevel::Flush => {
-            format!("flush: {}, {}, {}, {}, {}", sng!(0), sng!(1), sng!(2), sng!(3), sng!(4))
-        },
-        HandLevel::Straight => {
-            format!("{}-high straight", sng!(0))
-        },
-        HandLevel::Trips => {
-            format!("three {}, {}, {}", plr!(0), sng!(3), sng!(4))
-        },
-        HandLevel::TwoPair => {
-            format!("{} and {} with {} {}", plr!(0), plr!(2), art!(4), sng!(4))
-        },
-        HandLevel::Pair => {
-            format!("pair of {}, {}, {}, {}", plr!(0), sng!(2), sng!(3), sng!(4))
-        },
         HandLevel::NoPair => {
             format!("{}, {}, {}, {}, {}", sng!(0), sng!(1), sng!(2), sng!(3), sng!(4))
         },
-        _ => String::from("unknown hand"),
+        _ => ojp_high_full_name(v)
     }
 }
 
@@ -57,67 +36,86 @@ fn curried_evaluator_quick(h: &Hand) -> u32 {
     ojp_default_eval_quick(h, HandScale::AceToSix)
 }
 
-cfg_if::cfg_if! {
-    if #[cfg(feature = "ace-to-six-tables")] {
-        use crate::poker::ace_to_six_tables::*;
+#[cfg(feature = "ace-to-six-tables")]
+use crate::poker::ace_to_six_tables::*;
 
-        /// Quick lookup table evaluator
-        fn lookup_ace_to_six(h: &Hand) -> u32 {
-            let h = ojh_mp5_low(ojh_bitfield_64co(h.as_slice()).
-                expect("should have been checked by this time"));
-            ACE_TO_SIX_TABLE_1[h as usize] as u32
-        }
+#[cfg(feature = "ace-to-six-tables")]
+/// Quick lookup table evaluator
+fn lookup_ace_to_six(h: &Hand) -> u32 {
+    let h = ojh_mp5_low(ojh_bitfield_64co(h.as_slice()).
+        expect("should have been checked by this time"));
+    ACE_TO_SIX_TABLE_1[h as usize] as u32
+}
 
-        /// Full ace-to-five poker hand evaluator
-        /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_ace_to_six_eval_full) | Full ace-to-six evaluator
-        pub fn ojp_ace_to_six_eval_full(h: &Hand) -> Result<HandValue, OjError> {
-            if h.len() < 5 {
-                return curried_evaluator_full(h);
-            }
-            let ec = if 5 == h.len() {
-                lookup_ace_to_six(h)
-            } else {
-                ojp_best_value_of(h, HandScale::AceToSix, lookup_ace_to_six)
-            };
-            let vv = ACE_TO_SIX_TABLE_2[ec as usize];
-            let mut v = HandValue::new_with_value(*h, HandScale::AceToSix,
-                vv.0, ec as u32);
-            v.order_for_display(&vv.1);
-            Ok(v)
-        }
-
-        /// Value-only high poker hand evaluator
-        /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_ace_to_six_eval_quick) | Quick ace-to-six evaluator
-        pub fn ojp_ace_to_six_eval_quick(h: &Hand) -> u32 {
-            if 5 == h.len(){
-                return lookup_ace_to_six(h);
-            }
-            if h.len() < 5 {
-                return curried_evaluator_quick(h);
-            }
-            ojp_best_value_of(h, HandScale::AceToSix, lookup_ace_to_six)
-        }
-    } else {
-        /// Full high poker hand evaluator
-        /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_ace_to_six_eval_full) | Full ace-to-six evaluator
-        pub fn ojp_ace_to_six_eval_full(h: &Hand) -> Result<HandValue, OjError> {
-            if h.len() > 5 {
-                return ojp_best_of(h, HandScale::AceToSix,
-                    curried_evaluator_full);
-            }
-            curried_evaluator_full(h)
-        }
-
-        /// Value-only high poker hand evaluator
-        /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_ace_to_six_eval_quick) | Quick ace-to-six evaluator
-        pub fn ojp_ace_to_six_eval_quick(h: &Hand) -> u32 {
-            if h.len() > 5 {
-                return ojp_best_value_of(h, HandScale::AceToSix,
-                    curried_evaluator_quick);
-            }
-            curried_evaluator_quick(h)
-        }
+#[cfg(feature = "ace-to-six-tables")]
+/// Full ace-to-five poker hand evaluator
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_ace_to_six_eval_full) | Full ace-to-six evaluator
+pub fn ojp_ace_to_six_eval_full(h: &Hand) -> Result<HandValue, OjError> {
+    if h.len() < 5 {
+        return curried_evaluator_full(h);
     }
+    let ec = if 5 == h.len() {
+        lookup_ace_to_six(h)
+    } else {
+        ojp_best_value_of(h, HandScale::AceToSix, lookup_ace_to_six)
+    };
+    let vv = ACE_TO_SIX_TABLE_2[ec as usize];
+    let mut v = HandValue::new_with_value(*h, HandScale::AceToSix,
+        vv.0, ec as u32);
+    v.order_for_display(&vv.1);
+    Ok(v)
+}
+
+#[cfg(feature = "ace-to-six-tables")]
+/// Value-only high poker hand evaluator
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_ace_to_six_eval_quick) | Quick ace-to-six evaluator
+pub fn ojp_ace_to_six_eval_quick(h: &Hand) -> u32 {
+    if 5 == h.len(){
+        return lookup_ace_to_six(h);
+    }
+    if h.len() < 5 {
+        return curried_evaluator_quick(h);
+    }
+    ojp_best_value_of(h, HandScale::AceToSix, lookup_ace_to_six)
+}
+
+#[cfg(not(feature = "ace-to-six-tables"))]
+/// Full high poker hand evaluator
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_ace_to_six_eval_full) | Full ace-to-six evaluator
+/// ```rust
+/// use onejoker::*;
+///
+/// let hand = Hand::new(DeckType::Low).init(cards!("9s","6s","7c","5h","8c"));
+/// let v = ojp_ace_to_six_eval_full(&hand).unwrap();
+/// println!("[{}]: {}", v.hand, ojp_ace_to_six_full_name(&v));
+/// // Output: "[9s8c7c6s5h]: nine-high straight"
+/// ```
+pub fn ojp_ace_to_six_eval_full(h: &Hand) -> Result<HandValue, OjError> {
+    if h.len() > 5 {
+        return ojp_best_of(h, HandScale::AceToSix,
+            curried_evaluator_full);
+    }
+    curried_evaluator_full(h)
+}
+
+#[cfg(not(feature = "ace-to-six-tables"))]
+/// Value-only high poker hand evaluator
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_ace_to_six_eval_quick) | Quick ace-to-six evaluator
+/// ```rust
+/// use onejoker::*;
+///
+/// let h1 = Hand::new(DeckType::Low).init(cards!("Qs","Qs","5c","Qh","6c"));
+/// let h2 = Hand::new(DeckType::Low).init(cards!("9s","6s","7c","5h","8c"));
+/// let v1 = ojp_ace_to_six_eval_quick(&h1);
+/// let v2 = ojp_ace_to_six_eval_quick(&h2);
+/// assert!(v1 < v2);   // trips beats straight
+/// ```
+pub fn ojp_ace_to_six_eval_quick(h: &Hand) -> u32 {
+    if h.len() > 5 {
+        return ojp_best_value_of(h, HandScale::AceToSix,
+            curried_evaluator_quick);
+    }
+    curried_evaluator_quick(h)
 }
 
 /*
@@ -132,7 +130,7 @@ mod tests {
     fn test_hand_evaluator_ace_to_six() -> Result<(), OjError> {
         let deck = Deck::new_by_name("low");
         let mut hand= deck.new_hand();
-        let mut best: u32 = 0xFFFFFFFF;
+        let mut best: u32 = 0xFFFF_FFFF;
 
         hand.set(cards!("8c","Jc","9c","Qc","Tc"));
         let mut v1 = ojp_ace_to_six_eval_full(&hand)?;

@@ -49,13 +49,23 @@ const PLURALS: [&str; 16] = [ "?", "aces", "deuces", "treys", "fours",
     "knights", "queens", "kings", "aces" ];
 
 impl Rank {
-    /// Convert integer to rank.
+    /// Convert integer to rank
+    /// ```rust
+    /// use onejoker::*;
+    /// 
+    /// assert_eq!(Rank::Deuce, Rank::from_u8(2));
+    /// ```
     pub const fn from_u8(v: u8) -> Rank {
         if v > 15 { return Rank::None; }
         RANKS[v as usize]
     }
 
-    /// Convert character.
+    /// Convert character to rank
+    /// ```rust
+    /// use onejoker::*;
+    /// 
+    /// assert_eq!(Rank::Trey, Rank::from_char('3'));
+    /// ```
     pub const fn from_char(c: char) -> Rank {
         match c {
             '1' => Rank::LowAce,
@@ -78,24 +88,46 @@ impl Rank {
     }
 
     /// Convert to char
+    /// ```rust
+    /// use onejoker::*;
+    /// 
+    /// assert_eq!('4', Rank::Four.to_char());
+    /// ```
     pub const fn to_char(&self) -> char {
         if (*self as usize) > 15 { return '?'; }
         CHARS[*self as usize]
     }
 
     /// Produce "seven", "jack", etc.
+    /// ```rust
+    /// use onejoker::*;
+    /// 
+    /// assert_eq!("seven", Rank::Seven.name());
+    /// ```
     pub const fn name(&self) -> &str {
         if (*self as usize) > 15 { return "?"; }
         NAMES[*self as usize]
     }
 
-    /// Because we have to deal with "sixes".
+    /// Because we have to deal with "sixes"
+    /// ```rust
+    /// use onejoker::*;
+    /// 
+    /// assert_eq!("fives", Rank::Five.plural());
+    /// assert_eq!("sixes", Rank::Six.plural());
+    /// ```
     pub const fn plural(&self) -> &str {
         if (*self as usize) > 15 { return "?"; }
         PLURALS[*self as usize]
     }
 
-    /// Because we have to deal with "eight" and "ace".
+    /// Because we have to deal with "eight" and "ace"
+    /// ```rust
+    /// use onejoker::*;
+    /// 
+    /// assert_eq!("an", Rank::Eight.article());
+    /// assert_eq!("a", Rank::Nine.article());
+    /// ```
     pub const fn article(&self) -> &str {
         if (*self as usize) == 1 || (*self as usize) == 15 ||
             (*self as usize) == 8 { return "an"; }

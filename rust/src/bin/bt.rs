@@ -18,12 +18,24 @@
 // const HASH: fn(&[Card]) -> u32 = |c|
 //     ojh_mp5_low(ojh_bitfield_64co(c).unwrap());
 
-const DECK: &str = "low";
-const SCALE: HandScale = HandScale::Badugi;
-const GAME: &str = "BADUGI";
+// const DECK: &str = "low";
+// const SCALE: HandScale = HandScale::Badugi;
+// const GAME: &str = "BADUGI";
+// const HASH: fn(&[Card]) -> u32 = |c|
+//     ojh_mp4_low(ojh_bitfield_64co(c).unwrap());
+
+// const DECK: &str = "english";
+// const SCALE: HandScale = HandScale::Badeucy;
+// const GAME: &str = "BADEUCY";
+// const HASH: fn(&[Card]) -> u32 = |c|
+//     ojh_mp4_english(ojh_bitfield_64co(c).unwrap());
+
+const DECK: &str = "stripped";
+const SCALE: HandScale = HandScale::Stripped;
+const GAME: &str = "STRIPPED_DECK";
 const HASH: fn(&[Card]) -> u32 = |c|
-    ojh_mp4_low(ojh_bitfield_64co(c).unwrap());
-    
+    ojh_mp5_stripped(ojh_bitfield_64co(c).unwrap());
+
 use std::collections::{BinaryHeap, HashMap};
 use onejoker::*;
 
@@ -74,6 +86,7 @@ fn build_tables() -> Result<(), OjError> {
     let deck = Deck::new_by_name(DECK);
 
     for hand in deck.combinations(SCALE.complete_hand()) {
+        // println!("// {:?}", hand);
         let v = SCALE.eval_full()(&hand)?;
         heap.push(HandAndValue { hand, value: v });
     }
@@ -105,7 +118,7 @@ to {} equivalence classes\n", total, equiv);
     print!("pub static {}_TABLE_1: [u16; {}] = [ 0,
   ", GAME, total + 1);
 
-    let mut p_hash = 0xFFFFFFFF;
+    let mut p_hash = 0xFFFF_FFFF;
 
     for i in 0..ec_heap.len() {
         let entry = ec_heap.pop().unwrap();
@@ -150,7 +163,7 @@ macro_rules! rk {{
             if ep.value.level as u32 > 11 { ep.value.hand[3] = Card(0); }
             if ep.value.level as u32 > 12 { ep.value.hand[2] = Card(0); }
             if ep.value.level as u32 > 13 { ep.value.hand[1] = Card(0); }
-                
+
             println!("  (lv!({}),rk!({},{},{},{})),",
                 ep.value.level as u32,
                 ep.value.hand[0].rank() as u32,

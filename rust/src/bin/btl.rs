@@ -71,6 +71,7 @@ fn build_tables() -> Result<(), OjError> {
 
                     for m in 0..13 {
                         let r5 = Rank::from_u8(RVAL[m] as u8);
+
                         let hand = deck.new_hand().init([
                             Card::from_rank_suit(r1, Suit::Spade),
                             Card::from_rank_suit(r2, Suit::Heart),
@@ -117,7 +118,7 @@ to {} equivalence classes\n", ec_heap.len(), equiv);
     for i in 0..ec_heap.len() {
         let entry = ec_heap.pop().unwrap();
         assert!(i == entry.hash as usize);
-        print!("{},", entry.eclass);
+        print!("{},", if entry.eclass > 6175 { 0 } else { entry.eclass });
 
         if 11 == i % 12 {
             print!("\n  ");
@@ -138,9 +139,9 @@ macro_rules! rk {{
 /// Table 2: from equivalence class to hand level and rank order
 ");
     println!("pub static {}_TABLE_2: [(HandLevel, [Rank; 5]); {}] = [
-  (lv!(0),rk!(0,0,0,0,0)),", GAME, equiv + 1);
+  (lv!(0),rk!(0,0,0,0,0)),", GAME, 6176);
 
-    for ec in 1..=equiv {
+    for ec in 1..=(equiv - 13) {
         let ep = &value_map[&ec];
         println!("  (lv!({}),rk!({},{},{},{},{})),",
             ep.value.level as u32,
@@ -150,7 +151,32 @@ macro_rules! rk {{
             ep.value.hand[3].rank() as u32,
             ep.value.hand[4].rank() as u32);
     }
-    println!("];");
+    println!("];
+
+/// Table 3: action razz equivalence class adjustments
+
+pub static ACTION_RAZZ_ADJUST: [u16; {}] = [ 0,
+  ", 6138);
+
+    let mut next_ec = 6176;
+    for ec in 1..=(equiv - 52) {
+        let ep = &value_map[&ec];
+
+        if ep.value.hand[0].rank() > Rank::Ten ||
+            ep.value.hand[1].rank() > Rank::Ten ||
+            ep.value.hand[2].rank() > Rank::Ten ||
+            ep.value.hand[3].rank() > Rank::Ten ||
+            ep.value.hand[4].rank() > Rank::Ten {
+            print!("0,");
+        } else {
+            print!("{},", next_ec);
+            next_ec += 1;
+        }
+        if 11 == ec % 12 {
+            print!("\n  ");
+        }
+    }
+    println!("\n];");
 
     Ok(())
 }

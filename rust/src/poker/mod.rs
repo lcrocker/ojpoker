@@ -12,9 +12,17 @@ pub use hand_evaluation::*;
 pub mod high_hand;
 pub use high_hand::*;
 
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Pai_Gow) | Pai Gow poker hands
+pub mod pai_gow;
+pub use pai_gow::*;
+
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/High_Hand_Tables) | High hand lookup tables
 #[cfg(feature = "high-hand-tables")]
 pub mod high_hand_tables;
+
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Stripped_Deck_Tables) | Stripped deck lookup tables
+#[cfg(feature = "stripped-deck-tables")]
+pub mod stripped_deck_tables;
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/Ace_To_Five) | Ace-To-Seven low poker hands
 pub mod ace_to_five;

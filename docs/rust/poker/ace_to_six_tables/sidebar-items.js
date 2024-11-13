@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"static":["ACE_TO_SIX_TABLE_1","ACE_TO_SIX_TABLE_2"]};

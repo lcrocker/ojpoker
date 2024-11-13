@@ -6,7 +6,7 @@ use crate::cards::*;
 static DEFAULT_DECK_TYPE: AtomicU8 = AtomicU8::new(1);
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/DeckType) | Represents a new, full deck
-/// 
+///
 /// Contains information about the kinds of decks used in various card games.
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -53,29 +53,7 @@ pub enum DeckType {
     Pinochle = 19,
 }
 
-const DECK_TYPE_COUNT: usize = 20;
-const DECK_TYPE_BY_INDEX: [DeckType; DECK_TYPE_COUNT] = [
-    DeckType::None,
-    DeckType::AllCards,
-    DeckType::English,
-    DeckType::OneJoker,
-    DeckType::TwoJokers,
-    DeckType::Low,
-    DeckType::LowJoker,
-    DeckType::Spanish,
-    DeckType::Spanish48,
-    DeckType::Mexican,
-    DeckType::Panguingue,
-    DeckType::Stripped,
-    DeckType::Swiss,
-    DeckType::Euchre,
-    DeckType::Euchre25,
-    DeckType::Euchre28,
-    DeckType::Euchre29,
-    DeckType::Bezique,
-    DeckType::Canasta,
-    DeckType::Pinochle,
-];
+const DECKTYPE_MAX: usize = DeckType::Pinochle as usize;
 
 fn type_by_alias(alias: &str) -> DeckType {
     match &alias.to_lowercase()[..] {
@@ -90,7 +68,7 @@ fn type_by_alias(alias: &str) -> DeckType {
 
         "low" | "low52" | "razz" | "badugi" | "acetofive" | "blackjack"
             | "acetosix" | "cribbage" | "baccarat" => DeckType::Low,
-    
+
         "lowjoker" | "lowball" | "low53" | "lowbug" => DeckType::LowJoker,
         "spanish" | "spanish40" | "40" => DeckType::Spanish,
         "spanish48" | "48" => DeckType::Spanish48,
@@ -109,68 +87,146 @@ fn type_by_alias(alias: &str) -> DeckType {
         "canasta" => DeckType::Canasta,
         "pinochle" => DeckType::Pinochle,
 
-        "default" => DECK_TYPE_BY_INDEX [
-            DEFAULT_DECK_TYPE.load(Ordering::Relaxed) as usize
-        ],
+        "default" => DeckType::from_u8(
+            DEFAULT_DECK_TYPE.load(Ordering::Relaxed)
+        ),
         _ => DeckType::English,
     }
 }
 
 impl DeckType {
-    /// How many deck types are available?
-    pub const fn count() -> usize {
-        DECK_TYPE_COUNT
-    }
-
-    /// Get deck type by index
+    /// Get deck type by index. Primarily for internal use
     pub const fn from_u8(idx: u8) -> Self {
-        DECK_TYPE_BY_INDEX[idx as usize]
+        match idx {
+            1 => DeckType::AllCards,
+            2 => DeckType::English,
+            3 => DeckType::OneJoker,
+            4 => DeckType::TwoJokers,
+            5 => DeckType::Low,
+            6 => DeckType::LowJoker,
+            7 => DeckType::Spanish,
+            8 => DeckType::Spanish48,
+            9 => DeckType::Mexican,
+            10 => DeckType::Panguingue,
+            11 => DeckType::Stripped,
+            12 => DeckType::Swiss,
+            13 => DeckType::Euchre,
+            14 => DeckType::Euchre25,
+            15 => DeckType::Euchre28,
+            16 => DeckType::Euchre29,
+            17 => DeckType::Bezique,
+            18 => DeckType::Canasta,
+            19 => DeckType::Pinochle,
+            _ => DeckType::None,
+        }
     }
 
     /// Get deck type by name or alias
+    /// ```rust
+    /// use onejoker::*;
+    ///
+    /// let dt = DeckType::by_name("bridge");
+    /// assert_eq!(dt, DeckType::English);
+    /// ```
     pub fn by_name(dname: &str) -> Self {
         type_by_alias(dname)
     }
 
     /// Set default deck type
+    /// ```rust
+    /// use onejoker::*;
+    ///
+    /// DeckType::set_default(DeckType::Pinochle);
+    /// let h = Hand::default();
+    /// assert_eq!(h.deck_type(), DeckType::Pinochle);
+    /// ```
     pub fn set_default(t: Self) {
         DEFAULT_DECK_TYPE.store(t as u8, Ordering::Relaxed);
     }
 
     /// Canonical name of deck type
+    /// ```rust
+    /// use onejoker::*;
+    ///
+    /// let d = Deck::new_by_name("lowball");
+    /// assert_eq!(d.deck_type.name(), "lowjoker");
+    /// ```
     pub const fn name(&self) -> &'static str {
         DECK_INFO_TABLE[*self as usize - 1].name
     }
 
     /// Number of cards in full deck
+    /// ```rust
+    /// use onejoker::*;
+    ///
+    /// assert_eq!(DeckType::Bezique.size(), 64);
+    /// ```
     pub const fn size(&self) -> usize {
         DECK_INFO_TABLE[*self as usize - 1].card_list.len()
     }
 
     /// Does the deck use low aces?
+    /// ```rust
+    /// use onejoker::*;
+    ///
+    /// let mut d = Deck::new_by_name("razz");
+    /// assert!(d.deck_type.low_aces());
+    /// d = Deck::new_by_name("swiss");
+    /// assert!(! d.deck_type.low_aces());
+    /// ```
     pub const fn low_aces(&self) -> bool {
         DECK_INFO_TABLE[*self as usize - 1].low_aces
     }
 
     /// Does the deck allow duplicate cards?
+    /// ```rust
+    /// use onejoker::*;
+    ///
+    /// let mut d = Deck::new_by_name("german");
+    /// assert!(! d.deck_type.dups_allowed());
+    /// d = Deck::new_by_name("canasta");
+    /// assert!(d.deck_type.dups_allowed());
+    /// ```
     pub const fn dups_allowed(&self) -> bool {
         DECK_INFO_TABLE[*self as usize - 1].dups_allowed
     }
 
     /// Does the deck allow this specific card?
+    /// ```rust
+    /// use onejoker::*;
+    ///
+    /// assert!(DeckType::Spanish.has(KNIGHT_OF_CLUBS));
+    /// assert!(! DeckType::Stripped.has(DEUCE_OF_CLUBS));
+    /// ```
     pub const fn has(&self, c: Card) -> bool {
         0 != (DECK_INFO_TABLE[*self as usize - 1].card_set & (1 << c.0))
     }
 
     /// Get a slice of the full deck
+    /// ```rust
+    /// use onejoker::*;
+    ///
+    /// let v: Vec<Card> = DeckType::Spanish.card_list().to_vec();
+    /// assert_eq!(v.len(), 40);
+    /// ```
     pub const fn card_list(&self) -> &'static [Card] {
         DECK_INFO_TABLE[*self as usize - 1].card_list
     }
 
-    /// Validate a card for this deck
+    /// Validate a card for this deck. Note that unlike `has`, which just
+    /// gives a yes/no, this function will returns card with aces fixed if
+    /// necessary, and maybe other fixes in the future.
+    /// ```rust
+    /// use onejoker::*;
+    ///
+    /// let dt = DeckType::by_name("lowball");
+    /// assert_eq!(LOW_ACE_OF_CLUBS, dt.valid_card(ACE_OF_CLUBS).unwrap());
+    /// assert_eq!(DEUCE_OF_CLUBS, dt.valid_card(DEUCE_OF_CLUBS).unwrap());
+    /// assert_eq!(None, dt.valid_card(KNIGHT_OF_CLUBS));
+    /// ```
     pub const fn valid_card(&self, cin: Card) -> Option<Card> {
         let g = &DECK_INFO_TABLE[*self as usize - 1];
-    
+
         let cout = if g.low_aces {
             Card::low_ace_fix(cin)
         } else {
@@ -192,9 +248,9 @@ impl std::convert::From<u8> for DeckType {
 
 impl std::default::Default for DeckType {
     fn default() -> Self {
-        DECK_TYPE_BY_INDEX [
-            DEFAULT_DECK_TYPE.load(Ordering::Relaxed) as usize
-        ]
+        DeckType::from_u8(
+            DEFAULT_DECK_TYPE.load(Ordering::Relaxed)
+        )
     }
 }
 
@@ -225,26 +281,26 @@ macro_rules! deck_info {
     };
 }
 
-const DECK_INFO_TABLE: [DeckInfo; DECK_TYPE_COUNT - 1] = [
-    deck_info!("allcards",0xffffffffffffff0e,&ALLCARDS_CARDS,false,false),
-    deck_info!("english",0xfff0ffffffffff00,&ENGLISH_CARDS,false,false),
-    deck_info!("onejoker",0xfff0ffffffffff08,&ONEJOKER_CARDS,false,false),
-    deck_info!("twojokers",0xfff0ffffffffff0c,&TWOJOKERS_CARDS,false,false),
-    deck_info!("low",0xff0fffffffffff0,&LOW_CARDS,false,true),
-    deck_info!("lowjoker",0xff0fffffffffff8,&LOWJOKER_CARDS,false,true),
-    deck_info!("spanish",0xf0ff000fffffff0,&SPANISH_CARDS,false,true),
-    deck_info!("spanish48",0xf0ff0fffffffff0,&SPANISH48_CARDS,false,true),
-    deck_info!("mexican",0xfff0f000ffffff08,&MEXICAN_CARDS,false,false),
-    deck_info!("panguingue",0xff0f000fffffff0,&PANGUINGUE_CARDS,true,true),
-    deck_info!("stripped",0xfff0fffff0000000,&GERMAN_CARDS,false,false),
-    deck_info!("swiss",0xfff0ffffff000000,&SWISS_CARDS,false,false),
-    deck_info!("euchre",0xfff0fff000000000,&EUCHRE_CARDS,false,false),
-    deck_info!("euchre25",0xfff0fff000000008,&EUCHRE25_CARDS,false,false),
-    deck_info!("euchre28",0xfff0ffff00000000,&EUCHRE28_CARDS,false,false),
-    deck_info!("euchre29",0xfff0ffff00000008,&EUCHRE29_CARDS,false,false),
-    deck_info!("bezique",0xfff0fffff0000000,&BEZIQUE_CARDS,true,false),
-    deck_info!("canasta",0xfff0ffffffffff0c,&CANASTA_CARDS,true,false),
-    deck_info!("pinochle",0xfff0fff000000000,&PINOCHLE_CARDS,true,false),
+const DECK_INFO_TABLE: [DeckInfo; DECKTYPE_MAX] = [
+    deck_info!("allcards",  0xFFFF_FFFF_FFFF_FF0e,&ALLCARDS_CARDS,false,false),
+    deck_info!("english",   0xFFF0_FFFF_FFFF_FF00,&ENGLISH_CARDS,false,false),
+    deck_info!("onejoker",  0xFFF0_FFFF_FFFF_FF08,&ONEJOKER_CARDS,false,false),
+    deck_info!("twojokers", 0xFFF0_FFFF_FFFF_FF0c,&TWOJOKERS_CARDS,false,false),
+    deck_info!("low",       0x0FF0_FFFF_FFFF_FFF0,&LOW_CARDS,false,true),
+    deck_info!("lowjoker",  0x0FF0_FFFF_FFFF_FFF8,&LOWJOKER_CARDS,false,true),
+    deck_info!("spanish",   0x0F0F_F000_FFFF_FFF0,&SPANISH_CARDS,false,true),
+    deck_info!("spanish48", 0x0F0F_F0FF_FFFF_FFF0,&SPANISH48_CARDS,false,true),
+    deck_info!("mexican",   0xFFF0_F000_FFFF_FF08,&MEXICAN_CARDS,false,false),
+    deck_info!("panguingue",0x0FF0_F000_FFFF_FFF0,&PANGUINGUE_CARDS,true,true),
+    deck_info!("stripped",  0xFFF0_FFFF_F000_0000,&GERMAN_CARDS,false,false),
+    deck_info!("swiss",     0xFFF0_FFFF_FF00_0000,&SWISS_CARDS,false,false),
+    deck_info!("euchre",    0xFFF0_FFF0_0000_0000,&EUCHRE_CARDS,false,false),
+    deck_info!("euchre25",  0xFFF0_FFF0_0000_0008,&EUCHRE25_CARDS,false,false),
+    deck_info!("euchre28",  0xFFF0_FFFF_0000_0000,&EUCHRE28_CARDS,false,false),
+    deck_info!("euchre29",  0xFFF0_FFFF_0000_0008,&EUCHRE29_CARDS,false,false),
+    deck_info!("bezique",   0xFFF0_FFFF_F000_0000,&BEZIQUE_CARDS,true,false),
+    deck_info!("canasta",   0xFFF0_FFFF_FFFF_FF0c,&CANASTA_CARDS,true,false),
+    deck_info!("pinochle",  0xFFF0_FFF0_0000_0000,&PINOCHLE_CARDS,true,false),
 ];
 
 macro_rules! card_array {
@@ -304,7 +360,6 @@ mod tests {
 
     #[test]
     fn deck_type_test() -> Result<(), OjError> {
-        assert_eq!(DeckType::count(), DECK_TYPE_COUNT);
         assert_eq!(DeckType::default(), DeckType::AllCards);
         assert_eq!(DeckType::by_name("default"), DeckType::AllCards);
         assert_eq!(DeckType::by_name("poker"), DeckType::English);
@@ -331,7 +386,7 @@ mod tests {
         assert_eq!(DeckType::by_name("german"), DeckType::Stripped);
         assert_eq!(DeckType::by_name("durak"), DeckType::Swiss);
 
-        for i in 1..DECK_TYPE_COUNT {
+        for i in 1..=DECKTYPE_MAX {
             let dt = DeckType::from_u8(i as u8);
 
             assert_eq!(dt.size(), dt.card_list().len());
@@ -365,32 +420,32 @@ mod tests {
                     assert_eq!(dt.dups_allowed(), false);
                     assert_eq!(dt.low_aces(), false);
                     assert_eq!(dt.size(), 59);
-                    assert!(dt.has(JOKER));
-                    assert!(dt.has(BLACK_JOKER));
-                    assert!(dt.has(FOUR_OF_CLUBS));
-                    assert!(dt.has(NINE_OF_CLUBS));
-                    assert!(dt.has(KNIGHT_OF_CLUBS));
-                    assert!(dt.has(ACE_OF_CLUBS));
-                    assert!(! dt.has(LOW_ACE_OF_CLUBS));
+                    assert!(dt.has(card!("Jk")));
+                    assert!(dt.has(card!("Jb")));
+                    assert!(dt.has(card!("4c")));
+                    assert!(dt.has(card!("9c")));
+                    assert!(dt.has(card!("Cc")));
+                    assert!(dt.has(card!("Ac")));
+                    assert!(! dt.has(card!("1c")));
                 },
                 "english" => {
                     assert_eq!(dt.dups_allowed(), false);
                     assert_eq!(dt.low_aces(), false);
                     assert_eq!(dt.size(), 52);
-                    assert!(! dt.has(JOKER));
-                    assert!(dt.has(SEVEN_OF_CLUBS));
-                    assert!(! dt.has(KNIGHT_OF_CLUBS));
-                    assert!(dt.has(ACE_OF_CLUBS));
+                    assert!(! dt.has(card!("Jk")));
+                    assert!(dt.has(card!("7c")));
+                    assert!(! dt.has(card!("Cc")));
+                    assert!(dt.has(card!("Ac")));
                 },
                 "twojokers" => {
                     assert_eq!(dt.dups_allowed(), false);
                     assert_eq!(dt.low_aces(), false);
                     assert_eq!(dt.size(), 54);
-                    assert!(dt.has(BLACK_JOKER));
-                    assert!(dt.has(TEN_OF_CLUBS));
-                    assert!(! dt.has(KNIGHT_OF_CLUBS));
-                    assert!(dt.has(ACE_OF_CLUBS));
-                    assert!(! dt.has(LOW_ACE_OF_CLUBS));
+                    assert!(dt.has(card!("Jb")));
+                    assert!(dt.has(card!("Tc")));
+                    assert!(! dt.has(card!("Cc")));
+                    assert!(dt.has(card!("Ac")));
+                    assert!(! dt.has(card!("1c")));
                 },
                 "low" => {
                     assert_eq!(dt.dups_allowed(), false);

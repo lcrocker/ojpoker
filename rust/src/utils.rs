@@ -10,7 +10,7 @@ static SEED: OnceLock<Mutex<[u32; 4]>> = OnceLock::new();
 /// just use the library.
 /// But I'm pretty sure I'm one of the few people who understands this stuff
 /// well enough to bend that rule a bit, and I just don't like the standard
-/// library of either Dart or Rust for this application.
+/// library for this application.
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/oj_rand_next32) | Get next 32 random bitsp
 pub fn oj_rand_next32() -> u32 {
     let mut s = SEED.get_or_init(|| {
@@ -22,7 +22,7 @@ pub fn oj_rand_next32() -> u32 {
             _seed as u32, _seed as u32 + 1, _seed as u32 + 2, _seed as u32 + 3,
         ];
         Mutex::new(new_state)
-    }).lock().expect("Failed to lock random seed mutex");
+    }).lock().expect("failed to lock random seed mutex");
 
     let result:u32 = ((s[0].wrapping_add(s[3])).rotate_left(7))
         .wrapping_add(s[0]);
@@ -42,6 +42,13 @@ pub fn oj_rand_next32() -> u32 {
 /// Return a random integer uniformly distributed in range [0, limit)
 /// with no division, using rejection sampling. The mask `m` is created
 /// to minimize rejections, which will be at worst 50%.
+/// ```rust
+/// use onejoker::*;
+///
+/// let mut hand = Hand::default().init(cards!("As","Ks","Qs","Js","Ts"));
+/// let r = oj_rand_range(5);
+/// println!("Random card: {}", hand[r]);
+/// ```
 pub fn oj_rand_range(limit: usize) -> usize {
     debug_assert!(limit > 0);
     debug_assert!(limit < (1 << 31));
@@ -61,6 +68,12 @@ pub fn oj_rand_range(limit: usize) -> usize {
 }
 
 /// # [wiki](https://github.com/lcrocker/ojpoker/wiki/oj_shuffle) | Standard Fisher-Yates shuffle
+/// ```rust
+/// use onejoker::*;
+///
+/// let mut v = [1,2,3,4,5,6,7,8,9,10];
+/// oj_shuffle(&mut v);
+/// ```
 pub fn oj_shuffle<T>(a: &mut [T]) {
     if a.len() < 2 { return; }
 
@@ -101,6 +114,13 @@ macro_rules! compare_and_swap {
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/oj_sort) | Slightly specialized heapsort
 /// Heapsort optimized for small sets like poker hands, and in descending order which is
 /// most useful for ranking and displaying poker hands.
+/// ```rust
+/// use onejoker::*;
+///
+/// let mut v = [7,1,5,10,2,3,9,4,6,8];
+/// oj_sort(&mut v);
+/// assert_eq!(v[0], 10);
+/// ```
 pub fn oj_sort<T: PartialOrd>(a: &mut [T]) {
     match a.len() {
         5 => {
@@ -145,6 +165,13 @@ pub fn oj_sort<T: PartialOrd>(a: &mut [T]) {
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/oj_next_combination) | Iterate over combinations
 /// Given an array of indices into a larger array, increment the 0-based
 /// indices to the next k-combination, returning true when done.
+/// ```rust
+/// use onejoker::*;
+///
+/// let mut a = [0,1,2];
+/// oj_next_combination(&mut a, 5);     // 0,1,3
+/// assert_eq!(a[2], 3);
+/// ```
 pub fn oj_next_combination(a: &mut [usize], n: usize) -> bool {
     let k = a.len();
 
@@ -167,6 +194,11 @@ pub fn oj_next_combination(a: &mut [usize], n: usize) -> bool {
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/oj_binomial) | Calculate binomial coefficient
 /// Calculate the binomial coefficient "n choose k" using a lookup table.
 /// Is only valid for n, k in the range 0..=63.
+/// ```rust
+/// use onejoker::*;
+///
+/// assert_eq!(oj_binomial(5, 2), 10);
+/// ```
 #[inline(always)]
 pub const fn oj_binomial(n: i32, k: i32) -> u64 {
     debug_assert!(n >= 0 && n < 64 && k >= 0 && k < 64);
@@ -184,7 +216,7 @@ pub const COEFFICIENTS: [[u64; 64]; 64] = {
 
         while k <= n {
             table[n][k] = if k == 0 || k == n {
-                1 
+                1
             } else {
                 table[n - 1][k] + table[n - 1][k - 1]
             };
@@ -277,7 +309,7 @@ mod tests {
         for _ in 0..500 {
             let n = oj_rand_range(64) as i32;
             let k = oj_rand_range(64) as i32;
-    
+
             if k > n {
                 assert_eq!(0, oj_binomial(n, k));
             } else if k == n {

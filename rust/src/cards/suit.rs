@@ -2,6 +2,7 @@
 //! # Examples
 //! ```
 //! use onejoker::*;
+//! 
 //! let s = Suit::Diamond;
 //! println!("{}, {}, {}, {}", s.name(), s.to_char(),
 //!     s.to_symbol(), Suit::from_char('d'));
@@ -37,7 +38,12 @@ const NAMES: [&str; 5] = [ "?", "club", "diamond", "heart", "spade" ];
 const PLURALS: [&str; 5] = [ "?", "clubs", "diamonds", "hearts", "spades" ];
 
 impl Suit {
-    /// Convert integer to suit.
+    /// Convert integer to suit
+    /// ```rust
+    /// use onejoker::*;
+    /// 
+    /// assert_eq!(Suit::Club, Suit::from_u8(1));
+    /// ```
     pub const fn from_u8(v: u8) -> Suit {
         if v > 4 { return Suit::None; }
         SUITS[v as usize]
@@ -45,6 +51,12 @@ impl Suit {
 
     /// Accept ASCII text or Unicode solid/black suit symbols
     /// U+2660, U+2665, U+2666, U+2663 
+    /// ```rust
+    /// use onejoker::*;
+    /// 
+    /// assert_eq!(Suit::Heart, Suit::from_char('h'));
+    /// assert_eq!(Suit::Club, Suit::from_char('♣'));
+    /// ```
     pub const fn from_char(c: char) -> Suit {
         match c {
             'c' | '♣' => Suit::Club,
@@ -55,32 +67,56 @@ impl Suit {
         }
     }
 
-    /// Produce the ASCII version.
+    /// Produce the ASCII version
+    /// ```rust
+    /// use onejoker::*;
+    /// 
+    /// assert_eq!('d', Suit::Diamond.to_char());
+    /// ```
     pub const fn to_char(&self) -> char {
         if (*self as usize) > 4 { return '?'; }
         CHARS[*self as usize]
     }
 
-    /// Produce the Unicode version.
+    /// Produce the Unicode version
+    /// ```rust
+    /// use onejoker::*;
+    /// 
+    /// assert_eq!('♠', Suit::Spade.to_symbol());
+    /// ```
     pub const fn to_symbol(&self) -> char {
         if (*self as usize) > 4 { return '?'; }
         SYMBOLS[*self as usize]
     }
 
     /// Produce "club", "diamond", etc.
+    /// ```rust
+    /// use onejoker::*;
+    /// 
+    /// assert_eq!("diamond", Suit::Diamond.name());
     pub const fn name(&self) -> &str {
         if (*self as usize) > 4 { return "?"; }
         NAMES[*self as usize]
     }
 
     /// Produce "hearts", "spades", etc. Not really needed since there are
-    /// no tricky ones like rank "six", but other languages may need it.
+    /// no tricky ones like rank "six", but other (human) languages may need it
+    /// ```rust
+    /// use onejoker::*;
+    /// 
+    /// assert_eq!("spades", Suit::Spade.plural());
+    /// ```
     pub const fn plural(&self) -> &str {
         if (*self as usize) > 4 { return "?"; }
         PLURALS[*self as usize]
     }
 
-    /// Likewise, no tricks, but for consistency.
+    /// Likewise, no tricks, but for consistency
+    /// ```rust
+    /// use onejoker::*;
+    /// 
+    /// assert_eq!("a", Suit::Club.article());
+    /// ```
     pub const fn article(&self) -> &str { "a" }
 }
 
