@@ -1,6 +1,5 @@
 //@ tests/poker_eval_test.rs
 
-use std::fs;
 use serde::Deserialize;
 use onejoker::*;
 
@@ -14,8 +13,12 @@ struct PokerHandDataFile(Vec<PokerHand>);
 
 #[test]
 fn test_poker_hand_file() -> Result<(), OjError> {
-    let text = fs::read_to_string("../data/json/poker_hands_100k.jsonc")?;
-    let data = json5::from_str::<PokerHandDataFile>(&text[..])?;
+    use std::fs::File;
+    use std::io::BufReader;
+
+    let file = File::open("../data/json/poker_hands_100k.jsonc")?;
+    let mut reader = BufReader::new(file);
+    let data: PokerHandDataFile = serde_json5::from_reader(&mut reader)?;
 
     let high_deck = Deck::new_by_name("poker");
     let low_deck = Deck::new_by_name("low");
@@ -99,7 +102,7 @@ fn test_poker_hand_file() -> Result<(), OjError> {
             assert!(irow.4 == jrow.4);
             assert!(a26.eval_quick()(&ihand) == a26.eval_quick()(&jhand));
         }
-        
+
         let bad = HandScale::Badugi;
         ival = bad.eval_full()(&ihand)?;
         jval = bad.eval_full()(&jhand)?;

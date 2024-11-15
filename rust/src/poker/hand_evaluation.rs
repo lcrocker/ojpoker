@@ -74,6 +74,12 @@ impl HandLevel {
     }
 }
 
+/// Sentinel value for hand level
+pub const HAND_LEVEL_BEST: u8 = 0;
+/// Sentinel value for hand level: 99 * 2000000 still fits in u32
+pub const HAND_LEVEL_WORST: u8 = 99;
+
+
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/HandValue) | Complete descriptor of evaluated hand
 ///
 /// Contains all the information about a hand's value after evaluation, including
@@ -91,7 +97,17 @@ pub struct HandValue {
     pub scale: u8,
     /// Level of the hand
     pub level: u8,
+    /// Position of bug after evaluation
+    pub bug_is: Card,
 }
+
+/// For all hand value comparisons, lower is better.
+pub const HAND_VALUE_BEST: u32 = 0;
+/// Maximum u32
+pub const HAND_VALUE_WORST: u32 = 0xFFFF_FFFF;
+/// Should be enough to leave room for all rank combinations between levels
+/// 2000000 > 16 ** 5 (1048576)
+pub const HAND_LEVEL_MULTIPLIER: u32 = 2000000;
 
 impl HandValue {
     /// Create a new hand value object with the given game, hand, and level.
@@ -114,6 +130,7 @@ impl HandValue {
         HandValue {
             hand, scale: scale as u8, level: level as u8,
             value: ojp_default_hand_value(&hand, scale,  level),
+            bug_is: Card(0),
         }
     }
 
@@ -135,6 +152,17 @@ impl HandValue {
 
         HandValue {
             hand, scale: scale as u8, level: level as u8, value,
+            bug_is: Card(0),
+        }
+    }
+
+    /// Create a new hand value guaranteed to be worse than any real one
+    pub fn worst() -> Self {
+        HandValue {
+            hand: Hand::new(DeckType::English),
+            value: HAND_VALUE_WORST,
+            scale: 0, level: HAND_LEVEL_WORST,
+            bug_is: Card(0),
         }
     }
 
@@ -245,9 +273,9 @@ pub fn ojp_default_hand_value(h: &Hand, g: HandScale, p: HandLevel) -> u32 {
         expect("should be checked earlier");
 
     if g.low_hands() {
-        g.multiplier() * g.value_from_level(p) + h
+        2000000 * g.value_from_level(p) + h
     } else {
-        g.multiplier() * g.value_from_level(p) - h
+        2000000 * g.value_from_level(p) - h
     }
 }
 
@@ -269,7 +297,7 @@ pub type HandEvaluatorFull = fn(&Hand) -> Result<HandValue, OjError>;
 /// ```
 pub fn ojp_best_of(h: &Hand, g: HandScale,
 eval: HandEvaluatorFull) -> Result<HandValue, OjError> {
-    let mut best = g.worst();
+    let mut best = HandValue::worst();
 
     for sub in h.combinations(g.complete_hand()) {
         let v = eval(&sub)?;
@@ -297,7 +325,7 @@ eval: HandEvaluatorFull) -> Result<HandValue, OjError> {
 /// ```
 pub fn ojp_best_value_of(h: &Hand, g: HandScale,
 eval: HandEvaluatorQuick) -> u32 {
-    let mut best = 0xFFFF_FFFF;
+    let mut best = HAND_VALUE_WORST;
 
     for sub in h.combinations(g.complete_hand()) {
         let v = eval(&sub);
@@ -370,6 +398,11 @@ const POKER_RANK_ORDER: [i8; 16] = [
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, -1, 12, 13, 14
 ];
 
+/// Mexican poker uses Spanish deck with no 8/9/10, and Q for C.
+const MEXICAN_RANK_ORDER: [i8; 16] = [
+    0, 1, 2, 3, 4, 5, 6, 7, -1, -1, -1, 8, -1, 9, 10, 11
+];
+
 fn is_straight(h: &mut Hand, g: HandScale) -> bool {
     if h.len() != 5 {
         return false;
@@ -408,11 +441,21 @@ fn is_straight(h: &mut Hand, g: HandScale) -> bool {
         h[0] = tc;
         return true;
     }
-    for i in 1..5 {
-        if POKER_RANK_ORDER[h[i].rank() as usize] + 1 !=
-            POKER_RANK_ORDER[h[i - 1].rank() as usize] {
+    if g.spanish_gap() {
+        for i in 1..5 {
+            if MEXICAN_RANK_ORDER[h[i].rank() as usize] + 1 !=
+                MEXICAN_RANK_ORDER[h[i - 1].rank() as usize] {
 
-            return false;
+                return false;
+            }
+        }
+    } else {
+        for i in 1..5 {
+            if POKER_RANK_ORDER[h[i].rank() as usize] + 1 !=
+                POKER_RANK_ORDER[h[i - 1].rank() as usize] {
+
+                return false;
+            }
         }
     }
     true
@@ -700,9 +743,6 @@ pub fn ojp_default_eval_full(hand: &Hand, g: HandScale)
                 state = HandEvaluatorState::NotStraightOrFlush;
             },
             HandEvaluatorState::NotStraightOrFlush => {
-                // Special case: shouldn't be able to get here my
-                // normal means, but we need this for the programs
-                // that build lookup tables.
                 if h[0].rank() == h[1].rank() &&
                     h[0].rank() == h[2].rank() &&
                     h[0].rank() == h[3].rank() &&
@@ -838,6 +878,98 @@ pub fn ojp_default_eval_quick(hand: &Hand, g: HandScale)
             },
         }
     }
+}
+
+/// Return the result of scanning the hand for information necessary
+/// for replacing the bug, if present.
+#[derive(Debug, Clone, Copy, Default)]
+#[repr(C)]
+pub struct BugScanResult {
+    /// Index of the bug card in the hand
+    pub index: Option<u8>,
+    /// Bitmask of ranks in the hand
+    pub rank_mask: u16,
+    /// Bitmask of suits in the hand
+    pub suit_mask: u8,
+    /// Bitmask of aces in the hand
+    pub ace_mask: u8,
+}
+
+#[derive(Debug, Clone, Copy)]
+/// The card to replace the bug with, and its position
+#[repr(C)]
+pub struct BugReplacement {
+    /// Index of the bug card in the hand
+    pub index: u8,
+    /// Card to replace the bug
+    pub replacement: Card,
+}
+
+impl BugReplacement {
+    /// Create a new bug scan result object with the given values.
+    pub fn new(index: usize, replacement: Card) -> Self {
+        BugReplacement {
+            index: index as u8, replacement,
+        }
+    }
+}
+
+/// Scan a hand for the bug, and create some handy bitmaps along the way
+pub fn ojp_bug_scan(h: &Hand) -> BugScanResult {
+    let mut result = BugScanResult::default();
+
+    for i in 0..h.len() {
+        if h[i].is_joker() {
+            result.index = Some(i as u8);
+            result.rank_mask |= 1;
+            continue;
+        } else if h[i].is_ace() {
+            result.ace_mask |= 1 << h[i].suit() as u8;
+        }
+        result.suit_mask |= 1 << h[i].suit() as u8;
+        result.rank_mask |= 1 << h[i].rank() as u8;
+    }
+    result
+}
+
+/// Find an ace not already present in the hand
+pub fn ojp_ace_not_present(mask: u8) -> Card {
+    let s: Suit = if 0 == (mask & 0b00010) {
+        Suit::Club
+    } else if 0 == (mask & 0b00100) {
+        Suit::Diamond
+    } else if 0 == (mask & 0b01000) {
+        Suit::Heart
+    } else {
+        Suit::Spade
+    };
+    Card::from_rank_suit(Rank::Ace, s)
+}
+
+/// If we have and rank and/or suit for the bug, use that, otherwise
+/// just make it an ace.
+pub fn ojp_bug_replacement(rank: Rank, suit: Suit, scan: &BugScanResult)
+-> BugReplacement {
+    let c =
+    if suit != Suit::None && rank != Rank::None {
+        Card::from_rank_suit(rank, suit)
+    } else if rank != Rank::None {
+        Card::from_rank_suit(rank, Suit::Spade)
+    } else if suit != Suit::None {
+        let mut r = 15;
+        while r > 0 {
+            if 0 == (scan.rank_mask & (1 << r)) {
+                break;
+            }
+            r -= 1;
+            if 12 == r { r -= 1; }
+        }
+        Card::from_rank_suit(Rank::from_u8(r), suit)
+    } else {
+        ojp_ace_not_present(scan.ace_mask)
+    };
+    BugReplacement::new(
+        scan.index.expect("should not happen") as usize, c)
 }
 
 #[cfg(test)]

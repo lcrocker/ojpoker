@@ -1,4 +1,4 @@
-# ojpoker | Updated: November 13, 2024
+# ojpoker | Updated: November 14, 2024
 
 This is code for the [OneJoker](https://onejoker.org) project,
 aiming to create libraries and other digital tools for handling playing cards
@@ -7,14 +7,17 @@ I am writing it to provide some advantages over other libraries I have
 encountered on the net:
 
 - Completeness: Card-handling code covers things that others don't like
-  jokers and foreign decks. Poker code handles more variants. I plan to
-  add bindings for many languages.
+  jokers and foreign decks. Poker code handles more variants: high hands,
+  ace-to-five lowball, deuce-to-seven lowball, London lowball, pai gow,
+  action razz, badugi, badeucy, stripped decks, bugs, etc. I plan to add
+  bindings for many languages.
 - Correctness: Many libraries do not correctly handle things like lowball
   and badugi hands, or betting limits and procedures. Author is a long-time
   poker player and casino manager with extensive knowledge of the rules,
   and implements them carefully.
 - Performance: Poker code is *fast*, taking full advantage of modern 64-bit
-  machines. It does sacrifice memory efficiency for this in some cases.
+  machines and the latest known algorithms. You can choose which version
+  of each evaluator suits your needs based on speed vs. memory efficiency.
 
 This codebase is primarily a [Rust](https://rust-lang.org) library, but
 will include bindings for other languages such as TypeScript and Python.

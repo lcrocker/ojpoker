@@ -26,6 +26,9 @@ pub fn ojp_high_full_name(v: &HandValue) -> String {
     }
 
     match HandLevel::from_u8(v.level) {
+        HandLevel::FiveOfAKind => {
+            format!("five {}", plr!(0))
+        },
         HandLevel::StraightFlush => {
             if v.hand[0].rank() == Rank::Ace {
                 String::from("royal flush")
@@ -241,6 +244,201 @@ pub fn ojp_stripped_eval_quick(h: &Hand) -> u32 {
     curried_evaluator_stripped_quick(h)
 }
 
+fn curried_evaluator_bug_full(h: &Hand) -> Result<HandValue, OjError> {
+    let Some(repl) = ojp_bug_replace_high(h) else {
+        return ojp_default_eval_full(h, HandScale::HighHand);
+    };
+    let mut dup = *h;
+    dup[repl.index as usize] = repl.replacement;
+    let mut v = ojp_default_eval_full(&dup, HandScale::HighHand)?;
+    v.bug_is = repl.replacement;
+    Ok(v)
+}
+
+fn curried_evaluator_bug_quick(h: &Hand) -> u32 {
+    let Some(repl) = ojp_bug_replace_high(h) else {
+        return ojp_default_eval_quick(h, HandScale::HighHand);
+    };
+    let mut dup = *h;
+    dup[repl.index as usize] = repl.replacement;
+    ojp_default_eval_quick(&dup, HandScale::HighHand)
+}
+
+#[cfg(not(feature = "high-hand-tables"))]
+/// Full high with bug poker hand evaluator
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_high_bug_eval_full) | Full high hand with bug evaluator
+/// ```rust
+/// use onejoker::*;
+///
+/// let hand = Hand::new(DeckType::OneJoker).init(cards!("9s","Jk","9d","Ks","Ah"));
+/// let v = ojp_high_bug_eval_full(&hand).unwrap();
+/// println!("[{}]: {}", v.hand, v.full_name());
+/// // Output: "[AsAh9s9dKs]: aces and nines with a king"
+/// ```
+pub fn ojp_high_bug_eval_full(h: &Hand) -> Result<HandValue, OjError> {
+    if h.len() > 5 {
+        return ojp_best_of(h, HandScale::HighHand,
+            curried_evaluator_bug_full);
+    }
+    curried_evaluator_bug_full(h)
+}
+
+#[cfg(not(feature = "high-hand-tables"))]
+/// Value-only high hand with bug evaluator
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_high_bug_eval_quick) | Value-only high hand with bug evaluator
+/// ```rust
+/// use onejoker::*;
+///
+/// let h1 = Hand::new(DeckType::OneJoker).init(cards!("9s","As","9d","Ks","Jk"));
+/// let h2 = Hand::new(DeckType::OneJoker).init(cards!("9c","Ac","9h","Td","Ad"));
+/// let v1 = ojp_high_bug_eval_quick(&h1);
+/// let v2 = ojp_high_bug_eval_quick(&h2);
+/// assert!(v1 < v2);   // king kicker beats ten kicker
+/// ```
+pub fn ojp_high_bug_eval_quick(h: &Hand) -> u32 {
+    if h.len() > 5 {
+        return ojp_best_value_of(h, HandScale::HighHand,
+            curried_evaluator_bug_quick);
+    }
+    curried_evaluator_bug_quick(h)
+}
+
+fn curried_evaluator_stripped_bug_full(h: &Hand) -> Result<HandValue, OjError> {
+    let Some(repl) = ojp_bug_replace_high(h) else {
+        return ojp_default_eval_full(h, HandScale::Stripped);
+    };
+    let mut dup = *h;
+    dup[repl.index as usize] = repl.replacement;
+    let mut v = ojp_default_eval_full(&dup, HandScale::Stripped)?;
+    v.bug_is = repl.replacement;
+    Ok(v)
+}
+
+fn curried_evaluator_stripped_bug_quick(h: &Hand) -> u32 {
+    let Some(repl) = ojp_bug_replace_high(h) else {
+        return ojp_default_eval_quick(h, HandScale::Stripped);
+    };
+    let mut dup = *h;
+    dup[repl.index as usize] = repl.replacement;
+    ojp_default_eval_quick(&dup, HandScale::Stripped)
+}
+
+#[cfg(not(feature = "stripped-deck-tables"))]
+/// Full stripped deck with bug poker hand evaluator
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_stripped_bug_eval_full) | Full stripped deck with bug evaluator
+/// ```rust
+/// use onejoker::*;
+///
+/// let hand = Hand::new(DeckType::OneJoker).init(cards!("9s","Jk","9d","Ks","Ah"));
+/// let v = ojp_stripped_bug_eval_full(&hand).unwrap();
+/// println!("[{}]: {}", v.hand, v.full_name());
+/// // Output: "[AsAh9s9dKs]: aces and nines with a king"
+/// ```
+pub fn ojp_stripped_bug_eval_full(h: &Hand) -> Result<HandValue, OjError> {
+    if h.len() > 5 {
+        return ojp_best_of(h, HandScale::HighHand,
+            curried_evaluator_stripped_bug_full);
+    }
+    curried_evaluator_stripped_bug_full(h)
+}
+
+#[cfg(not(feature = "stripped-deck-tables"))]
+/// Value-only stripped deck with bug evaluator
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_stripped_bug_eval_quick) | Value-only stripped deck with bug evaluator
+/// ```rust
+/// use onejoker::*;
+///
+/// let h1 = Hand::new(DeckType::OneJoker).init(cards!("9s","As","9d","Ks","Jk"));
+/// let h2 = Hand::new(DeckType::OneJoker).init(cards!("9c","Ac","9h","Td","Ad"));
+/// let v1 = ojp_stripped_bug_eval_quick(&h1);
+/// let v2 = ojp_stripped_bug_eval_quick(&h2);
+/// assert!(v1 < v2);   // king kicker beats ten kicker
+/// ```
+pub fn ojp_stripped_bug_eval_quick(h: &Hand) -> u32 {
+    if h.len() > 5 {
+        return ojp_best_value_of(h, HandScale::HighHand,
+            curried_evaluator_stripped_bug_quick);
+    }
+    curried_evaluator_stripped_bug_quick(h)
+}
+
+/// If there's a bug in the hand, figure out what card it should
+/// be, return it along with its index.
+pub fn ojp_bug_replace_high(h: &Hand) -> Option<BugReplacement> {
+    let scan = ojp_bug_scan(h);
+    let index = scan.index?;
+
+    if h.len() < 5 {    // partial hand, just ace
+        return Some(BugReplacement::new(index as usize,
+            ojp_ace_not_present(scan.ace_mask)));
+    }
+    let mut suit = Suit::None;
+    let mut rank = Rank::None;
+
+    if let Some(s) = FLUSH_PATTERNS.get(&scan.suit_mask) {
+        suit = Suit::from_u8(*s);
+    };
+    if let Some(r) = STRAIGHT_PATTERNS.get(&scan.rank_mask) {
+        rank = Rank::from_u8(*r);
+    };
+    Some(ojp_bug_replacement(rank, suit, &scan))
+}
+
+use lazy_static::lazy_static;
+
+lazy_static! {
+    /// After setting a bit for each suit in the hand, these are the patterns
+    /// that indicate the rank needed for the bug to complete a flush
+    pub static ref FLUSH_PATTERNS: std::collections::HashMap<u8, u8> = {
+        let mut m = std::collections::HashMap::new();
+        m.insert(0b00010, 1);
+        m.insert(0b00100, 2);
+        m.insert(0b01000, 3);
+        m.insert(0b10000, 4);
+        m
+    };
+}
+
+lazy_static! {
+    /// After setting a bit for each rank in the hand, these are the patterns
+    /// that indicate the rank needed for the bug to complete a straight.
+    pub static ref STRAIGHT_PATTERNS: std::collections::HashMap<u16, u8> = {
+        let mut m = std::collections::HashMap::new();
+        m.insert(0b0000000000111101, 6);
+        m.insert(0b0000000010111001, 6);
+        m.insert(0b0000000110110001, 6);
+        m.insert(0b0000001110100001, 6);
+        m.insert(0b0000000001111001, 7);
+        m.insert(0b0000000101110001, 7);
+        m.insert(0b0000001101100001, 7);
+        m.insert(0b0000011101000001, 7);
+        m.insert(0b0000000011110001, 8);
+        m.insert(0b0000001011100001, 8);
+        m.insert(0b0000011011000001, 8);
+        m.insert(0b0000111010000001, 8);
+        m.insert(0b0000000111100001, 9);
+        m.insert(0b0000010111000001, 9);
+        m.insert(0b0000110110000001, 9);
+        m.insert(0b0010110100000001, 9);
+        m.insert(0b0000001111000001, 10);
+        m.insert(0b0000101110000001, 10);
+        m.insert(0b0010101100000001, 10);
+        m.insert(0b0110101000000001, 10);
+        m.insert(0b1110100000000001, 10);
+        m.insert(0b0000011110000001, 11);
+        m.insert(0b0010011100000001, 11);
+        m.insert(0b0110011000000001, 11);
+        m.insert(0b1110010000000001, 11);
+        m.insert(0b0000111100000001, 13);
+        m.insert(0b0100111000000001, 13);
+        m.insert(0b1100110000000001, 13);
+        m.insert(0b0010111000000001, 14);
+        m.insert(0b1010110000000001, 14);
+        m.insert(0b0110110000000001, 15);
+        m
+    };
+}
+
 /*
  * CODE ENDS HERE
  */
@@ -253,7 +451,7 @@ mod tests {
     fn test_hand_evaluator_high() -> Result<(), OjError> {
         let deck = Deck::new_by_name("poker");
         let mut hand= deck.new_hand();
-        let mut best: u32 = 0xFFFF_FFFF;
+        let mut best: u32 = HAND_VALUE_WORST;
 
         hand.set(cards!("2c","3h","7c","4d","5d"));
         let mut v1 = ojp_high_eval_full(&hand)?;
@@ -361,7 +559,7 @@ mod tests {
     fn test_hand_evaluator_stripped() -> Result<(), OjError> {
         let deck = Deck::new_by_name("manila");
         let mut hand= deck.new_hand();
-        let mut best: u32 = 0xFFFF_FFFF;
+        let mut best: u32 = HAND_VALUE_WORST;
 
         hand.set(cards!("8c","9h","7c","Jd","Kd"));
         let mut v1 = ojp_stripped_eval_full(&hand)?;

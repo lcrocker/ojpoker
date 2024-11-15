@@ -1,10 +1,10 @@
-//! [wiki](https://github.com/lcrocker/ojpoker/wiki/HandScale) | Poker game info
+//! [wiki](https://github.com/lcrocker/ojpoker/wiki/HandScale) | Poker hand evaluation info
 
 use crate::errors::*;
 use crate::cards::*;
 use crate::poker::*;
 
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/HandScale) | Poker game info
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/HandScale) | Poker hand evaluation info
 ///
 /// Enum representing hand "scales", or ways in which poker hands are
 /// evaluated in different games.
@@ -32,22 +32,31 @@ pub enum HandScale {
     Stripped = 8,
     /// Ace-to-five low, face card needed to qualify
     ActionRazz = 9,
+    /// High hands with single bug
+    HighHandBug = 10,
+    /// Ace-to-five low with single bug
+    AceToFiveBug = 11,
+    /// Spanish deck with single bug
+    Mexican = 12,
 }
 
-const HANDSCALE_MAX: usize = HandScale::ActionRazz as usize;
+const HANDSCALE_MAX: usize = HandScale::Mexican as usize;
 
 fn scale_by_alias(alias: &str) -> HandScale {
     match &alias.to_lowercase()[..] {
         "high-hand" | "high" | "traditional" | "standard" | "poker"
             | "default" => HandScale::HighHand,
 
-        "ace-to-five" | "razz" | "low" | "california" => HandScale::AceToFive,
-        "deuce-to-seven" | "kansas-city" => HandScale::DeuceToSeven,
-        "ace-to-six" | "london" => HandScale::AceToSix,
+        "high-bug" | "bug" => HandScale::HighHandBug,
+        "ace-to-five" | "razz" | "low" => HandScale::AceToFive,
+        "ace-to-five-bug" | "low-bug" | "california-lowball" => HandScale::AceToFiveBug,
+        "deuce-to-seven" | "kansas-city-lowball" => HandScale::DeuceToSeven,
+        "ace-to-six" | "london-lowball" => HandScale::AceToSix,
         "badugi" => HandScale::Badugi,
         "badeucy" => HandScale::Badeucy,
         "paigow" | "pai-gow" => HandScale::PaiGow,
-        "stripped" | "manila" | "mexican" => HandScale::Stripped,
+        "stripped" | "manila" => HandScale::Stripped,
+        "mexican" => HandScale::Mexican,
         "action-razz" => HandScale::ActionRazz,
 
         _ => HandScale::HighHand,
@@ -55,11 +64,6 @@ fn scale_by_alias(alias: &str) -> HandScale {
 }
 
 impl HandScale {
-    /// How many?
-    pub const fn count() -> usize {
-        HANDSCALE_MAX + 1
-    }
-
     /// Get a hand scale by index
     pub const fn from_u8(index: u8) -> HandScale {
         match index {
@@ -114,46 +118,6 @@ impl HandScale {
     /// ```
     pub fn level_from_value(&self, v: u32) -> HandLevel {
         (SCALE_INFO_TABLE[*self as usize - 1].level_from_value)(v)
-    }
-
-    /// Best possible hand for this game
-    /// ```rust
-    /// use onejoker::*;
-    ///
-    /// let best = HandScale::AceToFive.best();
-    /// assert_eq!(best.hand[0].rank(), Rank::Five);
-    /// assert_eq!(best.hand[1].rank(), Rank::Four);
-    /// assert_eq!(best.hand[2].rank(), Rank::Trey);
-    /// assert_eq!(best.hand[3].rank(), Rank::Deuce);
-    /// assert_eq!(best.hand[4].rank(), Rank::LowAce);
-    /// ```
-    pub const fn best(&self) -> HandValue {
-        SCALE_INFO_TABLE[*self as usize - 1].best
-    }
-
-    /// Worst possible hand for this game
-    /// ```rust
-    /// use onejoker::*;
-    ///
-    /// let worst = HandScale::HighHand.worst();
-    /// assert_eq!(worst.hand[0].rank(), Rank::Seven);
-    /// assert_eq!(worst.hand[1].rank(), Rank::Five);
-    /// assert_eq!(worst.hand[2].rank(), Rank::Four);
-    /// assert_eq!(worst.hand[3].rank(), Rank::Trey);
-    /// assert_eq!(worst.hand[4].rank(), Rank::Deuce);
-    /// ```
-    pub const fn worst(&self) -> HandValue {
-        SCALE_INFO_TABLE[*self as usize - 1].worst
-    }
-
-    /// Multiplier for hand value calculation
-    /// ```rust
-    /// use onejoker::*;
-    ///
-    /// assert_eq!(2000000, HandScale::AceToFive.multiplier());
-    /// ```
-    pub const fn multiplier(&self) -> u32 {
-        SCALE_INFO_TABLE[*self as usize - 1].multiplier
     }
 
     /// Index of the preferred deck for this game
@@ -243,6 +207,16 @@ impl HandScale {
         SCALE_INFO_TABLE[*self as usize - 1].low_broadway
     }
 
+    /// Does deck have 8s, 9s, and 10s removed?
+    /// ```rust
+    /// use onejoker::*;
+    ///
+    /// assert!(HandScale::Mexican.spanish_gap());
+    /// ```
+    pub const fn spanish_gap(&self) -> bool {
+        SCALE_INFO_TABLE[*self as usize - 1].spanish_gap
+    }
+
     /// Game-specific function to get full English name of hand
     ///
     /// Users will generally call these through the hand value object
@@ -289,16 +263,6 @@ impl std::convert::From<u8> for HandScale {
 struct HandScaleInfo {
     /// Name of the game or hand type
     name: &'static str,
-    /// Mapping from general hand class to numeric level
-    value_from_level: fn(HandLevel) -> u32,
-    /// Mapping from numeric level to general hand class
-    level_from_value: fn(u32) -> HandLevel,
-    /// Best possible hand for this game
-    best: HandValue,
-    /// Worst possible hand for this game
-    worst: HandValue,
-    /// Multiplier for hand value calculation
-    multiplier: u32,
     /// Index of the preferred deck for this game
     deck_type: u8,
     /// Number of cards in a complete hand
@@ -315,55 +279,18 @@ struct HandScaleInfo {
     pai_gow_wheel: bool,
     /// Is Broadway a straight for low-ace games?
     low_broadway: bool,
-
+    /// 8s, 9s, and 10s removed
+    spanish_gap: bool,
+    /// Mapping from general hand class to numeric level
+    value_from_level: fn(HandLevel) -> u32,
+    /// Mapping from numeric level to general hand class
+    level_from_value: fn(u32) -> HandLevel,
     /// Full English name of hand e.g. "sevens full of fours"
     full_name: fn(&HandValue) -> String,
     /// Full hand evaluation function
     eval_full: fn(&Hand) -> Result<HandValue, OjError>,
     /// Quick value-only hand evaluation function
     eval_quick: fn(&Hand) -> u32,
-}
-
-macro_rules! const_hand {
-    ( $id:path, $a:literal, $b:literal, $c:literal, $d:literal, $e:literal, $f:literal ) => {
-        Hand {
-            cards: [ Card::from_const_str($a), Card::from_const_str($b),
-                Card::from_const_str($c), Card::from_const_str($d),
-                Card::from_const_str($e), Card::from_const_str($f),
-                Card(0), Card(0), Card(0), Card(0), Card(0), Card(0),
-                Card(0), Card(0), Card(0), Card(0), Card(0), Card(0),
-                Card(0), Card(0), Card(0), Card(0)
-            ],
-            length: 6,
-            deck_type: $id as u8,
-        }
-    };
-    ( $id:path, $a:literal, $b:literal, $c:literal, $d:literal, $e:literal ) => {
-        Hand {
-            cards: [ Card::from_const_str($a),
-                Card::from_const_str($b), Card::from_const_str($c),
-                Card::from_const_str($d), Card::from_const_str($e),
-                Card(0), Card(0), Card(0), Card(0), Card(0), Card(0),
-                Card(0), Card(0), Card(0), Card(0), Card(0), Card(0),
-                Card(0), Card(0), Card(0), Card(0), Card(0)
-            ],
-            length: 5,
-            deck_type: $id as u8,
-        }
-    };
-    ( $id:path, $a:literal, $b:literal, $c:literal, $d:literal ) => {
-        Hand {
-            cards: [ Card::from_const_str($a),
-                Card::from_const_str($b), Card::from_const_str($c),
-                Card::from_const_str($d), Card(0),
-                Card(0), Card(0), Card(0), Card(0), Card(0), Card(0),
-                Card(0), Card(0), Card(0), Card(0), Card(0), Card(0),
-                Card(0), Card(0), Card(0), Card(0), Card(0)
-            ],
-            length: 4,
-            deck_type: $id as u8,
-        }
-    };
 }
 
 #[inline]
@@ -564,21 +491,6 @@ fn level_from_value_action_razz(v: u32) -> HandLevel {
 const SCALE_INFO_TABLE: [HandScaleInfo; HANDSCALE_MAX] = [
     HandScaleInfo {     // 1
         name: "high-hand",
-        value_from_level: value_from_level_high,
-        level_from_value: level_from_value_high,
-        best: HandValue {
-            hand: const_hand!(DeckType::English, "As", "Ks", "Qs", "Js", "Ts"),
-            value: 0,
-            scale: HandScale::HighHand as u8,
-            level: HandLevel::StraightFlush as u8,
-        },
-        worst: HandValue {
-            hand: const_hand!(DeckType::English, "7c", "5c", "4c", "3c", "2d"),
-            value: 0xFFFF_FFFF,
-            scale: HandScale::HighHand as u8,
-            level: HandLevel::NoPair as u8,
-        },
-        multiplier: 2000000,
         deck_type: DeckType::English as u8,
         complete_hand: 5,
         low_aces: false,
@@ -587,28 +499,16 @@ const SCALE_INFO_TABLE: [HandScaleInfo; HANDSCALE_MAX] = [
         high_wheel: true,
         pai_gow_wheel: false,
         low_broadway: false,
+        spanish_gap: false,
 
+        value_from_level: value_from_level_high,
+        level_from_value: level_from_value_high,
         full_name: ojp_high_full_name,
         eval_full: ojp_high_eval_full,
         eval_quick: ojp_high_eval_quick,
     },
     HandScaleInfo {     // 2
         name: "ace-to-five",
-        value_from_level: value_from_level_ace_to_five,
-        level_from_value: level_from_value_ace_to_five,
-        best: HandValue {
-            hand: const_hand!(DeckType::English, "5c", "4c", "3c", "2c", "1c"),
-            value: 0,
-            scale: HandScale::AceToFive as u8,
-            level: HandLevel::NoPair as u8,
-        },
-        worst: HandValue {
-            hand: const_hand!(DeckType::English, "Ks", "Kh", "Kd", "Kc", "Ks"),
-            value: 0xFFFF_FFFF,
-            scale: HandScale::AceToFive as u8,
-            level: HandLevel::FiveOfAKind as u8,
-        },
-        multiplier: 2000000,
         deck_type: DeckType::Low as u8,
         complete_hand: 5,
         low_aces: true,
@@ -617,28 +517,16 @@ const SCALE_INFO_TABLE: [HandScaleInfo; HANDSCALE_MAX] = [
         high_wheel: false,
         pai_gow_wheel: false,
         low_broadway: false,
+        spanish_gap: false,
 
+        value_from_level: value_from_level_ace_to_five,
+        level_from_value: level_from_value_ace_to_five,
         full_name: ojp_ace_to_five_full_name,
         eval_full: ojp_ace_to_five_eval_full,
         eval_quick: ojp_ace_to_five_eval_quick,
     },
     HandScaleInfo {     // 3
         name: "deuce-to-seven",
-        value_from_level: value_from_level_deuce_to_seven,
-        level_from_value: level_from_value_deuce_to_seven,
-        best: HandValue {
-            hand: const_hand!(DeckType::English, "7c", "5c", "4c", "3c", "2d"),
-            value: 0,
-            scale: HandScale::DeuceToSeven as u8,
-            level: HandLevel::NoPair as u8,
-        },
-        worst: HandValue {
-            hand: const_hand!(DeckType::English, "As", "Ks", "Qs", "Js", "Ts"),
-            value: 0xFFFF_FFFF,
-            scale: HandScale::DeuceToSeven as u8,
-            level: HandLevel::StraightFlush as u8,
-        },
-        multiplier: 2000000,
         deck_type: DeckType::English as u8,
         complete_hand: 5,
         low_aces: false,
@@ -647,28 +535,16 @@ const SCALE_INFO_TABLE: [HandScaleInfo; HANDSCALE_MAX] = [
         high_wheel: false,
         pai_gow_wheel: false,
         low_broadway: false,
+        spanish_gap: false,
 
+        value_from_level: value_from_level_deuce_to_seven,
+        level_from_value: level_from_value_deuce_to_seven,
         full_name: ojp_deuce_to_seven_full_name,
         eval_full: ojp_deuce_to_seven_eval_full,
         eval_quick: ojp_deuce_to_seven_eval_quick,
     },
     HandScaleInfo {     // 4
         name: "ace-to-six",
-        value_from_level: value_from_level_deuce_to_seven,
-        level_from_value: level_from_value_deuce_to_seven,
-        best: HandValue {
-            hand: const_hand!(DeckType::English, "6c", "4c", "3c", "2c", "1d"),
-            value: 0,
-            scale: HandScale::AceToFive as u8,
-            level: HandLevel::NoPair as u8,
-        },
-        worst: HandValue {
-            hand: const_hand!(DeckType::English, "Ks", "Qs", "Js", "Ts", "9s"),
-            value: 0xFFFF_FFFF,
-            scale: HandScale::AceToFive as u8,
-            level: HandLevel::StraightFlush as u8,
-        },
-        multiplier: 2000000,
         deck_type: DeckType::Low as u8,
         complete_hand: 5,
         low_aces: true,
@@ -677,28 +553,16 @@ const SCALE_INFO_TABLE: [HandScaleInfo; HANDSCALE_MAX] = [
         high_wheel: false,
         pai_gow_wheel: false,
         low_broadway: false,
+        spanish_gap: false,
 
+        value_from_level: value_from_level_deuce_to_seven,
+        level_from_value: level_from_value_deuce_to_seven,
         full_name: ojp_ace_to_six_full_name,
         eval_full: ojp_ace_to_six_eval_full,
         eval_quick: ojp_ace_to_six_eval_quick,
     },
     HandScaleInfo {     // 5
         name: "badugi",
-        value_from_level: value_from_level_badugi,
-        level_from_value: level_from_value_badugi,
-        best: HandValue {
-            hand: const_hand!(DeckType::English, "4c", "3d", "2h", "1s"),
-            value: 0,
-            scale: HandScale::Badugi as u8,
-            level: HandLevel::FourCard as u8,
-        },
-        worst: HandValue {
-            hand: const_hand!(DeckType::English, "Ks", "Kh", "Kd", "Kc"),
-            value: 0xFFFF_FFFF,
-            scale: HandScale::Badugi as u8,
-            level: HandLevel::OneCard as u8,
-        },
-        multiplier: 100000,
         deck_type: DeckType::Low as u8,
         complete_hand: 4,
         low_aces: true,
@@ -707,28 +571,16 @@ const SCALE_INFO_TABLE: [HandScaleInfo; HANDSCALE_MAX] = [
         high_wheel: false,
         pai_gow_wheel: false,
         low_broadway: false,
+        spanish_gap: false,
 
+        value_from_level: value_from_level_badugi,
+        level_from_value: level_from_value_badugi,
         full_name: ojp_badugi_full_name,
         eval_full: ojp_badugi_eval_full,
         eval_quick: ojp_badugi_eval_quick,
     },
     HandScaleInfo {     // 6
         name: "badeucy",
-        value_from_level: value_from_level_badugi,
-        level_from_value: level_from_value_badugi,
-        best: HandValue {
-            hand: const_hand!(DeckType::English, "5c", "4d", "3h", "2s"),
-            value: 0,
-            scale: HandScale::Badugi as u8,
-            level: HandLevel::FourCard as u8,
-        },
-        worst: HandValue {
-            hand: const_hand!(DeckType::English, "As", "Ah", "Ad", "Ac"),
-            value: 0xFFFF_FFFF,
-            scale: HandScale::Badugi as u8,
-            level: HandLevel::OneCard as u8,
-        },
-        multiplier: 100000,
         deck_type: DeckType::English as u8,
         complete_hand: 4,
         low_aces: false,
@@ -737,28 +589,16 @@ const SCALE_INFO_TABLE: [HandScaleInfo; HANDSCALE_MAX] = [
         high_wheel: false,
         pai_gow_wheel: false,
         low_broadway: false,
+        spanish_gap: false,
 
+        value_from_level: value_from_level_badugi,
+        level_from_value: level_from_value_badugi,
         full_name: ojp_badugi_full_name,
         eval_full: ojp_badeucy_eval_full,
         eval_quick: ojp_badeucy_eval_quick,
     },
     HandScaleInfo {     // 7
         name: "paigow",
-        value_from_level: value_from_level_high,
-        level_from_value: level_from_value_high,
-        best: HandValue {
-            hand: const_hand!(DeckType::English, "As", "Ks", "Qs", "Js", "Ts"),
-            value: 0,
-            scale: HandScale::PaiGow as u8,
-            level: HandLevel::StraightFlush as u8,
-        },
-        worst: HandValue {
-            hand: const_hand!(DeckType::English, "7c", "5c", "4c", "3c", "2d"),
-            value: 0xFFFF_FFFF,
-            scale: HandScale::PaiGow as u8,
-            level: HandLevel::NoPair as u8,
-        },
-        multiplier: 2000000,
         deck_type: DeckType::LowJoker as u8,
         complete_hand: 5,
         low_aces: false,
@@ -767,28 +607,16 @@ const SCALE_INFO_TABLE: [HandScaleInfo; HANDSCALE_MAX] = [
         high_wheel: true,
         pai_gow_wheel: true,
         low_broadway: false,
+        spanish_gap: false,
 
+        value_from_level: value_from_level_high,
+        level_from_value: level_from_value_high,
         full_name: ojp_pai_gow_full_name,
-        eval_full: ojp_pai_gow_eval_full_no_bug,
-        eval_quick: ojp_pai_gow_eval_quick_no_bug,
+        eval_full: ojp_pai_gow_eval_full,
+        eval_quick: ojp_pai_gow_eval_quick,
     },
     HandScaleInfo {     // 8
         name: "stripped",
-        value_from_level: value_from_level_stripped,
-        level_from_value: level_from_value_stripped,
-        best: HandValue {
-            hand: const_hand!(DeckType::English, "As", "Ks", "Qs", "Js", "Ts"),
-            value: 0,
-            scale: HandScale::HighHand as u8,
-            level: HandLevel::StraightFlush as u8,
-        },
-        worst: HandValue {
-            hand: const_hand!(DeckType::English, "Qc", "Tc", "9c", "8c", "7d"),
-            value: 0xFFFF_FFFF,
-            scale: HandScale::HighHand as u8,
-            level: HandLevel::NoPair as u8,
-        },
-        multiplier: 2000000,
         deck_type: DeckType::English as u8,
         complete_hand: 5,
         low_aces: false,
@@ -797,28 +625,16 @@ const SCALE_INFO_TABLE: [HandScaleInfo; HANDSCALE_MAX] = [
         high_wheel: true,
         pai_gow_wheel: false,
         low_broadway: false,
+        spanish_gap: false,
 
+        value_from_level: value_from_level_stripped,
+        level_from_value: level_from_value_stripped,
         full_name: ojp_high_full_name,
         eval_full: ojp_stripped_eval_full,
         eval_quick: ojp_stripped_eval_quick,
     },
     HandScaleInfo {     // 9
         name: "action-razz",
-        value_from_level: value_from_level_action_razz,
-        level_from_value: level_from_value_action_razz,
-        best: HandValue {
-            hand: const_hand!(DeckType::English, "5c", "4c", "3c", "2c", "1c", "Jc"),
-            value: 0,
-            scale: HandScale::ActionRazz as u8,
-            level: HandLevel::NoPair as u8,
-        },
-        worst: HandValue {
-            hand: const_hand!(DeckType::English, "Ts", "Th", "Td", "Tc", "9d", "9c"),
-            value: 0xFFFF_FFFF,
-            scale: HandScale::ActionRazz as u8,
-            level: HandLevel::UnqualifiedQuads as u8,
-        },
-        multiplier: 2000000,
         deck_type: DeckType::Low as u8,
         complete_hand: 6,
         low_aces: true,
@@ -827,10 +643,67 @@ const SCALE_INFO_TABLE: [HandScaleInfo; HANDSCALE_MAX] = [
         high_wheel: false,
         pai_gow_wheel: false,
         low_broadway: false,
+        spanish_gap: false,
 
+        value_from_level: value_from_level_action_razz,
+        level_from_value: level_from_value_action_razz,
         full_name: ojp_action_razz_full_name,
         eval_full: ojp_action_razz_eval_full,
         eval_quick: ojp_action_razz_eval_quick,
+    },
+    HandScaleInfo {     // 10
+        name: "high-hand-bug",
+        deck_type: DeckType::OneJoker as u8,
+        complete_hand: 5,
+        low_aces: false,
+        low_hands: false,
+        straights_and_flushes: true,
+        high_wheel: true,
+        pai_gow_wheel: false,
+        low_broadway: false,
+        spanish_gap: false,
+
+        value_from_level: value_from_level_high,
+        level_from_value: level_from_value_high,
+        full_name: ojp_high_full_name,
+        eval_full: ojp_high_bug_eval_full,
+        eval_quick: ojp_high_bug_eval_quick,
+    },
+    HandScaleInfo {     // 11
+        name: "ace-to-five-bug",
+        deck_type: DeckType::LowJoker as u8,
+        complete_hand: 5,
+        low_aces: true,
+        low_hands: true,
+        straights_and_flushes: false,
+        high_wheel: false,
+        pai_gow_wheel: false,
+        low_broadway: false,
+        spanish_gap: false,
+
+        value_from_level: value_from_level_ace_to_five,
+        level_from_value: level_from_value_ace_to_five,
+        full_name: ojp_ace_to_five_full_name,
+        eval_full: ojp_ace_to_five_bug_eval_full,
+        eval_quick: ojp_ace_to_five_bug_eval_quick,
+    },
+    HandScaleInfo {     // 12
+        name: "mexican",
+        deck_type: DeckType::Mexican as u8,
+        complete_hand: 5,
+        low_aces: false,
+        low_hands: false,
+        straights_and_flushes: true,
+        high_wheel: true,
+        pai_gow_wheel: false,
+        low_broadway: false,
+        spanish_gap: true,
+
+        value_from_level: value_from_level_ace_to_five,
+        level_from_value: level_from_value_ace_to_five,
+        full_name: ojp_ace_to_five_full_name,
+        eval_full: ojp_ace_to_five_bug_eval_full,
+        eval_quick: ojp_ace_to_five_bug_eval_quick,
     },
 ];
 
@@ -851,15 +724,14 @@ mod tests {
 
         assert_eq!(HandScale::by_name("ace-to-five"), HandScale::AceToFive);
         assert_eq!(HandScale::by_name("low"), HandScale::AceToFive);
-        assert_eq!(HandScale::by_name("razz"), HandScale::AceToFive);
-        assert_eq!(HandScale::from_u8(2), HandScale::by_name("california"));
+        assert_eq!(HandScale::from_u8(2), HandScale::by_name("razz"));
 
         assert_eq!(HandScale::by_name("deuce-to-seven"), HandScale::DeuceToSeven);
-        assert_eq!(HandScale::by_name("kansas-city"), HandScale::DeuceToSeven);
+        assert_eq!(HandScale::by_name("kansas-city-lowball"), HandScale::DeuceToSeven);
         assert_eq!(HandScale::from_u8(3), HandScale::DeuceToSeven);
 
         assert_eq!(HandScale::by_name("ace-to-six"), HandScale::AceToSix);
-        assert_eq!(HandScale::by_name("london"), HandScale::AceToSix);
+        assert_eq!(HandScale::by_name("london-lowball"), HandScale::AceToSix);
         assert_eq!(HandScale::from_u8(4), HandScale::AceToSix);
 
         assert_eq!(HandScale::by_name("badugi"), HandScale::Badugi);

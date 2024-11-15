@@ -23,9 +23,10 @@ panic = "unwind"
 split-debuginfo = "unpacked"
 
 [dependencies]
-json5 = "0.4.1"
+lazy_static = "1.5.0"
 paste = "1.0.15"
 serde = { version = "1.0.214", features = ["derive"] }
+serde_json5 = "0.1.0"
 static_assertions = "1.1.0"
 
 [[bin]]

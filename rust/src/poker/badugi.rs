@@ -40,7 +40,7 @@ pub fn ojp_badugi_full_name(v: &HandValue) -> String {
     }
 }
 
-// Return 0xFFFF_FFFF if not a badugi, or the 32-bit hand value
+// Return HAND_VALUE_WORST if not a badugi, or the 32-bit hand value
 fn badugi_value(cards: &[Card]) -> u32 {
     let mut suits: u32 = 0;
     let mut ranks: u32 = 0;
@@ -51,7 +51,7 @@ fn badugi_value(cards: &[Card]) -> u32 {
         let r = c.rank() as u32;
 
         if 0 != (suits & (1 << s)) || 0 != (ranks & (1 << r)) {
-            return 0xFFFF_FFFF;
+            return HAND_VALUE_WORST;
         }
         suits |= 1 << s;
         ranks |= 1 << r;
@@ -59,7 +59,7 @@ fn badugi_value(cards: &[Card]) -> u32 {
         v <<= 4;
         v += c.rank() as u32;
     }
-    v + (4 - cards.len() as u32) * HandScale::Badugi.multiplier()
+    v + (4 - cards.len() as u32) * HAND_LEVEL_MULTIPLIER
 }
 
 enum BadugiEvaluatorState {
@@ -83,7 +83,7 @@ fn badugi_evaluator_full_common(hand: &Hand, g: HandScale)
                     continue;
                 }
                 let v= badugi_value(h.as_slice());
-                if 0xFFFF_FFFF == v {
+                if HAND_VALUE_WORST == v {
                     state = BadugiEvaluatorState::NotFour;
                     continue;
                 }
@@ -95,8 +95,8 @@ fn badugi_evaluator_full_common(hand: &Hand, g: HandScale)
                     state = BadugiEvaluatorState::NotThree;
                     continue;
                 }
-                let mut best_hand: Hand = g.worst().hand;
-                let mut best_value = 0xFFFF_FFFF;
+                let mut best_hand = Hand::default();
+                let mut best_value = HAND_VALUE_WORST;
                 let mut v: u32;
 
                 for h3 in h.combinations(3) {
@@ -106,7 +106,7 @@ fn badugi_evaluator_full_common(hand: &Hand, g: HandScale)
                         best_hand = h3;
                     }
                 }
-                if 0xFFFF_FFFF == best_value {
+                if HAND_VALUE_WORST == best_value {
                     state = BadugiEvaluatorState::NotThree;
                     continue;
                 }
@@ -127,8 +127,8 @@ fn badugi_evaluator_full_common(hand: &Hand, g: HandScale)
                     state = BadugiEvaluatorState::NotTwo;
                     continue;
                 }
-                let mut best_hand: Hand = g.worst().hand;
-                let mut best_value = 0xFFFF_FFFF;
+                let mut best_hand = Hand::default();
+                let mut best_value = HAND_VALUE_WORST;
                 let mut v: u32;
 
                 for h2 in h.combinations(2) {
@@ -138,7 +138,7 @@ fn badugi_evaluator_full_common(hand: &Hand, g: HandScale)
                         best_hand = h2;
                     }
                 }
-                if 0xFFFF_FFFF == best_value {
+                if HAND_VALUE_WORST == best_value {
                     state = BadugiEvaluatorState::NotTwo;
                     continue;
                 }
@@ -168,13 +168,13 @@ fn badugi_evaluator_full_common(hand: &Hand, g: HandScale)
                 h.truncate(1);
                 return Ok(HandValue::new_with_value(h, g,
                     HandLevel::OneCard,
-                    3 * g.multiplier() + h[0].rank() as u32));
+                    3 * HAND_LEVEL_MULTIPLIER + h[0].rank() as u32));
             }
         }
     }
 }
 
-fn badugi_evaluator_quick_common(hand: &Hand, g: HandScale) -> u32 {
+fn badugi_evaluator_quick_common(hand: &Hand) -> u32 {
     let mut h = *hand;
     oj_sort(h.as_mut_slice());
     let mut state = BadugiEvaluatorState::Initial;
@@ -187,7 +187,7 @@ fn badugi_evaluator_quick_common(hand: &Hand, g: HandScale) -> u32 {
                     continue;
                 }
                 let v= badugi_value(h.as_slice());
-                if 0xFFFF_FFFF == v {
+                if HAND_VALUE_WORST == v {
                     state = BadugiEvaluatorState::NotFour;
                     continue;
                 }
@@ -198,7 +198,7 @@ fn badugi_evaluator_quick_common(hand: &Hand, g: HandScale) -> u32 {
                     state = BadugiEvaluatorState::NotThree;
                     continue;
                 }
-                let mut best_value = 0xFFFF_FFFF;
+                let mut best_value = HAND_VALUE_WORST;
                 let mut v: u32;
 
                 for h3 in h.combinations(3) {
@@ -207,7 +207,7 @@ fn badugi_evaluator_quick_common(hand: &Hand, g: HandScale) -> u32 {
                         best_value = v;
                     }
                 }
-                if 0xFFFF_FFFF == best_value {
+                if HAND_VALUE_WORST == best_value {
                     state = BadugiEvaluatorState::NotThree;
                     continue;
                 }
@@ -218,7 +218,7 @@ fn badugi_evaluator_quick_common(hand: &Hand, g: HandScale) -> u32 {
                     state = BadugiEvaluatorState::NotTwo;
                     continue;
                 }
-                let mut best_value = 0xFFFF_FFFF;
+                let mut best_value = HAND_VALUE_WORST;
                 let mut v: u32;
 
                 for h2 in h.combinations(2) {
@@ -227,7 +227,7 @@ fn badugi_evaluator_quick_common(hand: &Hand, g: HandScale) -> u32 {
                         best_value = v;
                     }
                 }
-                if 0xFFFF_FFFF == best_value {
+                if HAND_VALUE_WORST == best_value {
                     state = BadugiEvaluatorState::NotTwo;
                     continue;
                 }
@@ -241,7 +241,7 @@ fn badugi_evaluator_quick_common(hand: &Hand, g: HandScale) -> u32 {
                         least = i;
                     }
                 }
-                return 3 * g.multiplier() + h[least].rank() as u32;
+                return 3 * HAND_LEVEL_MULTIPLIER + h[least].rank() as u32;
             }
         }
     }
@@ -254,7 +254,7 @@ fn badugi_evaluator_full(hand: &Hand) -> Result<HandValue, OjError> {
 
 fn badugi_evaluator_quick(hand: &Hand) -> u32 {
     debug_assert!(ojp_valid_hand_for_game(hand, HandScale::Badugi));
-    badugi_evaluator_quick_common(hand, HandScale::Badugi)
+    badugi_evaluator_quick_common(hand)
 }
 
 fn badeucy_evaluator_full(hand: &Hand) -> Result<HandValue, OjError> {
@@ -264,7 +264,7 @@ fn badeucy_evaluator_full(hand: &Hand) -> Result<HandValue, OjError> {
 
 fn badeucy_evaluator_quick(hand: &Hand) -> u32 {
     debug_assert!(ojp_valid_hand_for_game(hand, HandScale::Badeucy));
-    badugi_evaluator_quick_common(hand, HandScale::Badeucy)
+    badugi_evaluator_quick_common(hand)
 }
 
 #[cfg(feature = "badugi-tables")]
@@ -438,7 +438,7 @@ mod tests {
     fn test_hand_evaluator_badugi() -> Result<(), OjError> {
         let deck = Deck::new_by_name("low");
         let mut hand= deck.new_hand().init(cards!("Ks","Kh","Kd","Kc"));
-        let mut best: u32 = 0xFFFF_FFFF;
+        let mut best: u32 = HAND_VALUE_WORST;
 
         let mut v1 = ojp_badugi_eval_full(&hand)?;
         assert_eq!(v1.level, HandLevel::OneCard as u8);
@@ -532,7 +532,7 @@ mod tests {
     fn test_hand_evaluator_badeucy() -> Result<(), OjError> {
         let deck = Deck::new_by_name("english");
         let mut hand= deck.new_hand().init(cards!("As","Ah","Ad","Ac"));
-        let mut best: u32 = 0xFFFF_FFFF;
+        let mut best: u32 = HAND_VALUE_WORST;
 
         let mut v1 = ojp_badeucy_eval_full(&hand)?;
         assert_eq!(v1.level, HandLevel::OneCard as u8);

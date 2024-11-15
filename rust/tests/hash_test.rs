@@ -1,5 +1,4 @@
 
-use std::fs;
 use serde::Deserialize;
 use onejoker::*;
 
@@ -60,8 +59,12 @@ fn resuit(h: &Hand) -> Hand {
 
 #[test]
 fn test_hash_data_file() -> Result<(), OjError> {
-    let text = fs::read_to_string("../data/json/random_hands_100k.jsonc")?;
-    let data = json5::from_str::<RandomHandDataFile>(&text[..])?;
+    use std::fs::File;
+    use std::io::BufReader;
+
+    let file = File::open("../data/json/random_hands_100k.jsonc")?;
+    let mut reader = BufReader::new(file);
+    let data: RandomHandDataFile = serde_json5::from_reader(&mut reader)?;
 
     for i in 0..data.hands.len() {
         let mut deck =

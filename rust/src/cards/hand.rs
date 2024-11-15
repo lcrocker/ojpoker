@@ -27,7 +27,7 @@ impl Hand {
     /// Create new [Hand] associated with the given [DeckType]
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let h = Hand::new(DeckType::OneJoker);
     /// ```
     pub fn new(t: DeckType) -> Hand {
@@ -41,7 +41,7 @@ impl Hand {
     /// Create new [Hand] associated with the [DeckType] of the given name
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let h = Hand::new_by_name("onejoker");
     /// ```
     pub fn new_by_name(dname: &str) -> Hand {
@@ -55,7 +55,7 @@ impl Hand {
     /// Initialize new hand; return self for chaining
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let d = Deck::new(DeckType::English);
     /// let h = d.new_hand().init(cards!("Qs", "Ac"));
     /// ```
@@ -65,11 +65,11 @@ impl Hand {
         self.push_all(iter);
         self
     }
-    
+
     /// Initial sort for new hand; return self for chaining
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let d = Deck::new(DeckType::English);
     /// let h = d.new_hand().init(cards!("Qs", "Ac")).sorted();
     /// assert_eq!(h.to_string(), "AcQs");
@@ -82,7 +82,7 @@ impl Hand {
     /// Return the [DeckType] associated with this hand
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let d = Deck::new_by_name("poker"); // alias for "english"
     /// let h = d.new_hand();
     /// assert_eq!(h.deck_type(), DeckType::English);
@@ -95,7 +95,7 @@ impl Hand {
     /// How many cards in the hand?
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let mut d = Deck::new(DeckType::English);
     /// let h = d.new_hand().init(d.draw_hand(cards!("Qs", "Ac")));
     /// assert_eq!(h.len(), 2);
@@ -109,7 +109,7 @@ impl Hand {
     /// Is the hand empty?
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let mut d = Deck::new(DeckType::English);
     /// let mut h = d.new_hand();
     /// assert!(h.is_empty());
@@ -130,7 +130,7 @@ impl Hand {
     /// Empty the hand
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let mut h = Hand::default().init(cards!("As", "Qc"));
     /// assert_eq!(h.len(), 2);
     /// h.clear();
@@ -143,7 +143,7 @@ impl Hand {
     /// Export Vec of [Card]s (as copy)
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let h = Hand::default().init(cards!("As", "Qc"));
     /// let v = h.to_vec();
     /// assert_eq!(v.len(), 2);
@@ -157,7 +157,7 @@ impl Hand {
     /// Point to a slice of the underlying [Card] array
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let h = Hand::default().init(cards!("As", "Qc"));
     /// let c: &[Card] = h.as_slice();
     /// ```
@@ -169,7 +169,7 @@ impl Hand {
     /// Point to a mutable slice of the underlying [Card] array
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let mut h = Hand::default().init(cards!("As", "Qc"));
     /// let c: &mut [Card] = h.as_mut_slice();
     /// ```
@@ -180,7 +180,7 @@ impl Hand {
     /// Find given card in the hand, return index
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let h = Hand::default().init(cards!("Ac", "Kc", "Qc", "Jc", "Tc"));
     /// assert_eq!(h.index_of(QUEEN_OF_CLUBS).unwrap(), 2);
     /// assert_eq!(h.index_of(FOUR_OF_CLUBS), None);
@@ -199,7 +199,7 @@ impl Hand {
     /// Does the hand contain the given [Card]?
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let h = Hand::default().init(cards!("Ac", "Kc", "Qc", "Jc", "Tc"));
     /// assert!(h.contains(QUEEN_OF_CLUBS));
     /// assert!(! h.contains(FOUR_OF_CLUBS));
@@ -218,7 +218,7 @@ impl Hand {
     /// Return the [Card] at the given index, or `None` if out of range
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let h = Hand::default().init(cards!("Ac", "Kc", "Qc", "Jc", "Tc"));
     /// assert_eq!(h.card_at(2).unwrap(), QUEEN_OF_CLUBS);
     /// assert_eq!(h.card_at(7), None);
@@ -233,7 +233,7 @@ impl Hand {
     /// Set the [Card] at the given index, or return `false` if out of range
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let mut h = Hand::default().init(cards!("Ac", "Kc", "Qc", "Jc", "Tc"));
     /// assert_eq!(h.set_card_at(2, QUEEN_OF_DIAMONDS), true);
     /// assert_eq!(h[2], QUEEN_OF_DIAMONDS);
@@ -252,7 +252,7 @@ impl Hand {
     /// Push a [Card] onto the end of the hand
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let mut h = Hand::default().init(cards!("Ah", "Kh"));
     /// h.push(QUEEN_OF_HEARTS);
     /// assert_eq!(h.to_string(), "AhKhQh");
@@ -272,7 +272,7 @@ impl Hand {
     /// Pop a [Card] from the end of the hand
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let mut h = Hand::default().init(cards!("Ah", "Kh", "Qh"));
     /// assert_eq!(h.pop().unwrap(), QUEEN_OF_HEARTS);
     /// assert_eq!(h.to_string(), "AhKh");
@@ -289,7 +289,7 @@ impl Hand {
     /// returning the number actually pushed.
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let mut d = Deck::new(DeckType::English);
     /// let mut h = d.new_hand().init(cards!("Ah", "Kh"));
     /// assert_eq!(3, h.push_n(3, d.pop_n(3)));
@@ -304,7 +304,7 @@ impl Hand {
             }
             if let Some(cout) = self.deck_type().valid_card(c) {
                 self.cards[self.length as usize] = cout;
-                self.length += 1;    
+                self.length += 1;
                 pushed += 1;
 
                 if pushed >= n {
@@ -318,7 +318,7 @@ impl Hand {
     /// Push a collection of [Card]s onto the end of the hand
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let mut d = Deck::new(DeckType::English);
     /// let mut h = d.new_hand().init(cards!("Ah", "Kh"));
     /// h.push_all(d.pop_n(3));
@@ -334,17 +334,17 @@ impl Hand {
             }
             if let Some(cout) = self.deck_type().valid_card(c) {
                 self.cards[self.length as usize] = cout;
-                self.length += 1;    
+                self.length += 1;
                 pushed += 1;
             }
         }
         pushed
     }
-    
+
     /// Pop `n` [Card]s from the end of the hand
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let mut h = Hand::default().init(cards!("Ah", "Kh", "Qh", "Jh", "Th"));
     /// let v: Vec<Card> = h.pop_n(3).collect();
     /// assert_eq!(v.len(), 3);
@@ -365,7 +365,7 @@ impl Hand {
     /// Pop all [Card]s from the end of the hand
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let mut h = Hand::default().init(cards!("Ah", "Kh", "Qh", "Jh", "Th"));
     /// let v: Vec<Card> = h.pop_all().collect();
     /// assert_eq!(v.len(), 5);
@@ -379,7 +379,7 @@ impl Hand {
     /// Replace the [Card]s in the hand with the given collection
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let mut h = Hand::default().init(cards!("Ah", "Kh"));
     /// h.set(cards!("Qh", "Jh"));
     /// assert_eq!(h.to_string(), "QhJh");
@@ -389,11 +389,11 @@ impl Hand {
         self.length = 0;
         0 != self.push_all(iter)
     }
-  
+
     /// Insert a [Card] at the given index
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let mut h = Hand::default().init(cards!("Ah", "Kh", "Jh", "Th"));
     /// h.insert_at(2, QUEEN_OF_HEARTS);
     /// assert_eq!(h.to_string(), "AhKhQhJhTh");
@@ -417,7 +417,7 @@ impl Hand {
     /// Remove the [Card] at the given index
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let mut h = Hand::default().init(cards!("Ah", "Kh", "Qh", "Jh", "Th"));
     /// h.remove_at(2);
     /// assert_eq!(h.to_string(), "AhKhJhTh");
@@ -437,7 +437,7 @@ impl Hand {
     /// Remove the given [Card] from the hand if present
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let mut h = Hand::default().init(cards!("Ah", "Kh", "Qh", "Jh", "Th"));
     /// h.remove_card(KING_OF_HEARTS);
     /// assert_eq!(h.to_string(), "AhQhJhTh");
@@ -455,7 +455,7 @@ impl Hand {
     /// Truncate the [Hand] to the given length
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let mut h = Hand::default().init(cards!("Ah", "Kh", "Qh", "Jh", "Th"));
     /// h.truncate(3);
     /// assert_eq!(h.to_string(), "AhKhQh");
@@ -469,7 +469,7 @@ impl Hand {
     /// Shuffle the [Hand] in place
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let mut h = Hand::default().init(cards!("Ah", "Kh", "Qh", "Jh", "Th"));
     /// h.shuffle();
     /// println!("{}", h); // e.g., "QhJhKhThAh"
@@ -481,7 +481,7 @@ impl Hand {
     /// Sort the [Hand] in place, descending by rank, then suit
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let mut d = Deck::new(DeckType::English);
     /// let mut h = d.new_hand().init(cards!("Th", "Kh", "Jh", "Ah", "Qh"));
     /// h.sort();
@@ -494,7 +494,7 @@ impl Hand {
     /// Return an iterator over all `n`-card combinations of the hand
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let mut d = Deck::new(DeckType::English);
     /// let h = d.new_hand().init(cards!("Ah", "Kh", "Qh", "Jh", "Th"));
     /// let mut count = 0;
@@ -511,7 +511,7 @@ impl Hand {
     /// Return true if the hands are identical: i.e., same cards in same order
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let h1 = Hand::default().init(cards!("Ah", "Kh", "Qh", "Jh", "Th"));
     /// let mut h2 = Hand::default().init(cards!("Ah", "Kh", "Qh", "Jh", "Th"));
     /// assert!(h1.equals(&h2));
@@ -533,7 +533,7 @@ impl Hand {
     /// Return true if the hands are equivalent: i.e., same cards in any order
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let h1 = Hand::default().init(cards!("Ah", "Kh", "Qh", "Jh", "Th"));
     /// let h2 = Hand::default().init(cards!("Th", "Ah", "Qh", "Jh", "Kh"));
     /// assert!(h1.is_equivalent_to(&h2));
@@ -547,7 +547,7 @@ impl Hand {
             let mut os: Hand = *other;
             oj_sort(&mut ss.cards[..(ss.length as usize)]);
             oj_sort(&mut os.cards[..(os.length as usize)]);
-    
+
             for i in 0..(self.length as usize) {
                 if ss.cards[i] != os.cards[i] {
                     return false;
@@ -569,7 +569,7 @@ impl Hand {
     /// Used internally--most users should not need this.
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let mut h = Hand::new(DeckType::Low).init(cards!("Ah", "2h"));
     /// assert_eq!(h[0].rank(), Rank::LowAce);
     /// // Unlike push() and set_card_at(), this does not error check
@@ -593,7 +593,7 @@ impl Hand {
     /// Remove the cards at the given indices
     /// ```rust
     /// use onejoker::*;
-    /// 
+    ///
     /// let mut h = Hand::default().init(cards!("Ah", "Kh", "Qh", "Jh", "Th"));
     /// h.discard(&[1, 3]);
     /// assert_eq!(h.to_string(), "AhQhTh");

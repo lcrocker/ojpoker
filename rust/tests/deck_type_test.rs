@@ -1,6 +1,5 @@
 //@ tests/master_deck_test.rs
 
-use std::fs;
 use serde::Deserialize;
 use onejoker::*;
 
@@ -10,7 +9,7 @@ struct MasterDeckInfo {
     dups_allowed: bool,
     low_aces: bool,
     aliases: Vec<String>,
-    card_list: Vec<u8>   
+    card_list: Vec<u8>
 }
 
 /// JSON file structure
@@ -19,8 +18,12 @@ struct MasterDeckDataFile(Vec<MasterDeckInfo>);
 
 #[test]
 fn test_masterdeck_file() -> Result<(), OjError> {
-    let text = fs::read_to_string("../data/json/master_decks.jsonc")?;
-    let data = json5::from_str::<MasterDeckDataFile>(&text[..])?;
+    use std::fs::File;
+    use std::io::BufReader;
+
+    let file = File::open("../data/json/master_decks.jsonc")?;
+    let mut reader = BufReader::new(file);
+    let data: MasterDeckDataFile = serde_json5::from_reader(&mut reader)?;
 
     for i in 0..data.0.len() {
         let info: &MasterDeckInfo = &data.0[i];

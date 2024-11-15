@@ -282,10 +282,10 @@ macro_rules! deck_info {
 }
 
 const DECK_INFO_TABLE: [DeckInfo; DECKTYPE_MAX] = [
-    deck_info!("allcards",  0xFFFF_FFFF_FFFF_FF0e,&ALLCARDS_CARDS,false,false),
+    deck_info!("allcards",  0xFFFF_FFFF_FFFF_FF0E,&ALLCARDS_CARDS,false,false),
     deck_info!("english",   0xFFF0_FFFF_FFFF_FF00,&ENGLISH_CARDS,false,false),
     deck_info!("onejoker",  0xFFF0_FFFF_FFFF_FF08,&ONEJOKER_CARDS,false,false),
-    deck_info!("twojokers", 0xFFF0_FFFF_FFFF_FF0c,&TWOJOKERS_CARDS,false,false),
+    deck_info!("twojokers", 0xFFF0_FFFF_FFFF_FF0C,&TWOJOKERS_CARDS,false,false),
     deck_info!("low",       0x0FF0_FFFF_FFFF_FFF0,&LOW_CARDS,false,true),
     deck_info!("lowjoker",  0x0FF0_FFFF_FFFF_FFF8,&LOWJOKER_CARDS,false,true),
     deck_info!("spanish",   0x0F0F_F000_FFFF_FFF0,&SPANISH_CARDS,false,true),
@@ -299,7 +299,7 @@ const DECK_INFO_TABLE: [DeckInfo; DECKTYPE_MAX] = [
     deck_info!("euchre28",  0xFFF0_FFFF_0000_0000,&EUCHRE28_CARDS,false,false),
     deck_info!("euchre29",  0xFFF0_FFFF_0000_0008,&EUCHRE29_CARDS,false,false),
     deck_info!("bezique",   0xFFF0_FFFF_F000_0000,&BEZIQUE_CARDS,true,false),
-    deck_info!("canasta",   0xFFF0_FFFF_FFFF_FF0c,&CANASTA_CARDS,true,false),
+    deck_info!("canasta",   0xFFF0_FFFF_FFFF_FF0C,&CANASTA_CARDS,true,false),
     deck_info!("pinochle",  0xFFF0_FFF0_0000_0000,&PINOCHLE_CARDS,true,false),
 ];
 

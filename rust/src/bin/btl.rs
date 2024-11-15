@@ -51,33 +51,25 @@ impl Ord for EquivClassAndHash {
     }
 }
 
-const RVAL: [u32; 13] = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14 ];
+const RVAL: [Rank; 13] = [ Rank::LowAce, Rank::Deuce, Rank::Trey, Rank::Four,
+    Rank::Five, Rank::Six, Rank::Seven, Rank::Eight, Rank::Nine, Rank::Ten,
+    Rank::Jack, Rank::Queen, Rank::King ];
 
 fn build_tables() -> Result<(), OjError> {
     let mut heap: BinaryHeap<HandAndValue> = BinaryHeap::new();
     let deck = Deck::new_by_name(DECK);
 
-    for i in 0..13 {
-        let r1 = Rank::from_u8(RVAL[i] as u8);
-
-        for j in 0..13 {
-            let r2 = Rank::from_u8(RVAL[j] as u8);
-
-            for k in 0..13 {
-                let r3 = Rank::from_u8(RVAL[k] as u8);
-
-                for l in 0..13 {
-                    let r4 = Rank::from_u8(RVAL[l] as u8);
-
-                    for m in 0..13 {
-                        let r5 = Rank::from_u8(RVAL[m] as u8);
-
+    for r1 in &RVAL {
+        for r2 in &RVAL {
+            for r3 in &RVAL {
+                for r4 in &RVAL {
+                    for r5 in &RVAL {
                         let hand = deck.new_hand().init([
-                            Card::from_rank_suit(r1, Suit::Spade),
-                            Card::from_rank_suit(r2, Suit::Heart),
-                            Card::from_rank_suit(r3, Suit::Diamond),
-                            Card::from_rank_suit(r4, Suit::Club),
-                            Card::from_rank_suit(r5, Suit::Spade),
+                            Card::from_rank_suit(*r1, Suit::Spade),
+                            Card::from_rank_suit(*r2, Suit::Heart),
+                            Card::from_rank_suit(*r3, Suit::Diamond),
+                            Card::from_rank_suit(*r4, Suit::Club),
+                            Card::from_rank_suit(*r5, Suit::Spade),
                         ]);
 
                         let v = SCALE.eval_full()(&hand)?;

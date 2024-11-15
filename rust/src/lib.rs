@@ -56,23 +56,28 @@ pub use poker::hand_evaluation::{
     HandLevel, HandValue, HandEvaluatorFull, HandEvaluatorQuick,
     ojp_default_hand_value, ojp_best_of, ojp_best_value_of,
     ojp_default_eval_full, ojp_default_eval_quick,
-    ojp_valid_hand_for_game,
+    ojp_valid_hand_for_game, ojp_bug_scan, ojp_ace_not_present,
+    ojp_bug_replacement,
 };
 
 pub use poker::high_hand::{
     ojp_high_full_name, ojp_high_eval_full, ojp_high_eval_quick,
     ojp_stripped_eval_full, ojp_stripped_eval_quick,
+    ojp_bug_replace_high, ojp_high_bug_eval_full, ojp_high_bug_eval_quick,
+    ojp_stripped_bug_eval_full, ojp_stripped_bug_eval_quick,
 };
 
 pub use poker::pai_gow::{
-    ojp_pai_gow_full_name,
-    ojp_pai_gow_eval_full_no_bug, ojp_pai_gow_eval_quick_no_bug,
+    ojp_pai_gow_full_name, ojp_pai_gow_eval_full, ojp_pai_gow_eval_quick,
+    ojp_bug_replace_pai_gow,
 };
 
 pub use poker::ace_to_five::{
     ojp_ace_to_five_full_name, ojp_ace_to_five_eval_full,
     ojp_ace_to_five_eval_quick, ojp_action_razz_full_name,
     ojp_action_razz_eval_full, ojp_action_razz_eval_quick,
+    ojp_bug_replace_ace_to_five,
+    ojp_ace_to_five_bug_eval_full, ojp_ace_to_five_bug_eval_quick,
 };
 
 pub use poker::deuce_to_seven::{

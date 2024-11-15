@@ -254,7 +254,7 @@ pub fn ojp_action_razz_eval_full(h: &Hand) -> Result<HandValue, OjError> {
             return Ok(v);
         }
     }
-    v.value += 7 * HandScale::ActionRazz.multiplier();
+    v.value += 7 * HAND_LEVEL_MULTIPLIER;
     v.level = action_razz_adjust_level(HandLevel::from_u8(v.level)) as u8;
     Ok(v)
 }
@@ -286,7 +286,82 @@ pub fn ojp_action_razz_eval_quick(h: &Hand) -> u32 {
             return v
         }
     }
-    v + 7 * HandScale::ActionRazz.multiplier()
+    v + 7 * HAND_LEVEL_MULTIPLIER
+}
+
+/// If there's a bug in the hand, figure out what card it should
+/// be, return it along with its index.
+pub fn ojp_bug_replace_ace_to_five(h: &Hand) -> Option<BugReplacement> {
+    let scan = ojp_bug_scan(h);
+    let index = scan.index?;
+
+    let mut r = 1;
+    while r < 15 {
+        if 0 == (scan.rank_mask & (1 << r)) {
+            break;
+        }
+        r += 1;
+        if 12 == r { r += 1; }
+    }
+    Some(BugReplacement::new(index as usize,
+        Card::from_rank_suit(Rank::from_u8(r), Suit::Spade)))
+}
+
+fn curried_evaluator_bug_full(h: &Hand) -> Result<HandValue, OjError> {
+    let Some(repl) = ojp_bug_replace_ace_to_five(h) else {
+        return ojp_default_eval_full(h, HandScale::AceToFive);
+    };
+    let mut dup = *h;
+    dup[repl.index as usize] = repl.replacement;
+    let mut v = ojp_default_eval_full(&dup, HandScale::AceToFive)?;
+    v.bug_is = repl.replacement;
+    Ok(v)
+}
+
+fn curried_evaluator_bug_quick(h: &Hand) -> u32 {
+    let Some(repl) = ojp_bug_replace_ace_to_five(h) else {
+        return ojp_default_eval_quick(h, HandScale::AceToFive);
+    };
+    let mut dup = *h;
+    dup[repl.index as usize] = repl.replacement;
+    ojp_default_eval_quick(&dup, HandScale::AceToFive)
+}
+
+/// Full ace-to-five hand evaluator
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_ace_to_five_bug_eval_full) | Ace-to-five with bug full evaluator
+/// ```rust
+/// use onejoker::*;
+///
+/// let hand = Hand::new(DeckType::Low).init(cards!("7s","4s","As","5d","Jk"));
+/// let v = ojp_ace_to_five_bug_eval_full(&hand).unwrap();
+/// println!("[{}]: {}", v.hand, ojp_ace_to_five_full_name(&v));
+/// // Output: "[7s5d4s2sAs]: seven, five, four, deuce, ace"
+/// ```
+pub fn ojp_ace_to_five_bug_eval_full(h: &Hand) -> Result<HandValue, OjError> {
+    if h.len() > 5 {
+        return ojp_best_of(h, HandScale::AceToFive,
+            curried_evaluator_bug_full);
+    }
+    curried_evaluator_bug_full(h)
+}
+
+/// Value-only ace-to-five hand evaluator
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_ace_to_five_bug_eval_quick) | Ace-to-five with bug quick evaluator
+/// ```rust
+/// use onejoker::*;
+///
+/// let h1 = Hand::new(DeckType::LowJoker).init(cards!("3s","9s","7d","5c","2c"));
+/// let h2 = Hand::new(DeckType::LowJoker).init(cards!("7s","Jk","As","Qd","6c"));
+/// let v1 = ojp_ace_to_five_bug_eval_quick(&h1);
+/// let v2 = ojp_ace_to_five_bug_eval_quick(&h2);
+/// assert!(v1 < v2);   // nine-high beats queen-high
+/// ```
+pub fn ojp_ace_to_five_bug_eval_quick(h: &Hand) -> u32 {
+    if h.len() > 5 {
+        return ojp_best_value_of(h, HandScale::AceToFive,
+            curried_evaluator_bug_quick);
+    }
+    curried_evaluator_bug_quick(h)
 }
 
 /*
@@ -301,7 +376,7 @@ mod tests {
     fn test_hand_evaluator_ace_to_five() -> Result<(), OjError> {
         let deck = Deck::new_by_name("low");
         let mut hand= deck.new_hand();
-        let mut best: u32 = 0xFFFF_FFFF;
+        let mut best: u32 = HAND_VALUE_WORST;
 
         hand.set(cards!("Ks","Kh","Kd","Kc","Qs"));
         let mut v1 = ojp_ace_to_five_eval_full(&hand)?;
@@ -381,7 +456,7 @@ mod tests {
     fn test_hand_evaluator_action_razz() -> Result<(), OjError> {
         let deck = Deck::new_by_name("low");
         let mut hand= deck.new_hand();
-        let mut best: u32 = 0xFFFF_FFFF;
+        let mut best: u32 = HAND_VALUE_WORST;
 
         hand.set(cards!("Ts","Th","Td","Tc","9s"));
         let mut v1 = ojp_action_razz_eval_full(&hand)?;
@@ -516,4 +591,82 @@ mod tests {
         Ok(())
     }
 
+    #[test]
+    fn test_hand_evaluator_ace_to_five_bug() -> Result<(), OjError> {
+        let deck = Deck::new_by_name("lowjoker");
+        let mut hand= deck.new_hand();
+        let mut best: u32 = HAND_VALUE_WORST;
+
+        hand.set(cards!("Ks","Kh","Kd","Kc","Qs"));
+        let mut v1 = ojp_ace_to_five_bug_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::Quads as u8);
+
+        hand.set(cards!("5d","5c","Js","5h","Jc"));
+        v1 = ojp_ace_to_five_bug_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::FullHouse as u8);
+        assert!(v1.value < best);
+        best = v1.value;
+
+        hand.set(cards!("7d","4c","7s","7h","Kc"));
+        v1 = ojp_ace_to_five_bug_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::Trips as u8);
+        assert!(v1.value < best);
+        best = v1.value;
+
+        hand.set(cards!("2d","Tc","2s","3h","Ts"));
+        v1 = ojp_ace_to_five_bug_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::TwoPair as u8);
+        assert!(v1.value < best);
+        best = v1.value;
+
+        hand.set(cards!("4s","Ac","9d","9h","Qc"));
+        v1 = ojp_ace_to_five_bug_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::Pair as u8);
+        assert!(v1.value < best);
+
+        hand.set(cards!("9d","Qc","Jk","4s","9c"));
+        let mut v2 = ojp_ace_to_five_bug_eval_full(&hand)?;
+        assert_eq!(v1, v2);
+
+        hand.set(cards!("Ts","Js","Ks","9s","Qs"));
+        v1 = ojp_ace_to_five_bug_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::NoPair as u8);
+        assert!(v1.value < best);
+        best = v1.value;
+
+        hand.set(cards!("Kh","Td","9s","Qc","Jc"));
+        v2 = ojp_ace_to_five_bug_eval_full(&hand)?;
+        assert_eq!(v1, v2);
+
+        hand.set(cards!("Ac","3d","9d","6h","2d"));
+        v1 = ojp_ace_to_five_bug_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::NoPair as u8);
+        assert!(v1.value < best);
+        best = v1.value;
+
+        hand.set(cards!("6c","9c","3c","Ac","2c"));
+        v2 = ojp_ace_to_five_bug_eval_full(&hand)?;
+        assert_eq!(v1, v2);
+
+        hand.set(cards!("Ac","6c","2c","Jk","9c"));
+        v2 = ojp_ace_to_five_bug_eval_full(&hand)?;
+        assert_eq!(v1, v2);
+
+        hand.set(cards!("5c","3d","4s","7s","2d"));
+        v1 = ojp_ace_to_five_bug_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::NoPair as u8);
+        assert!(v1.value < best);
+        best = v1.value;
+
+        hand.set(cards!("Ah","2c","4s","5d","3d"));
+        v1 = ojp_ace_to_five_bug_eval_full(&hand)?;
+        assert_eq!(v1.level, HandLevel::NoPair as u8);
+
+        hand.set(cards!("Jk","2c","Ah","3s","4d"));
+        v2 = ojp_ace_to_five_bug_eval_full(&hand)?;
+        assert_eq!(v1, v2);
+        assert!(v1.value < best);
+
+        Ok(())
+    }
 }

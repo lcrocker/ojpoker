@@ -42,7 +42,7 @@ pub enum OjError {
 impl std::fmt::Display for OjError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            OjError::NotImplemented(s)  
+            OjError::NotImplemented(s)
                 => write!(f, "function '{}' not implemented", s),
             OjError::TestFailure(s)
                 => write!(f, "test failure: {}", s),
@@ -55,7 +55,7 @@ impl std::fmt::Display for OjError {
             OjError::NotSuit(s)
                 => write!(f, "'{}' is not a card suit", s),
             OjError::NotCard(s)
-                => write!(f, "'{}' is not a card", s),                
+                => write!(f, "'{}' is not a card", s),
             OjError::ParseEmpty(s)
                 => write!(f, "empty input expecting {}", s),
             OjError::ParseOther(msg)
@@ -86,8 +86,8 @@ impl From<std::io::Error> for OjError {
     }
 }
 
-impl From<json5::Error> for OjError {
-    fn from(e: json5::Error) -> Self {
+impl From<serde_json5::Error> for OjError {
+    fn from(e: serde_json5::Error) -> Self {
         OjError::ParseOther(e.to_string())
     }
 }

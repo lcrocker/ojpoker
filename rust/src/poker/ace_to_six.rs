@@ -130,7 +130,7 @@ mod tests {
     fn test_hand_evaluator_ace_to_six() -> Result<(), OjError> {
         let deck = Deck::new_by_name("low");
         let mut hand= deck.new_hand();
-        let mut best: u32 = 0xFFFF_FFFF;
+        let mut best: u32 = HAND_VALUE_WORST;
 
         hand.set(cards!("8c","Jc","9c","Qc","Tc"));
         let mut v1 = ojp_ace_to_six_eval_full(&hand)?;
