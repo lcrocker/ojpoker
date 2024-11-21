@@ -1,8 +1,8 @@
 //! [wiki](https://github.com/lcrocker/ojpoker/wiki/Hand_Evaluation) | Poker hand evaluation types
 
+use crate::error::{Error,Result};
 use crate::utils::*;
 use crate::cards::*;
-use crate::errors::*;
 use crate::poker::*;
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/Hand_Level) | Class for categories of poker hands.
@@ -42,7 +42,7 @@ pub enum HandLevel {
 impl HandLevel {
     /// Convert integer to level
     /// ```rust
-    /// use onejoker::*;
+    /// use onejoker::prelude::*;
     ///
     /// assert_eq!(HandLevel::FullHouse, HandLevel::from_u8(4));
     /// ```
@@ -76,9 +76,42 @@ impl HandLevel {
 
 /// Sentinel value for hand level
 pub const HAND_LEVEL_BEST: u8 = 0;
-/// Sentinel value for hand level: 99 * 2000000 still fits in u32
-pub const HAND_LEVEL_WORST: u8 = 99;
+/// Sentinel value for hand level
+pub const HAND_LEVEL_WORST: u8 = 0xFF;
 
+/// The plain integer value used to compare hands--low value wins.
+pub type HandValue = u32;
+
+/// For all hand value comparisons, lower is better.
+pub const HAND_VALUE_BEST: u32 = 0;
+/// Maximum u32
+pub const HAND_VALUE_WORST: u32 = 0xFFFF_FFFF;
+/// Should be enough to leave room for all rank combinations between levels
+pub const HAND_LEVEL_MULTIPLIER: u32 = 0x100000;
+
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Hand_Description) | Info about an evaluated hand
+///
+/// This trait describes all the information about a hand after evaluation.
+/// My vary from game to game (though every game should have these functions).
+pub trait HandDescriptionTrait {
+    /// Hand as modified during evaluation
+    fn hand(&self) -> &Hand;
+    /// Same, but as mutable pointer
+    fn mut_hand(&mut self) -> &mut Hand;
+    /// Again, but as slice, and trimmed to proper length
+    fn as_slice(&self) -> &[Card];
+    /// Comparison value: low is better
+    fn value(&self) -> HandValue;
+    /// Which scale/game we are evaluating for
+    fn scale(&self) -> HandScale;
+    /// Evaluated level of hand
+    fn level(&self) -> HandLevel;
+    /// Full english name, e.g. "aces full of kings"
+    fn full_name(&self) -> String;
+}
+
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Hand_Description) | Info about an evaluated hand
+pub type HandDescription = Box<dyn HandDescriptionTrait>;
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/HandValue) | Complete descriptor of evaluated hand
 ///
@@ -88,235 +121,187 @@ pub const HAND_LEVEL_WORST: u8 = 99;
 /// scale used to evaluate it.
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
-pub struct HandValue {
-    /// The hand under evaluation. Order of cards may be changed
-    pub hand: Hand,
-    /// Comparison value: lower is better
-    pub value: u32,
-    /// Index of the game in the game info array
-    pub scale: u8,
+pub struct HandDescriptionBase {
+    /// Copy of the hand under evaluation. Modified during evaluation.
+    hand: Hand,
+    /// Which game type we are evaluating for
+    scale: HandScale,
     /// Level of the hand
-    pub level: u8,
-    /// Position of bug after evaluation
-    pub bug_is: Card,
+    level: HandLevel,
+    /// Comparison value: lower is better
+    value: HandValue,
 }
 
-/// For all hand value comparisons, lower is better.
-pub const HAND_VALUE_BEST: u32 = 0;
-/// Maximum u32
-pub const HAND_VALUE_WORST: u32 = 0xFFFF_FFFF;
-/// Should be enough to leave room for all rank combinations between levels
-/// 2000000 > 16 ** 5 (1048576)
-pub const HAND_LEVEL_MULTIPLIER: u32 = 2000000;
-
-impl HandValue {
-    /// Create a new hand value object with the given game, hand, and level.
-    ///
-    /// Cards in hand must be already sorted in order of importance to the
-    /// hand's value so that the default automatic value calculation will work.
-    /// For example, in a high-hand game, the cards 5h9d5dJd9h must he
-    /// arranged as 9d9h5h5dJd: high pair, low pair, kicker (suits don't
-    /// affect the default ordering function).
-    /// ```rust
-    /// use onejoker::*;
-    ///
-    /// let hand = Hand::new(DeckType::English).init(cards!("As","Js","Ts","7s","5s"));
-    /// let v = HandValue::new(hand, HandScale::HighHand, HandLevel::Flush);
-    /// assert_eq!(8969227, v.value);   // default value of AJT75 flush
-    /// ```
-    pub fn new(hand: Hand, scale: HandScale, level: HandLevel) -> Self {
-        debug_assert!(scale.low_aces() == hand.deck_type().low_aces());
-
-        HandValue {
-            hand, scale: scale as u8, level: level as u8,
-            value: ojp_default_hand_value(&hand, scale,  level),
-            bug_is: Card(0),
-        }
+impl std::fmt::Display for HandDescriptionBase {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "[{}] = {}", self.hand, self.value)
     }
+}
 
-    /// Create a new hand value with the given game, hand, level, and value.
-    ///
-    /// When you are not using the default value calculation, you can
-    /// pass the value directly, and not worry about the order of the cards
-    /// (though you might still want to rearrange them for display).
-    /// ```rust
-    /// use onejoker::*;
-    ///
-    /// let hand = Hand::new(DeckType::English).init(cards!("As","Js","Ts","7s","5s"));
-    /// let v = HandValue::new_with_value(hand, HandScale::HighHand, HandLevel::Flush,
-    ///     621); // actual value of AJT75 flush among all 7462 distinct hands
-    /// ```
-    pub fn new_with_value(hand: Hand, scale: HandScale,
-    level: HandLevel, value: u32) -> Self {
-        debug_assert!(scale.low_aces() == hand.deck_type().low_aces());
-
-        HandValue {
-            hand, scale: scale as u8, level: level as u8, value,
-            bug_is: Card(0),
-        }
-    }
-
-    /// Create a new hand value guaranteed to be worse than any real one
-    pub fn worst() -> Self {
-        HandValue {
+impl HandDescriptionBase {
+    fn worst() -> Self {
+        HandDescriptionBase {
             hand: Hand::new(DeckType::English),
+            scale: HandScale::HighHand,
+            level: HandLevel::None,
             value: HAND_VALUE_WORST,
-            scale: 0, level: HAND_LEVEL_WORST,
-            bug_is: Card(0),
         }
     }
 
-    /// Expose hand as slice of cards
-    /// ```rust
-    /// use onejoker::*;
-    ///
-    /// let hand = Hand::new(DeckType::English).init(cards!("As","Js","Ts","7s","5s"));
-    /// let v = HandValue::new(hand, HandScale::HighHand, HandLevel::Flush);
-    /// assert_eq!(5, v.as_slice().len());
-    /// ```
-    pub fn as_slice(&self) -> &[Card] {
-        self.hand.as_slice()
-    }
-
-    /// Clone the hand from the value object
-    /// ```rust
-    /// use onejoker::*;
-    ///
-    /// let hand = Hand::new(DeckType::English).init(cards!("As","Js","Ts","7s","5s"));
-    /// let v = HandValue::new(hand, HandScale::HighHand, HandLevel::Flush);
-    /// let hcopy = v.hand();
-    /// assert_eq!(5, hcopy.len());
-    /// ```
-    pub fn hand(&self) -> Hand {
-        self.hand
-    }
-
-    /// Call full_name function from game info
-    /// ```rust
-    /// use onejoker::*;
-    ///
-    /// let hand = Hand::new(DeckType::English).init(cards!("As","Js","Ts","7s","5s"));
-    /// let v = HandValue::new(hand, HandScale::HighHand, HandLevel::Flush);
-    /// println!("{}", v.full_name());
-    /// // Output: "flush: ace, jack, ten, seven, five"
-    /// ```
-    pub fn full_name(&self) -> String {
-        (HandScale::from_u8(self.scale).full_name())(self)
-    }
-
-    /// Rearrange cards in the rank order given
-    ///
-    /// Assuming you created the value object with your own value, you can
-    /// re-arrange the cards after the fact here for pretty display.
-    /// This function does not consider suits.
-    /// ```rust
-    /// use onejoker::*;
-    ///
-    /// let hand = Hand::new(DeckType::English).init(cards!("Js","7s","As","5s","Ts"));
-    /// let mut v = HandValue::new_with_value(hand, HandScale::HighHand,
-    ///     HandLevel::Flush, 621);
-    /// v.order_for_display(&[Rank::Ace, Rank::Jack, Rank::Ten,
-    ///     Rank::Seven, Rank::Five]);
-    /// assert_eq!("AsJsTs7s5s", v.hand().to_string());
-    /// ```
-    pub fn order_for_display(&mut self, ranks: &[Rank]) {
-        debug_assert!(ranks.len() <= self.hand.len());
-
-        for i in 0..(ranks.len() - 1) {
-            if Rank::None == ranks[i] { break; }
-
-            for j in i..ranks.len() {
-                if self.hand[j].rank() == ranks[i] {
-                    if i != j { self.hand.as_mut_slice().swap(i, j); }
-                    break;
-                }
-            }
-        }
+    fn to_boxed_trait(self) -> HandDescription {
+        Box::new(self)
     }
 }
 
-impl PartialEq for HandValue {
-    fn eq(&self, other: &Self) -> bool {
-        self.value == other.value
-    }
-}
-impl Eq for HandValue {}
-
-impl Ord for HandValue {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.value.cmp(&other.value)
-    }
-}
-
-impl PartialOrd for HandValue {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
+impl HandDescriptionTrait for HandDescriptionBase {
+    fn hand(&self) -> &Hand { &self.hand }
+    fn mut_hand(&mut self) -> &mut Hand { &mut self.hand }
+    fn as_slice(&self) -> &[Card] { &self.hand[..self.scale.complete_hand()] }
+    fn value(&self) -> HandValue { self.value }
+    fn scale(&self) -> HandScale { self.scale }
+    fn level(&self) -> HandLevel { self.level }
+    fn full_name(&self) -> String {
+        self.scale.full_name(&self.to_boxed_trait())
     }
 }
 
-/// Hand value calculation that works for many high-hand games.
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_default_hand_value) | Default hand value calculation
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Hand_Description_Builder) | Builder for hand description
 ///
-/// We've already determined the hand level, and arranged the cards by
-/// their most significant ransk, so now we just calculate a base-16 positional
-/// hash of ranks, and add (or subtract) that from a large muliple of the level
-/// to get the final value.
+/// Builder for new HandDescription objects. Does some error checking while allowing
+/// construction im multiple ways.
 /// ```rust
-/// use onejoker::*;
+/// use onejoker::prelude::*;
+/// use onejoker::poker::HandDescriptionBuilder;
 ///
-/// let hand = Hand::new(DeckType::English).init(cards!("As","Js","Ts","7s","5s"));
-/// let cmp = ojp_default_hand_value(&hand, HandScale::HighHand, HandLevel::Flush);
-/// assert_eq!(8969227, cmp);
+/// let hand = Hand::new(DeckType::English).init(hand!("As","Js","Ts","7s","5s"));
+/// let v = HandDescriptionBuilder::new(&hand, HandScale::HighHand)
+///    .with_level(HandLevel::Flush)
+///    .with_default_value().complete();
 /// ```
-pub fn ojp_default_hand_value(h: &Hand, g: HandScale, p: HandLevel) -> u32 {
-    let h: u32 = ojh_positional_32cs(h.as_slice()).
-        expect("should be checked earlier");
+pub struct HandDescriptionBuilder {
+    hand: Hand,
+    scale: HandScale,
+    level: Option<HandLevel>,
+    value: Option<HandValue>,
+}
 
-    if g.low_hands() {
-        2000000 * g.value_from_level(p) + h
+impl HandDescriptionBuilder {
+    /// Begin creating a new HandDescription object
+    pub fn new(hand: &Hand, scale: HandScale) -> Self {
+        debug_assert!(scale.low_aces() == hand.deck_type().low_aces());
+        debug_assert!(hand.len() >= scale.complete_hand());
+
+        HandDescriptionBuilder {
+            hand: *hand, scale, level: None, value: None
+        }
+    }
+
+    /// Set the level of the hand
+    pub fn with_level(mut self, level: HandLevel) -> Self {
+        debug_assert!(self.level.is_none());
+        debug_assert!(HAND_LEVEL_WORST as u32 != self.scale.value_from_level(level));
+
+        self.level = Some(level);
+        self
+    }
+
+    /// Set the value of the hand to a custom number
+    pub fn with_value(mut self, value: HandValue) -> Self {
+        debug_assert!(self.value.is_none());
+
+        self.value = Some(value);
+        self
+    }
+
+    /// Set the value of the hand using the default calculation
+    pub fn with_default_value(mut self) -> Self {
+        debug_assert!(self.value.is_none());
+        debug_assert!(self.level.is_some());
+
+        self.value = Some(ojp_default_hand_value(&self.hand,
+            self.scale, self.level.unwrap()));
+        self
+    }
+
+    /// Finish building the HandDescription object
+    pub fn complete(self) -> Result<HandDescription> {
+        if self.level.is_none() {
+            return Err(Error::BadDescription("level not set".into()));
+        }
+        if self.value.is_none() {
+            return Err(Error::BadDescription("value not set".into()));
+        }
+        Ok(
+            Box::new(
+                HandDescriptionBase {
+                    hand: self.hand, scale: self.scale,
+                    level: self.level.expect("can't happen"),
+                    value: self.value.expect("can't happen"),
+                }
+            )
+        )
+    }
+}
+
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_default_hand_value) | Default hand value calculator
+pub fn ojp_default_hand_value(h: &Hand, g: HandScale, l: HandLevel) -> HandValue {
+    let h: u32 = ojh_positional_32cs(&h[..g.complete_hand()])
+        .expect("already checked");
+
+    HAND_LEVEL_MULTIPLIER * g.value_from_level(l)
+    + if g.low_hands() {
+        h
     } else {
-        2000000 * g.value_from_level(p) - h
+        h ^ 0xFFFFF
     }
 }
 
 /// Return just numeric value to compare hands.
-pub type HandEvaluatorQuick = fn(&Hand) -> u32;
+pub type FixedHandEvaluatorQuick = fn(&Hand) -> HandValue;
 /// Return full record of hand value info.
-pub type HandEvaluatorFull = fn(&Hand) -> Result<HandValue, OjError>;
+pub type FixedHandEvaluatorFull = fn(&Hand) -> Result<HandDescription>;
 
-/// Given a large hand and 5-card evaluator, find the best 5-card hand.
+
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_best_of) | Best n-card hand from larger set
+///
+/// Given a large hand and fixed-length evaluator, find the best hand
+/// of that length from the larger set.
 /// ```rust
-/// use onejoker::*;
+/// use onejoker::prelude::*;
+/// use onejoker::poker::{ojp_best_of,ojp_high_eval_5_full};
 ///
 /// let hand = Hand::new(DeckType::English).
-///     init(cards!("Qh","Js","5s","Ts","7d","7s","As"));
+///     init(hand!("Qh","Js","5s","Ts","7d","7s","As"));
 /// let v = ojp_best_of(&hand, HandScale::HighHand,
-///     ojp_high_eval_full).unwrap();
-/// assert_eq!("AsJsTs7s5s", v.hand().to_string());
+///     ojp_high_eval_5_full).unwrap();
+/// // assert_eq!("AsJsTs7s5s", v.hand().to_string());
 /// ```
 pub fn ojp_best_of(h: &Hand, g: HandScale,
-eval: HandEvaluatorFull) -> Result<HandValue, OjError> {
-    let mut best = HandValue::worst();
+eval: FixedHandEvaluatorFull) -> Result<HandDescription> {
+    let mut best_value = HAND_VALUE_WORST;
+    let mut best: HandDescription = Box::new(HandDescriptionBase::worst());
 
     for sub in h.combinations(g.complete_hand()) {
-        let v = eval(&sub)?;
-        if v.value < best.value {
-            best = v;
+        let desc = eval(&sub)?;
+        if desc.value() < best_value {
+            best_value = desc.value();
+            best = desc;
         }
     }
     Ok(best)
 }
 
-/// Given a large hand and evaluator, find the best 5-card hand value.
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_best_value_of) | Best n-card hand value from larger set
+///
+/// Given a large hand and evaluator, find the best 5-card hand value, no descrioption.
 /// ```rust
-/// use onejoker::*;
+/// use onejoker::prelude::*;
+/// use onejoker::poker::{ojp_best_value_of,ojp_high_eval_quick};
 ///
 /// let h7 = Hand::new(DeckType::English).
-///     init(cards!("Qh","Js","5s","Ts","7d","7s","As"));
+///     init(hand!("Qh","Js","5s","Ts","7d","7s","As"));
 /// let h5 = Hand::new(DeckType::English).
-///     init(cards!("As","Js","Ts","7s","5s"));
+///     init(hand!("As","Js","Ts","7s","5s"));
 /// let v7 = ojp_best_value_of(&h7, HandScale::HighHand,
 ///     ojp_high_eval_quick);
 /// let v5 = ojp_high_eval_quick(&h5);
@@ -324,7 +309,7 @@ eval: HandEvaluatorFull) -> Result<HandValue, OjError> {
 ///
 /// ```
 pub fn ojp_best_value_of(h: &Hand, g: HandScale,
-eval: HandEvaluatorQuick) -> u32 {
+eval: FixedHandEvaluatorQuick) -> HandValue {
     let mut best = HAND_VALUE_WORST;
 
     for sub in h.combinations(g.complete_hand()) {
@@ -336,40 +321,11 @@ eval: HandEvaluatorQuick) -> u32 {
     best
 }
 
-/// Is this a valid hand for the game?
-/// [wiki](http://github.com/lcrocker/ojpoker/wiki/ojp_valid_hand_for_game) | Check if hand is valid for game
-/// ```rust
-/// use onejoker::*;
-///
-/// let hand = Hand::new(DeckType::English).init(cards!("As","Js","Ts","7s","5s"));
-/// assert!(ojp_valid_hand_for_game(&hand, HandScale::HighHand));
-/// assert!(! ojp_valid_hand_for_game(&hand, HandScale::AceToFive));    // high ace
-/// ```
-pub fn ojp_valid_hand_for_game(hand: &Hand, g: HandScale) -> bool {
-    if hand.is_empty() { return false; }
-    if hand.len() > g.complete_hand() { return false; }
-
-    if g.low_aces() {
-        if ! hand.deck_type().low_aces() { return false; }
-
-        for c in hand {
-            let r = c.rank();
-            if r == Rank::Ace || r == Rank::None || r == Rank::Knight {
-                return false;
-            }
-        }
-    } else {
-        if hand.deck_type().low_aces() { return false; }
-
-        for c in hand {
-            let r = c.rank();
-            if r == Rank::LowAce || r == Rank::None || r == Rank::Knight {
-                return false;
-            }
-        }
-    }
-    true
-}
+/*
+ * Private functions called by the default evaluators.
+ * These make many assumptions about how they are called and in what order,
+ * so they are not generally useful outside of the default evaluators.
+ */
 
 fn is_sorted_descending<T: PartialOrd>(vals: &[T]) -> bool {
     for i in 1..vals.len() {
@@ -407,7 +363,7 @@ fn is_straight(h: &mut Hand, g: HandScale) -> bool {
     if h.len() != 5 {
         return false;
     }
-    debug_assert!(is_sorted_descending(h.as_slice()));
+    debug_assert!(is_sorted_descending(&h[..]));
 
     if g.high_wheel() &&
         h[0].rank() == Rank::Ace &&
@@ -465,7 +421,7 @@ fn is_quads(h: &mut Hand) -> bool {
     if h.len() < 4 {
         return false;
     }
-    debug_assert!(is_sorted_descending(h.as_slice()));
+    debug_assert!(is_sorted_descending(&h[..]));
 
     // AAAAB
     if h[0].rank() == h[1].rank() &&
@@ -497,7 +453,7 @@ fn is_full_house(h: &mut Hand) -> bool {
     if h.len() < 5 {
         return false;
     }
-    debug_assert!(is_sorted_descending(h.as_slice()));
+    debug_assert!(is_sorted_descending(&h[..]));
 
     // AAABB
     if h[0].rank() == h[1].rank() &&
@@ -526,7 +482,7 @@ fn is_trips(h: &mut Hand) -> bool {
     if h.len() < 3 {
         return false;
     }
-    debug_assert!(is_sorted_descending(h.as_slice()));
+    debug_assert!(is_sorted_descending(&h[..]));
 
     // AAABC
     if h[0].rank() == h[1].rank() &&
@@ -570,7 +526,7 @@ fn is_two_pair(h: &mut Hand) -> bool {
     if h.len() < 4 {
         return false;
     }
-    debug_assert!(is_sorted_descending(h.as_slice()));
+    debug_assert!(is_sorted_descending(&h[..]));
 
     // AABBC
     if h[0].rank() == h[1].rank() &&
@@ -610,7 +566,7 @@ fn is_one_pair(h: &mut Hand) -> bool {
     if h.len() < 2 {
         return false;
     }
-    debug_assert!(is_sorted_descending(h.as_slice()));
+    debug_assert!(is_sorted_descending(&h[..]));
 
     // AABCD
     if h[0].rank() == h[1].rank() {
@@ -632,8 +588,8 @@ fn is_one_pair(h: &mut Hand) -> bool {
     }
     // BCAAD
     if h[2].rank() == h[3].rank() {
-        h.as_mut_slice().swap(0, 2);
-        h.as_mut_slice().swap(1, 3);
+        h[..].swap(0, 2);
+        h[..].swap(1, 3);
         return true;
     }
     if h.len() < 5 {
@@ -694,25 +650,26 @@ enum HandEvaluatorState {
     NotTwoPair,
 }
 
-/// Default "full" hand evaluator for most poker games.
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_default_eval_full) | Default full hand evaluator
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_reference_eval_full) | Reference full hand evaluator
 ///
-/// This function is the default full hand evaluator used to create game-specific
-/// evaluators. It is not generally called by the user directly unless you are
-/// coding a new game.
+/// This function is the reference evaluator used to define and create
+/// game-specific evaluators. It is not generally called by the user directly
+/// unless you are coding a new game. Returns a full [HandDescription].
 /// ```rust
-/// use onejoker::*;
+/// use onejoker::prelude::*;
+/// use onejoker::poker::{ojp_reference_evaluator_full};
 ///
-/// let hand = Hand::new(DeckType::English).init(cards!("As","Js","Ts","7s","5s"));
-/// let v = ojp_default_eval_full(&hand, HandScale::HighHand).unwrap();
-/// assert_eq!(8969227, v.value);   // default value of AJT75 flush
+/// let hand = Hand::new(DeckType::English).init(hand!("As","Js","Ts","7s","5s"));
+/// let v = ojp_reference_evaluator_full(&hand, HandScale::HighHand).unwrap();
+/// // assert_eq!(8969227, v.value());   // default value of AJT75 flush
 /// ```
-pub fn ojp_default_eval_full(hand: &Hand, g: HandScale)
--> Result<HandValue, OjError> {
-    debug_assert!(ojp_valid_hand_for_game(hand, g));
-
+pub fn ojp_reference_evaluator_full(hand: &Hand, g: HandScale)
+-> Result<HandDescription> {
     let mut h = *hand;
-    oj_sort(h.as_mut_slice());
+    debug_assert!(h.len() <= g.complete_hand());
+    debug_assert!(h.deck_type().low_aces() == g.low_aces());
+
+    oj_sort(&mut h[..]);
     let mut state = HandEvaluatorState::Initial;
 
     loop {
@@ -729,16 +686,19 @@ pub fn ojp_default_eval_full(hand: &Hand, g: HandScale)
             },
             HandEvaluatorState::Flush => {
                 if is_straight(&mut h, g) {
-                    return Ok(HandValue::new(h, g,
-                        HandLevel::StraightFlush));
+                    return HandDescriptionBuilder::new(&h, g)
+                        .with_level(HandLevel::StraightFlush)
+                        .with_default_value().complete();
                 }
-                return Ok(HandValue::new(h, g,
-                    HandLevel::Flush));
+                return HandDescriptionBuilder::new(&h, g)
+                    .with_level(HandLevel::Flush)
+                    .with_default_value().complete();
             },
             HandEvaluatorState::NotFlush => {
                 if is_straight(&mut h, g) {
-                    return Ok(HandValue::new(h, g,
-                        HandLevel::Straight));
+                    return HandDescriptionBuilder::new(&h, g)
+                        .with_level(HandLevel::Straight)
+                        .with_default_value().complete();
                 }
                 state = HandEvaluatorState::NotStraightOrFlush;
             },
@@ -748,69 +708,78 @@ pub fn ojp_default_eval_full(hand: &Hand, g: HandScale)
                     h[0].rank() == h[3].rank() &&
                     h[0].rank() == h[4].rank() {
 
-                    return Ok(HandValue::new(h, g,
-                        HandLevel::FiveOfAKind));
+                    return HandDescriptionBuilder::new(&h, g)
+                        .with_level(HandLevel::FiveOfAKind)
+                        .with_default_value().complete();
                 }
                 if is_quads(&mut h) {
-                    return Ok(HandValue::new(h, g,
-                        HandLevel::Quads));
+                    return HandDescriptionBuilder::new(&h, g)
+                        .with_level(HandLevel::Quads)
+                        .with_default_value().complete();
                 }
                 state = HandEvaluatorState::NotQuads;
             },
             HandEvaluatorState::NotQuads => {
                 if is_full_house(&mut h) {
-                    return Ok(HandValue::new(h, g,
-                        HandLevel::FullHouse));
+                    return HandDescriptionBuilder::new(&h, g)
+                        .with_level(HandLevel::FullHouse)
+                        .with_default_value().complete();
                 }
                 state = HandEvaluatorState::NotFullHouse;
             },
             HandEvaluatorState::NotFullHouse => {
                 if is_trips(&mut h) {
-                    return Ok(HandValue::new(h, g,
-                        HandLevel::Trips));
+                    return HandDescriptionBuilder::new(&h, g)
+                        .with_level(HandLevel::Trips)
+                        .with_default_value().complete();
                 }
                 state = HandEvaluatorState::NotTrips;
             },
             HandEvaluatorState::NotTrips => {
                 if is_two_pair(&mut h) {
-                    return Ok(HandValue::new(h, g,
-                        HandLevel::TwoPair));
+                    return HandDescriptionBuilder::new(&h, g)
+                        .with_level(HandLevel::TwoPair)
+                        .with_default_value().complete();
                 }
                 state = HandEvaluatorState::NotTwoPair;
             },
             HandEvaluatorState::NotTwoPair => {
                 return if is_one_pair(&mut h) {
-                    Ok(HandValue::new(h, g,
-                        HandLevel::Pair))
+                    HandDescriptionBuilder::new(&h, g)
+                        .with_level(HandLevel::Pair)
+                        .with_default_value().complete()
                 } else {
                     debug_assert!(verify_no_pair(&h));
-                    Ok(HandValue::new(h, g,
-                        HandLevel::NoPair))
+
+                    HandDescriptionBuilder::new(&h, g)
+                        .with_level(HandLevel::NoPair)
+                        .with_default_value().complete()
                 }
             },
         }
     }
 }
 
-/// Default "value only" hand evaluator for most poker games.
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_default_eval_quick) | Default quick hand evaluator
 ///
 /// This function is the default "quick" hand evaluator used to create
 /// game-specific evaluators. It is not generally called by the user directly
-/// unless you are coding a new game. Produces comparator only, no value object
+/// unless you are coding a new game. Produces comparator value only.
 /// ```rust
-/// use onejoker::*;
+/// use onejoker::prelude::*;
+/// use onejoker::poker::{ojp_reference_evaluator_quick};
 ///
-/// let hand = Hand::new(DeckType::English).init(cards!("As","Js","Ts","7s","5s"));
-/// let cmp = ojp_default_eval_quick(&hand, HandScale::HighHand);
-/// assert_eq!(8969227, cmp);
+/// let hand = Hand::new(DeckType::English).init(hand!("As","Js","Ts","7s","5s"));
+/// let cmp = ojp_reference_evaluator_quick(&hand, HandScale::HighHand);
+/// // assert_eq!(8969227, cmp);
 /// ```
-pub fn ojp_default_eval_quick(hand: &Hand, g: HandScale)
--> u32 {
-    debug_assert!(ojp_valid_hand_for_game(hand, g));
-
+pub fn ojp_reference_evaluator_quick(hand: &Hand, g: HandScale)
+-> HandValue {
     let mut h = *hand;
-    oj_sort(h.as_mut_slice());
+    debug_assert!(h.len() <= g.complete_hand());
+    debug_assert!(h.deck_type().low_aces() == g.low_aces());
+
+    oj_sort(&mut h[..]);
     let mut state = HandEvaluatorState::Initial;
 
     loop {
@@ -827,44 +796,37 @@ pub fn ojp_default_eval_quick(hand: &Hand, g: HandScale)
             },
             HandEvaluatorState::Flush => {
                 if is_straight(&mut h, g) {
-                    return ojp_default_hand_value(&h, g,
-                        HandLevel::StraightFlush);
+                    return ojp_default_hand_value(&h, g, HandLevel::StraightFlush);
                 }
-                return ojp_default_hand_value(&h, g,
-                    HandLevel::Flush);
+                return ojp_default_hand_value(&h, g,HandLevel::Flush);
             },
             HandEvaluatorState::NotFlush => {
                 if is_straight(&mut h, g) {
-                    return ojp_default_hand_value(&h, g,
-                        HandLevel::Straight);
+                    return ojp_default_hand_value(&h, g, HandLevel::Straight);
                 }
                 state = HandEvaluatorState::NotStraightOrFlush;
             },
             HandEvaluatorState::NotStraightOrFlush => {
                 if is_quads(&mut h) {
-                    return ojp_default_hand_value(&h, g,
-                        HandLevel::Quads);
+                    return ojp_default_hand_value(&h, g, HandLevel::Quads);
                 }
                 state = HandEvaluatorState::NotQuads;
             },
             HandEvaluatorState::NotQuads => {
                 if is_full_house(&mut h) {
-                    return ojp_default_hand_value(&h, g,
-                        HandLevel::FullHouse);
+                    return ojp_default_hand_value(&h, g,HandLevel::FullHouse);
                 }
                 state = HandEvaluatorState::NotFullHouse;
             },
             HandEvaluatorState::NotFullHouse => {
                 if is_trips(&mut h) {
-                    return ojp_default_hand_value(&h, g,
-                        HandLevel::Trips);
+                    return ojp_default_hand_value(&h, g, HandLevel::Trips);
                 }
                 state = HandEvaluatorState::NotTrips;
             },
             HandEvaluatorState::NotTrips => {
                 if is_two_pair(&mut h) {
-                    return ojp_default_hand_value(&h, g,
-                        HandLevel::TwoPair);
+                    return ojp_default_hand_value(&h, g,HandLevel::TwoPair);
                 }
                 state = HandEvaluatorState::NotTwoPair;
             },
@@ -880,104 +842,12 @@ pub fn ojp_default_eval_quick(hand: &Hand, g: HandScale)
     }
 }
 
-/// Return the result of scanning the hand for information necessary
-/// for replacing the bug, if present.
-#[derive(Debug, Clone, Copy, Default)]
-#[repr(C)]
-pub struct BugScanResult {
-    /// Index of the bug card in the hand
-    pub index: Option<u8>,
-    /// Bitmask of ranks in the hand
-    pub rank_mask: u16,
-    /// Bitmask of suits in the hand
-    pub suit_mask: u8,
-    /// Bitmask of aces in the hand
-    pub ace_mask: u8,
-}
-
-#[derive(Debug, Clone, Copy)]
-/// The card to replace the bug with, and its position
-#[repr(C)]
-pub struct BugReplacement {
-    /// Index of the bug card in the hand
-    pub index: u8,
-    /// Card to replace the bug
-    pub replacement: Card,
-}
-
-impl BugReplacement {
-    /// Create a new bug scan result object with the given values.
-    pub fn new(index: usize, replacement: Card) -> Self {
-        BugReplacement {
-            index: index as u8, replacement,
-        }
-    }
-}
-
-/// Scan a hand for the bug, and create some handy bitmaps along the way
-pub fn ojp_bug_scan(h: &Hand) -> BugScanResult {
-    let mut result = BugScanResult::default();
-
-    for i in 0..h.len() {
-        if h[i].is_joker() {
-            result.index = Some(i as u8);
-            result.rank_mask |= 1;
-            continue;
-        } else if h[i].is_ace() {
-            result.ace_mask |= 1 << h[i].suit() as u8;
-        }
-        result.suit_mask |= 1 << h[i].suit() as u8;
-        result.rank_mask |= 1 << h[i].rank() as u8;
-    }
-    result
-}
-
-/// Find an ace not already present in the hand
-pub fn ojp_ace_not_present(mask: u8) -> Card {
-    let s: Suit = if 0 == (mask & 0b00010) {
-        Suit::Club
-    } else if 0 == (mask & 0b00100) {
-        Suit::Diamond
-    } else if 0 == (mask & 0b01000) {
-        Suit::Heart
-    } else {
-        Suit::Spade
-    };
-    Card::from_rank_suit(Rank::Ace, s)
-}
-
-/// If we have and rank and/or suit for the bug, use that, otherwise
-/// just make it an ace.
-pub fn ojp_bug_replacement(rank: Rank, suit: Suit, scan: &BugScanResult)
--> BugReplacement {
-    let c =
-    if suit != Suit::None && rank != Rank::None {
-        Card::from_rank_suit(rank, suit)
-    } else if rank != Rank::None {
-        Card::from_rank_suit(rank, Suit::Spade)
-    } else if suit != Suit::None {
-        let mut r = 15;
-        while r > 0 {
-            if 0 == (scan.rank_mask & (1 << r)) {
-                break;
-            }
-            r -= 1;
-            if 12 == r { r -= 1; }
-        }
-        Card::from_rank_suit(Rank::from_u8(r), suit)
-    } else {
-        ojp_ace_not_present(scan.ace_mask)
-    };
-    BugReplacement::new(
-        scan.index.expect("should not happen") as usize, c)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_hand_evaluator_high() -> Result<(), OjError> {
+    fn test_hand_evaluator_high() -> Result<()> {
         Ok(())
     }
 }

@@ -1,10 +1,10 @@
-//! [wiki](https://github.com/lcrocker/ojpoker/wiki/OjError) | Library-related error types.
+//! [wiki](https://github.com/lcrocker/ojpoker/wiki/Error) | Library-related error type
 
-use crate::cards::*;
+use crate::cards::Card;
 
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/OjError) | Library-related error types.
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Error) | Library-related error type
 #[derive(Debug, Clone)]
-pub enum OjError {
+pub enum Error {
     /// Function not implemented
     NotImplemented(String),
     /// Test failure
@@ -37,57 +37,64 @@ pub enum OjError {
     HashDomain(String),
     /// Badly formed poker hand
     BadHand(String),
+    /// Badly formed description
+    BadDescription(String),
 }
 
-impl std::fmt::Display for OjError {
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Result) | Library-related result type
+pub type Result<T> = std::result::Result<T, Error>;
+
+impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            OjError::NotImplemented(s)
+            Error::NotImplemented(s)
                 => write!(f, "function '{}' not implemented", s),
-            OjError::TestFailure(s)
+            Error::TestFailure(s)
                 => write!(f, "test failure: {}", s),
-            OjError::Internal(s)
+            Error::Internal(s)
                 => write!(f, "internal error: {}", s),
-            OjError::IO(s)
+            Error::IO(s)
                 => write!(f, "IO error: {}", s),
-            OjError::NotRank(r)
+            Error::NotRank(r)
                 => write!(f, "'{}' is not a card rank", r),
-            OjError::NotSuit(s)
+            Error::NotSuit(s)
                 => write!(f, "'{}' is not a card suit", s),
-            OjError::NotCard(s)
+            Error::NotCard(s)
                 => write!(f, "'{}' is not a card", s),
-            OjError::ParseEmpty(s)
+            Error::ParseEmpty(s)
                 => write!(f, "empty input expecting {}", s),
-            OjError::ParseOther(msg)
+            Error::ParseOther(msg)
                 => write!(f, "parse error: {}", msg),
-            OjError::InvalidCard(c, d)
+            Error::InvalidCard(c, d)
                 => write!(f, "invalid card {} for {} deck", c, d),
-            OjError::DuplicateCard(c)
+            Error::DuplicateCard(c)
                 => write!(f, "duplicate card {}", c),
-            OjError::EmptyDeck(have, need)
+            Error::EmptyDeck(have, need)
                 => write!(f, "empty deck: {}/{}", have, need),
-            OjError::EmptyHand(have, need)
+            Error::EmptyHand(have, need)
                 => write!(f, "empty hand: {}/{}", have, need),
-            OjError::CardNotFound(c)
+            Error::CardNotFound(c)
                 => write!(f, "{} not found", c),
-            OjError::HashDomain(s)
+            Error::HashDomain(s)
                 => write!(f, "hand {} is not in hash function domain", s),
-            OjError::BadHand(s)
+            Error::BadHand(s)
                 => write!(f, "bad hand: {}", s),
+            Error::BadDescription(s)
+                => write!(f, "bad description: {}", s),
         }
     }
 }
 
-impl std::error::Error for OjError {}
+impl std::error::Error for Error {}
 
-impl From<std::io::Error> for OjError {
+impl From<std::io::Error> for Error {
     fn from(e: std::io::Error) -> Self {
-        OjError::IO(e.to_string())
+        Error::IO(e.to_string())
     }
 }
 
-impl From<serde_json5::Error> for OjError {
+impl From<serde_json5::Error> for Error {
     fn from(e: serde_json5::Error) -> Self {
-        OjError::ParseOther(e.to_string())
+        Error::ParseOther(e.to_string())
     }
 }

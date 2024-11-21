@@ -69,22 +69,28 @@ fn pai_gow_adjust_ec(ec: u32) -> u32 {
 }
 
 #[cfg(feature = "high-hand-tables")]
+/// Quick lookup table evaluator
+fn lookup_high(h: &Hand) -> u32 {
+    let h = ojh_mp5_english(h.as_slice());
+    HIGH_HAND_TABLE_1[h as usize] as u32
+}
+
+#[cfg(feature = "high-hand-tables")]
 /// Full pai gow poker hand evaluator
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_pai_gow_eval_full) | Full pai gow poker hand evaluator
 pub fn ojp_pai_gow_eval_full(h: &Hand) -> Result<HandValue, OjError> {
     if h.len() < 5 {
-        return curried_evaluator_full(h);
+        return curried_evaluator_pai_gow_full(h);
     }
     let ec = if 5 == h.len() {
         lookup_high(h)
     } else {
-        ojp_best_value_of(h, HandScale::HighHand, lookup_high)
+        ojp_best_value_of(h, HandScale::PaiGow, lookup_high)
     };
     let vv = HIGH_HAND_TABLE_2[ec as usize];
     let mut v = HandValue::new_with_value(*h, HandScale::HighHand,
-        vv.0, ec as u32);
+        vv.0, pai_gow_adjust_ec(ec));
     v.order_for_display(&vv.1);
-    v.value = pai_gow_adjust_ec(v.value);
     Ok(v)
 }
 
@@ -93,7 +99,7 @@ pub fn ojp_pai_gow_eval_full(h: &Hand) -> Result<HandValue, OjError> {
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_pai_gow_eval_quick) | Value-only pai gow poker hand evaluator
 pub fn ojp_pai_gow_eval_quick(h: &Hand) -> u32 {
     if h.len() < 5 {
-        return curried_evaluator_quick(h);
+        return curried_evaluator_pai_gow_quick(h);
     }
     let mut ec =
     if 5 == h.len() {

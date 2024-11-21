@@ -7,9 +7,7 @@ import { FACE_JD } from "./face_jd.ts";
 import { FACE_JH } from "./face_jh.ts";
 import { FACE_JS } from "./face_js.ts";
 import { DECORATION_AS } from "./decoration_as.ts";
-import { FACE_JK } from "./face_jk.ts";
-import { FACE_JB } from "./face_jb.ts";
-import { FACE_JW } from "./face_jw.ts";
+import { JOKERS } from "./faces_jk.ts";
 
 /*
  * Build set of Crocker/Dovgan cards with given options.
@@ -398,6 +396,21 @@ class IndexRank extends Layer {
         let path: string = "";
         let color: string = "#888";
 
+        if ("F" == rank) {
+            if ("k" == suit) {
+                path = JOKERS[0];
+            } else if ("b" == suit) {
+                path = JOKERS[1];
+            } else {
+                path = JOKERS[2];
+            }
+            super(`
+<g transform="translate({{x}},{{y}}) scale(-{{scale}},{{scale}})">
+${path}
+</g>
+`, { x: 190, y: 200, scale: 0.4 });
+            return;
+        }
         switch (rank) {
             case "A":
                 path = RANKS.ace;
@@ -443,7 +456,7 @@ class IndexRank extends Layer {
                 break;
             case "F":
             default:
-                path = RANKS.joker;
+                path = "";
                 break;
         }
         switch (suit) {
@@ -480,8 +493,7 @@ class IndexRank extends Layer {
 d="${path}" fill="{{fill}}" stroke="{{stroke}}" stroke-width="3px" />
 `, { x: 12, y: 40, scale: 1.0,
         fill: ("w" == suit) ? "none" : color,
-        stroke: ("w" == suit) ? color : "none"
-    } );
+        stroke: ("w" == suit) ? color : "none" } );
     }
 }
 
@@ -500,13 +512,13 @@ class Joker extends Layer {
         let path: string = "";
         switch (suit) {
             case "k":
-                path = FACE_JK;
+                path = JOKERS[0];
                 break;
             case "b":
-                path = FACE_JB;
+                path = JOKERS[1];
                 break;
             case "w":
-                path = FACE_JW;
+                path = JOKERS[2];
                 break;
             default:
                 path = "<path d=\"M0,0\" />";
@@ -516,7 +528,7 @@ class Joker extends Layer {
 `<g transform="translate({{x}},{{y}}) scale({{scale}},{{scale}})">
 ${path}
 </g>
-`, { x: 500, y: 800, scale: 0.8 } );
+`, { x: 520, y: 900, scale: 0.9 } );
     }
 }
 
@@ -580,7 +592,7 @@ function buildCard(card: string, x: number, y: number): string {
                 innerLayers.push(layer);
             }
         }
-    }   
+    }
 
     let out: string =
 `<g id="${card}" transform="translate(${x*1100},${y*1500}) scale(1.0,1.0)"
@@ -602,7 +614,7 @@ height="1400px">
 `</g>
 `;
     }
-    out += 
+    out +=
 `</g>
 `;
     return out;
@@ -634,9 +646,10 @@ twoColors();
 out += buildCard("Jw", 0, 1);
 out += buildCard("Jb", 0, 2);
 out += buildCard("Jk", 0, 3);
-fourColors();
-out += buildCard("Jb", 0, 4);
-out += buildCard("Jk", 0, 5);
+
+// fourColors();
+// out += buildCard("Jb", 0, 4);
+// out += buildCard("Jk", 0, 5);
 
 out += buildCard("B1", 1, 0);
 out += buildCard("B2", 1, 1);

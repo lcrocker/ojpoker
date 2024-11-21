@@ -1,6 +1,6 @@
 //! [wiki](https://github.com/lcrocker/ojpoker/wiki/HandScale) | Poker hand evaluation info
 
-use crate::errors::*;
+use crate::error::Result;
 use crate::cards::*;
 use crate::poker::*;
 
@@ -81,7 +81,7 @@ impl HandScale {
 
     /// Get hand scale by name
     /// ```rust
-    /// use onejoker::*;
+    /// use onejoker::prelude::*;
     ///
     /// let scale = HandScale::by_name("ace-to-five");
     /// assert_eq!(scale, HandScale::AceToFive);
@@ -90,9 +90,14 @@ impl HandScale {
         scale_by_alias(sname)
     }
 
+    /// Create a new deck for this game
+    pub fn new_deck(&self) -> Deck {
+        Deck::new(DeckType::from_u8(SCALE_INFO_TABLE[*self as usize - 1].deck_type))
+    }
+
     /// Canonical name of the game or hand type
     /// ```rust
-    /// use onejoker::*;
+    /// use onejoker::prelude::*;
     ///
     /// assert_eq!(HandScale::AceToFive.name(), "ace-to-five");
     /// ```
@@ -102,7 +107,7 @@ impl HandScale {
 
     /// Mapping from generic hand level to numeric value
     /// ```rust
-    /// use onejoker::*;
+    /// use onejoker::prelude::*;
     ///
     /// assert_eq!(4, HandScale::AceToFive.value_from_level(HandLevel::Trips));
     /// ```
@@ -112,7 +117,7 @@ impl HandScale {
 
     /// Mapping from numeric value to generic hand level
     /// ```rust
-    /// use onejoker::*;
+    /// use onejoker::prelude::*;
     ///
     /// assert_eq!(HandLevel::Trips, HandScale::AceToFive.level_from_value(4));
     /// ```
@@ -122,7 +127,7 @@ impl HandScale {
 
     /// Index of the preferred deck for this game
     /// ```rust
-    /// use onejoker::*;
+    /// use onejoker::prelude::*;
     ///
     /// assert_eq!(DeckType::Low, HandScale::AceToFive.deck_type());
     /// ```
@@ -132,7 +137,7 @@ impl HandScale {
 
     /// Number of cards in a complete hand
     /// ```rust
-    /// use onejoker::*;
+    /// use onejoker::prelude::*;
     ///
     /// assert_eq!(5, HandScale::AceToFive.complete_hand());
     /// ```
@@ -142,7 +147,7 @@ impl HandScale {
 
     /// Calculations and comparisons expect low aces
     /// ```rust
-    /// use onejoker::*;
+    /// use onejoker::prelude::*;
     ///
     /// assert!(HandScale::AceToFive.low_aces());
     /// assert!(! HandScale::DeuceToSeven.low_aces());
@@ -153,7 +158,7 @@ impl HandScale {
 
     /// Hand values are calculated for low hands
     /// ```rust
-    /// use onejoker::*;
+    /// use onejoker::prelude::*;
     ///
     /// assert!(HandScale::AceToFive.low_hands());
     /// assert!(HandScale::DeuceToSeven.low_hands());
@@ -165,7 +170,7 @@ impl HandScale {
 
     /// Does the game include straights and flushes?
     /// ```rust
-    /// use onejoker::*;
+    /// use onejoker::prelude::*;
     ///
     /// assert!(HandScale::HighHand.straights_and_flushes());
     /// assert!(! HandScale::AceToFive.straights_and_flushes());
@@ -176,7 +181,7 @@ impl HandScale {
 
     /// Is wheel a straight for high-ace games?
     /// ```rust
-    /// use onejoker::*;
+    /// use onejoker::prelude::*;
     ///
     /// assert!(HandScale::HighHand.high_wheel());
     /// assert!(! HandScale::DeuceToSeven.high_wheel());
@@ -187,7 +192,7 @@ impl HandScale {
 
     /// Does wheel beat K-high straight?
     /// ```rust
-    /// use onejoker::*;
+    /// use onejoker::prelude::*;
     ///
     /// assert!(! HandScale::HighHand.pai_gow_wheel());
     /// assert!(HandScale::PaiGow.pai_gow_wheel());
@@ -198,7 +203,7 @@ impl HandScale {
 
     /// Is Broadway a straight for low-ace games?
     /// ```rust
-    /// use onejoker::*;
+    /// use onejoker::prelude::*;
     ///
     /// // The only game that might: but I prefer this rule
     /// assert!(! HandScale::AceToSix.low_broadway());
@@ -209,7 +214,7 @@ impl HandScale {
 
     /// Does deck have 8s, 9s, and 10s removed?
     /// ```rust
-    /// use onejoker::*;
+    /// use onejoker::prelude::*;
     ///
     /// assert!(HandScale::Mexican.spanish_gap());
     /// ```
@@ -220,35 +225,52 @@ impl HandScale {
     /// Game-specific function to get full English name of hand
     ///
     /// Users will generally call these through the hand value object
-    /// rather than directly. If you do call this directly, note that
-    /// the function here returns a function, so you then need to call
-    /// *that* function to get the actual name.
+    /// rather than directly.
     /// ```rust
-    /// use onejoker::*;
+    /// use onejoker::prelude::*;
+    /// use onejoker::poker::{ojp_high_eval_full};
     ///
-    /// let hand = Hand::new(DeckType::English).init(cards!("9s","As","9d","Ks","Ah"));
+    /// let hand = Hand::new(DeckType::English).init(hand!("9s","As","9d","Ks","Ah"));
     /// let v = ojp_high_eval_full(&hand).unwrap();
     /// println!("{}", v.full_name());
-    /// println!("{}", HandScale::HighHand.full_name()(&v));
+    /// println!("{}", HandScale::HighHand.full_name(&v));
     /// ```
-    pub const fn full_name(&self) -> fn(&HandValue) -> String {
-        SCALE_INFO_TABLE[*self as usize - 1].full_name
+    pub fn full_name(&self, value: &HandDescription) -> String {
+        (SCALE_INFO_TABLE[*self as usize - 1].full_name)(value)
     }
 
     /// Game-specific full hand evaluation function
+    /// ```rust
+    /// use onejoker::prelude::*;
     ///
-    /// These functions are also not generally called directly by users,
-    /// but are used by the public ojp_xxx_eval_full functions.
-    pub const fn eval_full(&self) -> fn(&Hand) -> Result<HandValue, OjError> {
-        SCALE_INFO_TABLE[*self as usize - 1].eval_full
+    /// let hand = Hand::new(DeckType::English).init(hand!("9s","As","9d","Ks","Ah"));
+    /// let v = HandScale::HighHand.eval(&hand).unwrap();
+    /// println!("{}", v.full_name());
+    /// ```
+    pub fn eval(&self, hand: &Hand) -> Result<HandDescription> {
+        (SCALE_INFO_TABLE[*self as usize - 1].eval_full)(hand)
     }
 
     /// Game-specific quick value-only hand evaluation function
+    /// ```rust
+    /// use onejoker::prelude::*;
     ///
-    /// These functions are also not generally called directly by users,
-    /// but are used by the public ojp_xxx_eval_full functions.
-    pub const fn eval_quick(&self) -> fn(&Hand) -> u32 {
-        SCALE_INFO_TABLE[*self as usize - 1].eval_quick
+    /// let hand = Hand::new(DeckType::English).init(hand!("9s","As","9d","Ks","Ah"));
+    /// let v = HandScale::HighHand.eval_quick(&hand);
+    /// println!("{}", v);
+    /// ```
+    pub fn eval_quick(&self, hand: &Hand) -> HandValue {
+        (SCALE_INFO_TABLE[*self as usize - 1].eval_quick)(hand)
+    }
+
+    /// Verify valid card for game
+    /// ```rust
+    /// use onejoker::prelude::*;
+    ///
+    /// assert!(HandScale::HighHand.valid_card(card!("As")));
+    /// ```
+    pub fn valid_card(&self, card: Card) -> bool {
+        (SCALE_INFO_TABLE[*self as usize - 1].valid_card)(card)
     }
 }
 
@@ -285,12 +307,14 @@ struct HandScaleInfo {
     value_from_level: fn(HandLevel) -> u32,
     /// Mapping from numeric level to general hand class
     level_from_value: fn(u32) -> HandLevel,
+    /// Valid card for game?
+    valid_card: fn(Card) -> bool,
     /// Full English name of hand e.g. "sevens full of fours"
-    full_name: fn(&HandValue) -> String,
+    full_name: fn(&HandDescription) -> String,
     /// Full hand evaluation function
-    eval_full: fn(&Hand) -> Result<HandValue, OjError>,
+    eval_full: fn(&Hand) -> Result<HandDescription>,
     /// Quick value-only hand evaluation function
-    eval_quick: fn(&Hand) -> u32,
+    eval_quick: fn(&Hand) -> HandValue,
 }
 
 #[inline]
@@ -306,7 +330,7 @@ fn value_from_level_high(l: HandLevel) -> u32 {
         HandLevel::TwoPair => 8,
         HandLevel::Pair => 9,
         HandLevel::NoPair => 10,
-        _ => 11,
+        _ => HAND_LEVEL_WORST as u32,
     }
 }
 
@@ -337,7 +361,7 @@ fn value_from_level_ace_to_five(l: HandLevel) -> u32 {
         HandLevel::FullHouse => 5,
         HandLevel::Quads => 6,
         HandLevel::FiveOfAKind => 7,
-        _ => 8,
+        _ => HAND_LEVEL_WORST as u32,
     }
 }
 
@@ -368,7 +392,7 @@ fn value_from_level_deuce_to_seven(l: HandLevel) -> u32 {
         HandLevel::Quads => 8,
         HandLevel::StraightFlush => 9,
         HandLevel::FiveOfAKind => 10,
-        _ => 11,
+        _ => HAND_LEVEL_WORST as u32,
     }
 }
 
@@ -396,7 +420,7 @@ fn value_from_level_badugi(l: HandLevel) -> u32 {
         HandLevel::ThreeCard => 2,
         HandLevel::TwoCard => 3,
         HandLevel::OneCard => 4,
-        _ => 5,
+        _ => HAND_LEVEL_WORST as u32,
     }
 }
 
@@ -424,7 +448,7 @@ fn value_from_level_stripped(l: HandLevel) -> u32 {
         HandLevel::TwoPair => 8,
         HandLevel::Pair => 9,
         HandLevel::NoPair => 10,
-        _ => 11,
+        _ => HAND_LEVEL_WORST as u32,
     }
 }
 
@@ -462,7 +486,7 @@ fn value_from_level_action_razz(l: HandLevel) -> u32 {
         HandLevel::UnqualifiedFullHouse => 12,
         HandLevel::UnqualifiedQuads => 13,
         HandLevel::UnqualifiedFiveOfAKind => 14,
-        _ => 15,
+        _ => HAND_LEVEL_WORST as u32,
     }
 }
 
@@ -503,6 +527,7 @@ const SCALE_INFO_TABLE: [HandScaleInfo; HANDSCALE_MAX] = [
 
         value_from_level: value_from_level_high,
         level_from_value: level_from_value_high,
+        valid_card: ojp_high_valid_card,
         full_name: ojp_high_full_name,
         eval_full: ojp_high_eval_full,
         eval_quick: ojp_high_eval_quick,
@@ -521,9 +546,10 @@ const SCALE_INFO_TABLE: [HandScaleInfo; HANDSCALE_MAX] = [
 
         value_from_level: value_from_level_ace_to_five,
         level_from_value: level_from_value_ace_to_five,
-        full_name: ojp_ace_to_five_full_name,
-        eval_full: ojp_ace_to_five_eval_full,
-        eval_quick: ojp_ace_to_five_eval_quick,
+        valid_card: ojp_high_valid_card,
+        full_name: ojp_high_full_name,
+        eval_full: ojp_high_eval_full,
+        eval_quick: ojp_high_eval_quick,
     },
     HandScaleInfo {     // 3
         name: "deuce-to-seven",
@@ -539,9 +565,10 @@ const SCALE_INFO_TABLE: [HandScaleInfo; HANDSCALE_MAX] = [
 
         value_from_level: value_from_level_deuce_to_seven,
         level_from_value: level_from_value_deuce_to_seven,
-        full_name: ojp_deuce_to_seven_full_name,
-        eval_full: ojp_deuce_to_seven_eval_full,
-        eval_quick: ojp_deuce_to_seven_eval_quick,
+        valid_card: ojp_high_valid_card,
+        full_name: ojp_high_full_name,
+        eval_full: ojp_high_eval_full,
+        eval_quick: ojp_high_eval_quick,
     },
     HandScaleInfo {     // 4
         name: "ace-to-six",
@@ -557,9 +584,10 @@ const SCALE_INFO_TABLE: [HandScaleInfo; HANDSCALE_MAX] = [
 
         value_from_level: value_from_level_deuce_to_seven,
         level_from_value: level_from_value_deuce_to_seven,
-        full_name: ojp_ace_to_six_full_name,
-        eval_full: ojp_ace_to_six_eval_full,
-        eval_quick: ojp_ace_to_six_eval_quick,
+        valid_card: ojp_high_valid_card,
+        full_name: ojp_high_full_name,
+        eval_full: ojp_high_eval_full,
+        eval_quick: ojp_high_eval_quick,
     },
     HandScaleInfo {     // 5
         name: "badugi",
@@ -575,9 +603,10 @@ const SCALE_INFO_TABLE: [HandScaleInfo; HANDSCALE_MAX] = [
 
         value_from_level: value_from_level_badugi,
         level_from_value: level_from_value_badugi,
-        full_name: ojp_badugi_full_name,
-        eval_full: ojp_badugi_eval_full,
-        eval_quick: ojp_badugi_eval_quick,
+        valid_card: ojp_high_valid_card,
+        full_name: ojp_high_full_name,
+        eval_full: ojp_high_eval_full,
+        eval_quick: ojp_high_eval_quick,
     },
     HandScaleInfo {     // 6
         name: "badeucy",
@@ -593,9 +622,10 @@ const SCALE_INFO_TABLE: [HandScaleInfo; HANDSCALE_MAX] = [
 
         value_from_level: value_from_level_badugi,
         level_from_value: level_from_value_badugi,
-        full_name: ojp_badugi_full_name,
-        eval_full: ojp_badeucy_eval_full,
-        eval_quick: ojp_badeucy_eval_quick,
+        valid_card: ojp_high_valid_card,
+        full_name: ojp_high_full_name,
+        eval_full: ojp_high_eval_full,
+        eval_quick: ojp_high_eval_quick,
     },
     HandScaleInfo {     // 7
         name: "paigow",
@@ -611,9 +641,10 @@ const SCALE_INFO_TABLE: [HandScaleInfo; HANDSCALE_MAX] = [
 
         value_from_level: value_from_level_high,
         level_from_value: level_from_value_high,
-        full_name: ojp_pai_gow_full_name,
-        eval_full: ojp_pai_gow_eval_full,
-        eval_quick: ojp_pai_gow_eval_quick,
+        valid_card: ojp_high_valid_card,
+        full_name: ojp_high_full_name,
+        eval_full: ojp_high_eval_full,
+        eval_quick: ojp_high_eval_quick,
     },
     HandScaleInfo {     // 8
         name: "stripped",
@@ -629,9 +660,10 @@ const SCALE_INFO_TABLE: [HandScaleInfo; HANDSCALE_MAX] = [
 
         value_from_level: value_from_level_stripped,
         level_from_value: level_from_value_stripped,
+        valid_card: ojp_high_valid_card,
         full_name: ojp_high_full_name,
-        eval_full: ojp_stripped_eval_full,
-        eval_quick: ojp_stripped_eval_quick,
+        eval_full: ojp_high_eval_full,
+        eval_quick: ojp_high_eval_quick,
     },
     HandScaleInfo {     // 9
         name: "action-razz",
@@ -647,9 +679,10 @@ const SCALE_INFO_TABLE: [HandScaleInfo; HANDSCALE_MAX] = [
 
         value_from_level: value_from_level_action_razz,
         level_from_value: level_from_value_action_razz,
-        full_name: ojp_action_razz_full_name,
-        eval_full: ojp_action_razz_eval_full,
-        eval_quick: ojp_action_razz_eval_quick,
+        valid_card: ojp_high_valid_card,
+        full_name: ojp_high_full_name,
+        eval_full: ojp_high_eval_full,
+        eval_quick: ojp_high_eval_quick,
     },
     HandScaleInfo {     // 10
         name: "high-hand-bug",
@@ -665,9 +698,10 @@ const SCALE_INFO_TABLE: [HandScaleInfo; HANDSCALE_MAX] = [
 
         value_from_level: value_from_level_high,
         level_from_value: level_from_value_high,
+        valid_card: ojp_high_bug_valid_card,
         full_name: ojp_high_full_name,
-        eval_full: ojp_high_bug_eval_full,
-        eval_quick: ojp_high_bug_eval_quick,
+        eval_full: ojp_high_eval_full,
+        eval_quick: ojp_high_eval_quick,
     },
     HandScaleInfo {     // 11
         name: "ace-to-five-bug",
@@ -683,9 +717,10 @@ const SCALE_INFO_TABLE: [HandScaleInfo; HANDSCALE_MAX] = [
 
         value_from_level: value_from_level_ace_to_five,
         level_from_value: level_from_value_ace_to_five,
-        full_name: ojp_ace_to_five_full_name,
-        eval_full: ojp_ace_to_five_bug_eval_full,
-        eval_quick: ojp_ace_to_five_bug_eval_quick,
+        valid_card: ojp_high_valid_card,
+        full_name: ojp_high_full_name,
+        eval_full: ojp_high_eval_full,
+        eval_quick: ojp_high_eval_quick,
     },
     HandScaleInfo {     // 12
         name: "mexican",
@@ -701,9 +736,10 @@ const SCALE_INFO_TABLE: [HandScaleInfo; HANDSCALE_MAX] = [
 
         value_from_level: value_from_level_ace_to_five,
         level_from_value: level_from_value_ace_to_five,
-        full_name: ojp_ace_to_five_full_name,
-        eval_full: ojp_ace_to_five_bug_eval_full,
-        eval_quick: ojp_ace_to_five_bug_eval_quick,
+        valid_card: ojp_high_valid_card,
+        full_name: ojp_high_full_name,
+        eval_full: ojp_high_eval_full,
+        eval_quick: ojp_high_eval_quick,
     },
 ];
 
@@ -716,7 +752,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_hand_scale_info() -> Result<(), OjError> {
+    fn test_hand_scale_info() -> Result<()> {
         assert_eq!(HandScale::default(), HandScale::HighHand);
         assert_eq!(HandScale::by_name("default"), HandScale::HighHand);
         assert_eq!(HandScale::by_name("poker"), HandScale::HighHand);

@@ -1,12 +1,13 @@
-//! [wiki](https://github.com/lcrocker/ojpoker/wiki/Rank) | Simple numeric enum for card ranks.
+//! [wiki](https://github.com/lcrocker/ojpoker/wiki/Rank) | Simple numeric enum for card ranks
 
-use crate::errors::*;
+use crate::error::{Error,Result};
 
-/// [wiki](https://github.com/lcrocker/tspoker/wiki/Rank) | Simple numeric enum for card ranks.
+/// [wiki](https://github.com/lcrocker/tspoker/wiki/Rank) | Simple numeric enum for card ranks
+///
 /// Simple integer enum. Specific numbers do matter: I do a lot of math with
 /// them to optimize things, and the same numbers are used in the other
 /// languages in the project.
-/// 
+///
 /// Note that there are two slots for aces and a slot for knight/cavalier.
 /// See [Ace](https://github.com/lcrocker/ojpoker/wiki/Ace) and
 /// [Knight](https://github.com/lcrocker/ojpoker/wiki/Knight) @ wiki
@@ -45,14 +46,14 @@ const NAMES: [&str; 16] = [ "?", "ace", "deuce", "trey", "four",
     "five", "six", "seven", "eight", "nine", "ten", "jack", "knight",
     "queen", "king", "ace" ];
 const PLURALS: [&str; 16] = [ "?", "aces", "deuces", "treys", "fours",
-    "fives", "sixes", "sevens", "eights", "nines", "tens", "jacks", 
+    "fives", "sixes", "sevens", "eights", "nines", "tens", "jacks",
     "knights", "queens", "kings", "aces" ];
 
 impl Rank {
     /// Convert integer to rank
     /// ```rust
-    /// use onejoker::*;
-    /// 
+    /// use onejoker::prelude::*;
+    ///
     /// assert_eq!(Rank::Deuce, Rank::from_u8(2));
     /// ```
     pub const fn from_u8(v: u8) -> Rank {
@@ -62,8 +63,8 @@ impl Rank {
 
     /// Convert character to rank
     /// ```rust
-    /// use onejoker::*;
-    /// 
+    /// use onejoker::prelude::*;
+    ///
     /// assert_eq!(Rank::Trey, Rank::from_char('3'));
     /// ```
     pub const fn from_char(c: char) -> Rank {
@@ -89,8 +90,8 @@ impl Rank {
 
     /// Convert to char
     /// ```rust
-    /// use onejoker::*;
-    /// 
+    /// use onejoker::prelude::*;
+    ///
     /// assert_eq!('4', Rank::Four.to_char());
     /// ```
     pub const fn to_char(&self) -> char {
@@ -100,8 +101,8 @@ impl Rank {
 
     /// Produce "seven", "jack", etc.
     /// ```rust
-    /// use onejoker::*;
-    /// 
+    /// use onejoker::prelude::*;
+    ///
     /// assert_eq!("seven", Rank::Seven.name());
     /// ```
     pub const fn name(&self) -> &str {
@@ -111,8 +112,8 @@ impl Rank {
 
     /// Because we have to deal with "sixes"
     /// ```rust
-    /// use onejoker::*;
-    /// 
+    /// use onejoker::prelude::*;
+    ///
     /// assert_eq!("fives", Rank::Five.plural());
     /// assert_eq!("sixes", Rank::Six.plural());
     /// ```
@@ -123,8 +124,8 @@ impl Rank {
 
     /// Because we have to deal with "eight" and "ace"
     /// ```rust
-    /// use onejoker::*;
-    /// 
+    /// use onejoker::prelude::*;
+    ///
     /// assert_eq!("an", Rank::Eight.article());
     /// assert_eq!("a", Rank::Nine.article());
     /// ```
@@ -142,11 +143,11 @@ impl std::convert::From<u32> for Rank {
 }
 
 impl std::str::FromStr for Rank {
-    type Err = OjError;
+    type Err = Error;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> Result<Self> {
         let r = s.chars().next().ok_or(
-            OjError::ParseEmpty(String::from("rank")))?;
+            Error::ParseEmpty(String::from("rank")))?;
         Ok(Rank::from_char(r))
     }
 }
@@ -165,19 +166,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_ranks() -> Result<(), OjError> {
+    fn test_ranks() -> Result<()> {
         assert_eq!(Rank::LowAce as i32, 1);
-     
+
         assert_eq!("ace", Rank::LowAce.name());
         assert_eq!("aces", Rank::LowAce.plural());
         assert_eq!("an", Rank::LowAce.article());
         assert_eq!('A', Rank::LowAce.to_char());
-    
+
         macro_rules! ranktests {
             ( $r:ident, $v:literal, $c:literal, $a:literal, $n:literal, $p:literal ) => {
                 {
                     use std::str::FromStr;
-    
+
                     assert_eq!($v, Rank::$r as i32);
                     assert_eq!($a, Rank::$r.article());
                     assert_eq!($n, Rank::$r.name());
@@ -203,10 +204,10 @@ mod tests {
         ranktests!(Queen, 13, 'Q', "a", "queen", "queens");
         ranktests!(King, 14, 'K', "a", "king", "kings");
         ranktests!(Ace, 15, 'A', "an", "ace", "aces");
-    
+
         // PartialOrd
         assert!(Rank::Deuce < Rank::Trey);
-    
+
         // Debug, Display
         let mut s = format!("{} {} {} {} {} {} {} {}",
             Rank::LowAce, Rank::Deuce, Rank::Trey, Rank::Four, Rank::Five,

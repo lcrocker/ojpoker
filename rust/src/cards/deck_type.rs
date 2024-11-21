@@ -1,6 +1,7 @@
 //! [wiki](https://github.com/lcrocker/ojpoker/wiki/DeckType) | Represents a new, full deck
 
 use std::sync::atomic::{ AtomicU8, Ordering };
+
 use crate::cards::*;
 
 static DEFAULT_DECK_TYPE: AtomicU8 = AtomicU8::new(1);
@@ -13,7 +14,7 @@ static DEFAULT_DECK_TYPE: AtomicU8 = AtomicU8::new(1);
 pub enum DeckType {
     /// None / Invalid
     None = 0,
-    /// 59-card deck with 3 jokers, knights, and high aces
+    /// 63-card deck with 3 jokers, knights, low and high aces for testing
     AllCards = 1,
     /// English/American 52-card deck with high aces
     English = 2,
@@ -29,7 +30,7 @@ pub enum DeckType {
     Spanish = 7,
     /// 48-card Spanish deck with low aces, knights, no 10s
     Spanish48 = 8,
-    /// 41-card Mexican deck with low aces, no 8/9/10, one joker
+    /// 41-card Mexican deck with high aces, no 8/9/10, one joker
     Mexican = 9,
     /// 320-card Panguingue deck with low aces, knights, no 8/9/10, 8 decks
     Panguingue = 10,
@@ -123,7 +124,7 @@ impl DeckType {
 
     /// Get deck type by name or alias
     /// ```rust
-    /// use onejoker::*;
+    /// use onejoker::prelude::*;
     ///
     /// let dt = DeckType::by_name("bridge");
     /// assert_eq!(dt, DeckType::English);
@@ -134,7 +135,7 @@ impl DeckType {
 
     /// Set default deck type
     /// ```rust
-    /// use onejoker::*;
+    /// use onejoker::prelude::*;
     ///
     /// DeckType::set_default(DeckType::Pinochle);
     /// let h = Hand::default();
@@ -146,10 +147,10 @@ impl DeckType {
 
     /// Canonical name of deck type
     /// ```rust
-    /// use onejoker::*;
+    /// use onejoker::prelude::*;
     ///
     /// let d = Deck::new_by_name("lowball");
-    /// assert_eq!(d.deck_type.name(), "lowjoker");
+    /// assert_eq!(d.deck_type().name(), "lowjoker");
     /// ```
     pub const fn name(&self) -> &'static str {
         DECK_INFO_TABLE[*self as usize - 1].name
@@ -157,7 +158,7 @@ impl DeckType {
 
     /// Number of cards in full deck
     /// ```rust
-    /// use onejoker::*;
+    /// use onejoker::prelude::*;
     ///
     /// assert_eq!(DeckType::Bezique.size(), 64);
     /// ```
@@ -167,12 +168,12 @@ impl DeckType {
 
     /// Does the deck use low aces?
     /// ```rust
-    /// use onejoker::*;
+    /// use onejoker::prelude::*;
     ///
     /// let mut d = Deck::new_by_name("razz");
-    /// assert!(d.deck_type.low_aces());
+    /// assert!(d.deck_type().low_aces());
     /// d = Deck::new_by_name("swiss");
-    /// assert!(! d.deck_type.low_aces());
+    /// assert!(! d.deck_type().low_aces());
     /// ```
     pub const fn low_aces(&self) -> bool {
         DECK_INFO_TABLE[*self as usize - 1].low_aces
@@ -180,12 +181,12 @@ impl DeckType {
 
     /// Does the deck allow duplicate cards?
     /// ```rust
-    /// use onejoker::*;
+    /// use onejoker::prelude::*;
     ///
     /// let mut d = Deck::new_by_name("german");
-    /// assert!(! d.deck_type.dups_allowed());
+    /// assert!(! d.deck_type().dups_allowed());
     /// d = Deck::new_by_name("canasta");
-    /// assert!(d.deck_type.dups_allowed());
+    /// assert!(d.deck_type().dups_allowed());
     /// ```
     pub const fn dups_allowed(&self) -> bool {
         DECK_INFO_TABLE[*self as usize - 1].dups_allowed
@@ -193,7 +194,7 @@ impl DeckType {
 
     /// Does the deck allow this specific card?
     /// ```rust
-    /// use onejoker::*;
+    /// use onejoker::prelude::*;
     ///
     /// assert!(DeckType::Spanish.has(KNIGHT_OF_CLUBS));
     /// assert!(! DeckType::Stripped.has(DEUCE_OF_CLUBS));
@@ -204,7 +205,7 @@ impl DeckType {
 
     /// Get a slice of the full deck
     /// ```rust
-    /// use onejoker::*;
+    /// use onejoker::prelude::*;
     ///
     /// let v: Vec<Card> = DeckType::Spanish.card_list().to_vec();
     /// assert_eq!(v.len(), 40);
@@ -213,11 +214,13 @@ impl DeckType {
         DECK_INFO_TABLE[*self as usize - 1].card_list
     }
 
-    /// Validate a card for this deck. Note that unlike `has`, which just
-    /// gives a yes/no, this function will returns card with aces fixed if
-    /// necessary, and maybe other fixes in the future.
+    /// Validate a card for this deck
+    ///
+    /// Note that unlike `has`, which just gives a yes/no, this function
+    /// returns card with aces fixed if necessary, and maybe other fixes
+    /// in the future.
     /// ```rust
-    /// use onejoker::*;
+    /// use onejoker::prelude::*;
     ///
     /// let dt = DeckType::by_name("lowball");
     /// assert_eq!(LOW_ACE_OF_CLUBS, dt.valid_card(ACE_OF_CLUBS).unwrap());
@@ -282,7 +285,7 @@ macro_rules! deck_info {
 }
 
 const DECK_INFO_TABLE: [DeckInfo; DECKTYPE_MAX] = [
-    deck_info!("allcards",  0xFFFF_FFFF_FFFF_FF0E,&ALLCARDS_CARDS,false,false),
+    deck_info!("allcards",  0xFFFF_FFFF_FFFF_FFFE,&ALLCARDS_CARDS,false,false),
     deck_info!("english",   0xFFF0_FFFF_FFFF_FF00,&ENGLISH_CARDS,false,false),
     deck_info!("onejoker",  0xFFF0_FFFF_FFFF_FF08,&ONEJOKER_CARDS,false,false),
     deck_info!("twojokers", 0xFFF0_FFFF_FFFF_FF0C,&TWOJOKERS_CARDS,false,false),
@@ -313,8 +316,8 @@ macro_rules! card_array {
     };
 }
 
-const ALLCARDS_CARDS: [Card; 59] =
-    card_array!(63,62,61,60,59,58,57,56,55,54,53,52,51,50,49,48,47,46,45,44,43,42,41,40,39,38,37,36,35,34,33,32,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,3,2,1);
+const ALLCARDS_CARDS: [Card; 63] =
+    card_array!(63,62,61,60,59,58,57,56,55,54,53,52,51,50,49,48,47,46,45,44,43,42,41,40,39,38,37,36,35,34,33,32,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1);
 const ENGLISH_CARDS: [Card; 52] =
     card_array!(63,62,61,60,59,58,57,56,55,54,53,52,47,46,45,44,43,42,41,40,39,38,37,36,35,34,33,32,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8);
 const ONEJOKER_CARDS: [Card; 53] =
@@ -355,11 +358,11 @@ const PINOCHLE_CARDS: [Card; 48] =
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::errors::OjError;
+    use crate::error::Result;
     use crate::utils::oj_rand_range;
 
     #[test]
-    fn deck_type_test() -> Result<(), OjError> {
+    fn deck_type_test() -> Result<()> {
         assert_eq!(DeckType::default(), DeckType::AllCards);
         assert_eq!(DeckType::by_name("default"), DeckType::AllCards);
         assert_eq!(DeckType::by_name("poker"), DeckType::English);
@@ -419,14 +422,14 @@ mod tests {
                 "allcards" => {
                     assert_eq!(dt.dups_allowed(), false);
                     assert_eq!(dt.low_aces(), false);
-                    assert_eq!(dt.size(), 59);
+                    assert_eq!(dt.size(), 63);
                     assert!(dt.has(card!("Jk")));
                     assert!(dt.has(card!("Jb")));
                     assert!(dt.has(card!("4c")));
                     assert!(dt.has(card!("9c")));
                     assert!(dt.has(card!("Cc")));
                     assert!(dt.has(card!("Ac")));
-                    assert!(! dt.has(card!("1c")));
+                    assert!(dt.has(card!("1c")));
                 },
                 "english" => {
                     assert_eq!(dt.dups_allowed(), false);

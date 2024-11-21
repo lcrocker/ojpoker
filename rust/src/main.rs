@@ -1,7 +1,11 @@
 
-// use std::mem::{ size_of };
-use onejoker::*;
+use onejoker::prelude::*;
 
-fn main() -> Result<(), OjError> {
+// use std::time::{Duration,Instant};
+// use serde::Deserialize;
+// use std::fs::File;
+// use std::io::BufReader;
+
+pub fn main() -> OjResult<()> {
     Ok(())
 }

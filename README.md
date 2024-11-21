@@ -1,4 +1,4 @@
-# ojpoker | Updated: November 14, 2024
+# ojpoker | Updated: November 20, 2024
 
 This is code for the [OneJoker](https://onejoker.org) project,
 aiming to create libraries and other digital tools for handling playing cards
@@ -10,14 +10,15 @@ encountered on the net:
   jokers and foreign decks. Poker code handles more variants: high hands,
   ace-to-five lowball, deuce-to-seven lowball, London lowball, pai gow,
   action razz, badugi, badeucy, stripped decks, bugs, etc. I plan to add
-  bindings for many languages.
+  bindings for other languages.
 - Correctness: Many libraries do not correctly handle things like lowball
   and badugi hands, or betting limits and procedures. Author is a long-time
   poker player and casino manager with extensive knowledge of the rules,
   and implements them carefully.
 - Performance: Poker code is *fast*, taking full advantage of modern 64-bit
-  machines and the latest known algorithms. You can choose which version
-  of each evaluator suits your needs based on speed vs. memory efficiency.
+  machines and the latest known algorithms. It can evaluate millions of hands
+  per second in a single thread on modest hardware. You can choose from
+  different versions of each evaluator to best suit your needs.
 
 This codebase is primarily a [Rust](https://rust-lang.org) library, but
 will include bindings for other languages such as TypeScript and Python.
@@ -41,7 +42,7 @@ I am currently using Rust/Cargo 1.81.0.
 
 ## TypeScript
 
-I am using Deno 2.0.5 (TypeScript 5.6.2) for the scripts, though
+I am using Deno 2.0.6 (TypeScript 5.6.2) for the scripts, though
 most older versions should work.
 Deno scripts are used for automating build tasks and building and
 converting data files.

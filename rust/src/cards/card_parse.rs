@@ -1,6 +1,7 @@
-//! [wiki](https://github.com/lcrocker/ojpoker/wiki/Parsing_Cards) | A function for reading cards from text.
+//! [wiki](https://github.com/lcrocker/ojpoker/wiki/card_parse) | Reading cards from text
 
 use crate::cards::{Card, Rank, Suit, JOKER, BLACK_JOKER, WHITE_JOKER};
+
 enum CardParseState {
     Initial,
     PreCard,
@@ -68,7 +69,11 @@ impl<'a> Iterator for CardParseIter<'a> {
                 },
                 CardParseState::OneChar(r) => {
                     if let Some(s) = self.source.next() {
-                        self.state = CardParseState::TwoChars(r, s);
+                        if '1' == r && '0' == s {
+                            self.state = CardParseState::OneChar('T');
+                        } else {
+                            self.state = CardParseState::TwoChars(r, s);
+                        }
                     } else {
                         self.state = CardParseState::Done;
                     }
@@ -95,18 +100,24 @@ impl<'a> Iterator for CardParseIter<'a> {
     }
 }
 
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojc_parse) | A function for reading cards from text
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/card_parse) | Convert text to iterator of [Card]s
+///
+/// Simple state-machine parser for strings that contain cards in "As" form.
+/// We accept a few extras here above the standard: "Jk", "Jb", and "Jw" for the
+/// red, black, and white jokers, respectively; "10" for the ten as well as "T",
+/// and "1" for low ace (should only be used for testing).
+///
 /// ```rust
-/// use onejoker::*;
+/// use onejoker::prelude::*;
 ///
 /// let text = "  [2h 3s Td Kc Jk 7c Ad]";
-/// let cards: Vec<Card> = ojc_parse(text).collect();
+/// let cards: Vec<Card> = card_parse(text).collect();
 /// assert_eq!(cards.len(), 7);
-/// assert_eq!(cards[0], card!("2h"));
-/// assert_eq!(cards[4], card!("Jk"));
-/// assert_eq!(cards[6], card!("Ad"));
+/// assert_eq!(cards[0], DEUCE_OF_HEARTS);
+/// assert_eq!(cards[4], JOKER);
+/// assert_eq!(cards[6], ACE_OF_DIAMONDS);
 /// ```
-pub fn ojc_parse(text: &str) -> impl Iterator<Item = Card> + '_ {
+pub fn card_parse(text: &str) -> impl Iterator<Item = Card> + '_ {
     CardParseIter::new(text.chars())
 }
 
@@ -117,15 +128,15 @@ pub fn ojc_parse(text: &str) -> impl Iterator<Item = Card> + '_ {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::errors::OjError;
+    use crate::error::Result;
     use crate::utils::oj_rand_range;
-    use crate::cards::{Deck, DeckType};
+    use crate::cards::*;
 
     #[test]
-    fn test_cards() -> Result<(), OjError> {
-        let mut deck = Deck::new(DeckType::AllCards);
+    fn test_cards() -> Result<()> {
+        let mut deck = Deck::new(DeckType::TwoJokers);
 
-        for _ in 0..1000 {
+        for _ in 0..100 {
             let len = 1 + oj_rand_range(4) +
                 oj_rand_range(4) + oj_rand_range(4);
 
@@ -133,10 +144,18 @@ mod tests {
             let h = deck.new_hand().init(deck.draw(len));
 
             let text = h.to_string();
-            let h2 = deck.new_hand().init(ojc_parse(&text));
+            let h2 = deck.new_hand().init(card_parse(&text));
 
             assert!(h.equals(&h2));
         }
+        let deck = Deck::new(DeckType::AllCards);
+        let h1: Hand = deck.new_hand().init(
+            card_parse("  [2h 10s TdKcJb7cCsAd]"));
+        let h2: Hand = deck.new_hand().init([
+            DEUCE_OF_HEARTS, TEN_OF_SPADES, TEN_OF_DIAMONDS, KING_OF_CLUBS,
+            BLACK_JOKER, SEVEN_OF_CLUBS, KNIGHT_OF_SPADES, ACE_OF_DIAMONDS
+        ]);
+        assert!(h1.equals(&h2));
         Ok(())
     }
 }

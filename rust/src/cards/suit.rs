@@ -1,16 +1,17 @@
 //! [wiki](https://github.com/lcrocker/ojpoker/wiki/Suit) | A simple numeric enum for card suits.
 //! # Examples
 //! ```
-//! use onejoker::*;
-//! 
+//! use onejoker::prelude::*;
+//!
 //! let s = Suit::Diamond;
 //! println!("{}, {}, {}, {}", s.name(), s.to_char(),
 //!     s.to_symbol(), Suit::from_char('d'));
 //! ```
 
-use crate::errors::*;
+use crate::error::{Error,Result};
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/Suit) | A simple numeric enum for card suits.
+///
 /// Specific numbers do matter: I do a lot of math with them to optimize
 /// things, and the same numbers are used in the other languages.
 
@@ -40,8 +41,8 @@ const PLURALS: [&str; 5] = [ "?", "clubs", "diamonds", "hearts", "spades" ];
 impl Suit {
     /// Convert integer to suit
     /// ```rust
-    /// use onejoker::*;
-    /// 
+    /// use onejoker::prelude::*;
+    ///
     /// assert_eq!(Suit::Club, Suit::from_u8(1));
     /// ```
     pub const fn from_u8(v: u8) -> Suit {
@@ -50,10 +51,10 @@ impl Suit {
     }
 
     /// Accept ASCII text or Unicode solid/black suit symbols
-    /// U+2660, U+2665, U+2666, U+2663 
+    /// U+2660, U+2665, U+2666, U+2663
     /// ```rust
-    /// use onejoker::*;
-    /// 
+    /// use onejoker::prelude::*;
+    ///
     /// assert_eq!(Suit::Heart, Suit::from_char('h'));
     /// assert_eq!(Suit::Club, Suit::from_char('♣'));
     /// ```
@@ -69,8 +70,8 @@ impl Suit {
 
     /// Produce the ASCII version
     /// ```rust
-    /// use onejoker::*;
-    /// 
+    /// use onejoker::prelude::*;
+    ///
     /// assert_eq!('d', Suit::Diamond.to_char());
     /// ```
     pub const fn to_char(&self) -> char {
@@ -80,8 +81,8 @@ impl Suit {
 
     /// Produce the Unicode version
     /// ```rust
-    /// use onejoker::*;
-    /// 
+    /// use onejoker::prelude::*;
+    ///
     /// assert_eq!('♠', Suit::Spade.to_symbol());
     /// ```
     pub const fn to_symbol(&self) -> char {
@@ -91,19 +92,21 @@ impl Suit {
 
     /// Produce "club", "diamond", etc.
     /// ```rust
-    /// use onejoker::*;
-    /// 
+    /// use onejoker::prelude::*;
+    ///
     /// assert_eq!("diamond", Suit::Diamond.name());
     pub const fn name(&self) -> &str {
         if (*self as usize) > 4 { return "?"; }
         NAMES[*self as usize]
     }
 
-    /// Produce "hearts", "spades", etc. Not really needed since there are
-    /// no tricky ones like rank "six", but other (human) languages may need it
+    /// Produce "hearts", "spades", etc.
+    ///
+    /// Not really needed since there are no tricky ones like rank "six",
+    /// but other (human) languages may need it.
     /// ```rust
-    /// use onejoker::*;
-    /// 
+    /// use onejoker::prelude::*;
+    ///
     /// assert_eq!("spades", Suit::Spade.plural());
     /// ```
     pub const fn plural(&self) -> &str {
@@ -113,8 +116,8 @@ impl Suit {
 
     /// Likewise, no tricks, but for consistency
     /// ```rust
-    /// use onejoker::*;
-    /// 
+    /// use onejoker::prelude::*;
+    ///
     /// assert_eq!("a", Suit::Club.article());
     /// ```
     pub const fn article(&self) -> &str { "a" }
@@ -133,11 +136,11 @@ impl std::fmt::Display for Suit {
 }
 
 impl std::str::FromStr for Suit {
-    type Err = OjError;
+    type Err = Error;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> Result<Self> {
         let c = s.chars().next().ok_or(
-            OjError::ParseEmpty(String::from("suit")))?;
+            Error::ParseEmpty(String::from("suit")))?;
         Ok(Suit::from_char(c))
     }
 }
@@ -151,7 +154,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_suits() -> Result<(), OjError> {
+    fn test_suits() -> Result<()> {
         macro_rules! suittests {
             ( $x:ident, $v:literal, $c:literal, $u:literal, $n:literal, $p:literal ) => {
                 {
@@ -184,7 +187,7 @@ mod tests {
         assert_eq!("Club Diamond Heart Spade", s);
         let d = format!("{:?} {:?} {:?} {:?}", Suit::Club, Suit::Diamond, Suit::Heart, Suit::Spade);
         assert_eq!("Club Diamond Heart Spade", d);
-        
+
         Ok(())
     }
 }

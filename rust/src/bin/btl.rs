@@ -1,32 +1,33 @@
 // Build hash tables for poker hand evaluation
 
 use std::collections::{BinaryHeap, HashMap};
-use onejoker::*;
+
+use onejoker::prelude::*;
+use onejoker::cards::hashes::*;
 
 const DECK: &str = "low";
 const SCALE: HandScale = HandScale::AceToFive;
 const GAME: &str = "ACE_TO_FIVE";
-const HASH: fn(&[Card]) -> u32 = |c|
-    ojh_positional_32cs_mp5_low(c).unwrap();
+const HASH: fn(&[Card]) -> u32 = ojh_positional_mp5_low;
 
-struct HandAndValue {
+struct HandAndDescription {
     hand: Hand,
-    value: HandValue,
+    desc: HandDescription,
 }
-impl PartialEq for HandAndValue {
+impl PartialEq for HandAndDescription {
     fn eq(&self, other: &Self) -> bool {
-        self.value == other.value
+        self.desc.value() == other.desc.value()
     }
 }
-impl Eq for HandAndValue {}
-impl PartialOrd for HandAndValue {
+impl Eq for HandAndDescription {}
+impl PartialOrd for HandAndDescription {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
-impl Ord for HandAndValue {
+impl Ord for HandAndDescription {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.value.cmp(&other.value)
+        self.desc.value().cmp(&other.desc.value())
     }
 }
 
@@ -56,7 +57,7 @@ const RVAL: [Rank; 13] = [ Rank::LowAce, Rank::Deuce, Rank::Trey, Rank::Four,
     Rank::Jack, Rank::Queen, Rank::King ];
 
 fn build_tables() -> Result<(), OjError> {
-    let mut heap: BinaryHeap<HandAndValue> = BinaryHeap::new();
+    let mut heap: BinaryHeap<HandAndDescription> = BinaryHeap::new();
     let deck = Deck::new_by_name(DECK);
 
     for r1 in &RVAL {
@@ -72,31 +73,31 @@ fn build_tables() -> Result<(), OjError> {
                             Card::from_rank_suit(*r5, Suit::Spade),
                         ]);
 
-                        let v = SCALE.eval_full()(&hand)?;
-                        heap.push(HandAndValue { hand, value: v });
+                        let desc = SCALE.eval(&hand)?;
+                        heap.push(HandAndDescription { hand, desc });
                     }
                 }
             }
         }
     }
 
-    let all_hands: Vec<HandAndValue> = heap.into_sorted_vec();
+    let all_hands: Vec<HandAndDescription> = heap.into_sorted_vec();
     let mut ec_heap: BinaryHeap<EquivClassAndHash> = BinaryHeap::new();
-    let mut value_map: HashMap<u32, HandAndValue> = HashMap::new();
+    let mut value_map: HashMap<u32, HandAndDescription> = HashMap::new();
     let mut equiv = 0;
     let mut p_value = 0;
     let mut p_equiv = 0;
 
     for hv in all_hands {
-        if hv.value.value != p_value {
+        if hv.desc.value() != p_value {
             equiv += 1;
         }
-        assert!(hv.value.value >= p_value);
+        assert!(hv.desc.value() >= p_value);
         assert!(equiv >= p_equiv);
-        p_value = hv.value.value;
+        p_value = hv.desc.value();
         p_equiv = equiv;
 
-        let hash = HASH(hv.hand.as_slice());
+        let hash = HASH(&hv.hand[..]);
         ec_heap.push(EquivClassAndHash { hash, eclass: equiv });
         value_map.entry(equiv).or_insert(hv);
     }
@@ -135,13 +136,15 @@ macro_rules! rk {{
 
     for ec in 1..=(equiv - 13) {
         let ep = &value_map[&ec];
+        let hand = ep.desc.hand();
+
         println!("  (lv!({}),rk!({},{},{},{},{})),",
-            ep.value.level as u32,
-            ep.value.hand[0].rank() as u32,
-            ep.value.hand[1].rank() as u32,
-            ep.value.hand[2].rank() as u32,
-            ep.value.hand[3].rank() as u32,
-            ep.value.hand[4].rank() as u32);
+            ep.desc.level() as u32,
+            hand[0].rank() as u32,
+            hand[1].rank() as u32,
+            hand[2].rank() as u32,
+            hand[3].rank() as u32,
+            hand[4].rank() as u32);
     }
     println!("];
 
@@ -153,12 +156,13 @@ pub static ACTION_RAZZ_ADJUST: [u16; {}] = [ 0,
     let mut next_ec = 6176;
     for ec in 1..=(equiv - 52) {
         let ep = &value_map[&ec];
+        let hand = ep.desc.hand();
 
-        if ep.value.hand[0].rank() > Rank::Ten ||
-            ep.value.hand[1].rank() > Rank::Ten ||
-            ep.value.hand[2].rank() > Rank::Ten ||
-            ep.value.hand[3].rank() > Rank::Ten ||
-            ep.value.hand[4].rank() > Rank::Ten {
+        if hand[0].rank() > Rank::Ten ||
+            hand[1].rank() > Rank::Ten ||
+            hand[2].rank() > Rank::Ten ||
+            hand[3].rank() > Rank::Ten ||
+            hand[4].rank() > Rank::Ten {
             print!("0,");
         } else {
             print!("{},", next_ec);

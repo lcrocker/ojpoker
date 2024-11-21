@@ -1,10 +1,11 @@
-//! [wiki](https://github.com/lcrocker/ojpoker/wiki/Deck) | "Live" deck of cards for play.
+//! [wiki](https://github.com/lcrocker/ojpoker/wiki/Deck) | "Live" deck of cards for play
 
+use crate::error::{Error,Result};
 use crate::cards::*;
 use crate::utils::*;
-use crate::errors::*;
 
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Deck) | "Live" deck of cards for play.
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Deck) | "Live" deck of cards for play
+///
 /// An array of [Card] objects with methods appropriate for a deck of cards.
 /// Note that cards are `pop()`'d from end of the array for speed, making
 /// that notionally the "top" of the deck. We show the [Deck] reversed
@@ -14,15 +15,15 @@ use crate::errors::*;
 #[derive(Clone, Debug)]
 pub struct Deck {
     /// Current contents of the deck
-    pub cards: Vec<Card>,
+    cards: Vec<Card>,
     /// Static pointer to associated [DeckType]
-    pub deck_type: DeckType,
+    deck_type: DeckType,
 }
 
 impl Deck {
     /// Create a new deck from the given [DeckType], e.g.
     /// ```rust
-    /// use onejoker::cards::*;
+    /// use onejoker::prelude::*;
     ///
     /// let d = Deck::new(DeckType::English);
     /// ```
@@ -35,7 +36,7 @@ impl Deck {
 
     /// Create a new deck from a [DeckType] by name, e.g.
     /// ```rust
-    /// use onejoker::cards::*;
+    /// use onejoker::prelude::*;
     ///
     /// let d = Deck::new_by_name("canasta");
     /// ```
@@ -48,9 +49,22 @@ impl Deck {
         }
     }
 
-    /// Initial shuffle for new deck. Returns `self` for chaining:
+    /// Return the [DeckType] associated with this deck
     /// ```rust
-    /// use onejoker::cards::*;
+    /// use onejoker::prelude::*;
+    ///
+    /// let d = Deck::new_by_name("lowball");
+    /// assert_eq!(DeckType::LowJoker, d.deck_type());
+    /// ```
+    pub fn deck_type(&self) -> DeckType {
+        self.deck_type
+    }
+
+    /// Initial shuffle for new deck
+    ///
+    /// Returns `self` for chaining.
+    /// ```rust
+    /// use onejoker::prelude::*;
     ///
     /// let d = Deck::new(DeckType::English).shuffled();
     /// ```
@@ -59,9 +73,9 @@ impl Deck {
         self
     }
 
-    /// Create a new [Hand] associated with the [DeckType] of this deck.
+    /// Create a new [Hand] associated with this deck
     /// ```rust
-    /// use onejoker::cards::*;
+    /// use onejoker::prelude::*;
     ///
     /// let d = Deck::new(DeckType::English);
     /// let h = d.new_hand();
@@ -70,10 +84,11 @@ impl Deck {
         Hand::new(self.deck_type)
     }
 
-    /// Export the current contents of the deck as a vector of [Card],
-    /// leaving the deck itself unchanged.
+    /// Export the current contents of the deck
+    ///
+    /// Returns a new vector of [Card], leaving the deck itself unchanged.
     /// ```rust
-    /// use onejoker::cards::*;
+    /// use onejoker::prelude::*;
     ///
     /// let d = Deck::new(DeckType::English).shuffled();
     /// let saved_copy: Vec<Card> = d.to_vec();
@@ -82,40 +97,18 @@ impl Deck {
         self.cards.to_vec()
     }
 
-    /// Deal `n` cards from the deck to the given [Hand].
-    /// ```rust
-    /// use onejoker::cards::*;
+    /// Shuffle the deck in place
     ///
-    /// let mut d = Deck::new(DeckType::English).shuffled();
-    /// let mut h = d.new_hand();
-    /// d.deal_to(&mut h, 5);
-    ///
-    /// // Probably better to ensure success:
-    /// assert_eq!(5, d.deal_to(&mut h, 5));
-    /// ```
-    pub fn deal_to(&mut self, h: &mut Hand, n: usize) -> usize {
-        let mut dealt = 0;
-        for _ in 0..n {
-            if let Some(c) = self.pop() {
-                h.push(c);
-                dealt += 1;
-            } else {
-                break;
-            }
-        }
-        dealt
-    }
-
-    /// Shuffle the deck in place. Does not refill the deck, but
-    /// just shuffled whatever cards are currently in it. There is a
-    /// separate `refill_and_shuffle` method for that.
+    /// Does not refill the deck, but just shuffles whatever cards are
+    /// currently in it. There is a separate `refill_and_shuffle` method
+    /// for doing both.
     pub fn shuffle(&mut self) {
         oj_shuffle(&mut self.cards[..]);
     }
 
     /// Refill the deck to its original contents
     /// ```rust
-    /// use onejoker::cards::*;
+    /// use onejoker::prelude::*;
     ///
     /// let mut d = Deck::new(DeckType::Pinochle).shuffled();
     /// let mut h = d.new_hand().init(d.draw(12));
@@ -128,9 +121,9 @@ impl Deck {
         self.cards = self.deck_type.card_list().to_vec();
     }
 
-    /// Refill the deck and shuffle--commonly done together
+    /// Refill the deck and shuffle
     /// ```rust
-    /// use onejoker::cards::*;
+    /// use onejoker::prelude::*;
     ///
     /// let mut d = Deck::new_by_name("bridge").shuffled();
     /// let mut h = d.new_hand().init(d.draw(13));
@@ -142,9 +135,9 @@ impl Deck {
         oj_shuffle(&mut self.cards[..]);
     }
 
-    /// Return the number of cards currently in the deck.
+    /// Number of cards currently in the deck
     /// ```rust
-    /// use onejoker::cards::*;
+    /// use onejoker::prelude::*;
     ///
     /// let mut d = Deck::new_by_name("panguinge").shuffled();
     /// println!("{}, {}", d.size(), d.len());  // 320, 320
@@ -162,7 +155,7 @@ impl Deck {
 
     /// Return the total number of cards in the full deck
     /// ```rust
-    /// use onejoker::cards::*;
+    /// use onejoker::prelude::*;
     ///
     /// let d = Deck::new(DeckType::Swiss);
     /// println!("{}", d.size());  // 36
@@ -173,7 +166,7 @@ impl Deck {
 
     /// Is the deck empty?
     /// ```rust
-    /// use onejoker::cards::*;
+    /// use onejoker::prelude::*;
     ///
     /// let mut d = Deck::new(DeckType::English).shuffled();
     /// let v: Vec<Card> = d.pop_all().collect();
@@ -187,7 +180,7 @@ impl Deck {
 
     /// Is the deck not empty?
     /// ```rust
-    /// use onejoker::cards::*;
+    /// use onejoker::prelude::*;
     ///
     /// let mut d = Deck::new(DeckType::English).shuffled();
     /// assert!(d.is_not_empty());
@@ -201,7 +194,7 @@ impl Deck {
     /// Does the deck contain the given [Card]?
     /// ```rust
     /// #[macro_use] extern crate onejoker;
-    /// use onejoker::cards::*;
+    /// use onejoker::prelude::*;
     ///
     /// let d = Deck::new(DeckType::English);
     /// assert!(d.contains(card!("As")));
@@ -214,14 +207,16 @@ impl Deck {
         false
     }
 
-    /// Push a [Card] onto the deck. We do not generally expect cards
-    /// to go in this direction, but it is useful for testing and simulation.
+    /// Push a [Card] onto the deck
+    ///
+    /// We do not generally expect cards to go in this direction,
+    /// but might need to for testing and simulation.
     /// ```rust
-    /// use onejoker::cards::*;
+    /// use onejoker::prelude::*;
     ///
     /// let mut d = Deck::new(DeckType::English).shuffled();
     /// let mut burn = d.new_hand();
-    /// d.deal_to(&mut burn, 1);
+    /// burn.push(d.pop().unwrap());
     /// // oops, put it back
     /// d.push(burn.pop().unwrap());
     /// ```
@@ -233,9 +228,11 @@ impl Deck {
         false
     }
 
-    /// Pop a [Card] from the deck. Return `None` if the deck is empty.
+    /// Pop a [Card] from the deck
+    ///
+    /// Return `None` if the deck is empty.
     /// ```rust
-    /// use onejoker::cards::*;
+    /// use onejoker::prelude::*;
     ///
     /// let mut d = Deck::new(DeckType::English).shuffled();
     /// let c: Card = d.pop().unwrap();
@@ -244,14 +241,15 @@ impl Deck {
         self.cards.pop()
     }
 
-    /// Push first `n` of a collection of [Card]s onto the deck.
+    /// Push first `n` [Card]s of collection onto the deck
+    ///
     /// Return the number actually pushed.
     /// ```rust
-    /// use onejoker::cards::*;
+    /// use onejoker::prelude::*;
     ///
     /// let mut d = Deck::new(DeckType::English).shuffled();
     /// let mut burn = d.new_hand();
-    /// d.deal_to(&mut burn, 3);
+    /// burn.push_n(3, d.pop_n(3));
     /// // oops, put them all back
     /// d.push_n(3, burn.pop_n(3));
     /// ```
@@ -270,13 +268,15 @@ impl Deck {
         pushed
     }
 
-    /// Push a collection of [Card]s onto the deck. Return the number pushed.
+    /// Push a collection of [Card]s onto the deck
+    ///
+    /// Return the number actually pushed.
     /// ```rust
-    /// use onejoker::cards::*;
+    /// use onejoker::prelude::*;
     ///
     /// let mut d = Deck::new(DeckType::English).shuffled();
     /// let mut burn = d.new_hand();
-    /// d.deal_to(&mut burn, 3);
+    /// burn.push_all(d.draw(3));
     /// // oops, put them all back
     /// d.push_all(burn.pop_all());
     /// ```
@@ -292,9 +292,9 @@ impl Deck {
         pushed
     }
 
-    /// Pop `n` cards from the deck as an iterator.
+    /// Pop `n` cards from the deck as an iterator
     /// ```rust
-    /// use onejoker::cards::*;
+    /// use onejoker::prelude::*;
     ///
     /// let mut d = Deck::new(DeckType::English).shuffled();
     /// let mut flop: Vec<Card> = d.pop_n(3).collect();
@@ -313,7 +313,7 @@ impl Deck {
 
     /// Synonym for `pop_n()`
     /// ```rust
-    /// use onejoker::cards::*;
+    /// use onejoker::prelude::*;
     ///
     /// // A common idiom for initial deals:
     /// let mut d = Deck::new(DeckType::English).shuffled();
@@ -324,9 +324,9 @@ impl Deck {
         self.pop_n(n)
     }
 
-    /// Pop all cards from the deck as an iterator.
+    /// Pop all cards from the deck as an iterator
     /// ```rust
-    /// use onejoker::cards::*;
+    /// use onejoker::prelude::*;
     ///
     /// let mut d = Deck::new(DeckType::English).shuffled();
     /// let mut pile: Vec<Card> = d.pop_all().collect();
@@ -337,10 +337,12 @@ impl Deck {
         self.cards.drain(..)
     }
 
-    /// Remove a [Card] from the deck by value. Return `true` if found.
+    /// Remove a [Card] from the deck by value
+    ///
+    /// Return `true` if found.
     /// ```rust
     /// #[macro_use] extern crate onejoker;
-    /// use onejoker::cards::*;
+    /// use onejoker::prelude::*;
     ///
     /// let mut d = Deck::new(DeckType::English);
     /// assert!(d.remove_card(card!("As")));
@@ -357,10 +359,9 @@ impl Deck {
     }
 
     /// Synonym for `remove_card()`
-    /// Remove a card from the deck by value. Return `true` if found.
     /// ```rust
     /// #[macro_use] extern crate onejoker;
-    /// use onejoker::cards::*;
+    /// use onejoker::prelude::*;
     ///
     /// let mut d = Deck::new(DeckType::English);
     /// assert!(d.draw_card(card!("As")));
@@ -369,15 +370,16 @@ impl Deck {
         self.remove_card(c)
     }
 
-    /// Take the exactly given set of [Card]s from the [Deck].
+    /// Take the exactly given [Card]s from the [Deck]
+    ///
     /// Useful for simulations and testing.
     /// ```rust
     /// #[macro_use] extern crate onejoker;
-    /// use onejoker::cards::*;
+    /// use onejoker::prelude::*;
     ///
     /// let mut d = Deck::new(DeckType::English);
-    /// let mut p1 = d.new_hand().init(d.draw_hand(cards!("Ac", "Kd")));
-    /// let mut p2 = d.new_hand().init(d.draw_hand(cards!("2h", "2s")));
+    /// let mut p1 = d.new_hand().init(d.draw_hand(hand!("Ac", "Kd")));
+    /// let mut p2 = d.new_hand().init(d.draw_hand(hand!("2h", "2s")));
     /// ```
     pub fn draw_hand<I>(&mut self, cards: I) -> impl Iterator<Item = Card>
     where I: IntoIterator<Item = Card> {
@@ -391,13 +393,15 @@ impl Deck {
         v.into_iter()
     }
 
-    /// Sort the deck in place. Uses the same sort as for hands, which
-    /// sorts them descending by rank and then by suit. But remember that
-    /// cards are `pop()`'d from the end, so the "top" of the deck is the
-    /// end of the array, so cards will be dealt in ascending order.
+    /// Sort the deck in place
+    ///
+    /// Uses the same sort as for hands, which sorts them descending by rank
+    /// and then by suit. But remember that cards are `pop()`'d from the end,
+    /// so the "top" of the deck is the end of the array, so cards will be
+    /// dealt in ascending order.
     /// ```rust
     /// #[macro_use] extern crate onejoker;
-    /// use onejoker::cards::*;
+    /// use onejoker::prelude::*;
     ///
     /// let mut d = Deck::new(DeckType::English).shuffled();
     /// d.sort();
@@ -407,15 +411,17 @@ impl Deck {
         oj_sort(&mut self.cards[..]);
     }
 
+    /// Iterate over combinations
+    ///
     /// Iterate over all combinations of `k` cards from those
     /// currently in the deck.
     /// ```rust
     /// #[macro_use] extern crate onejoker;
-    /// use onejoker::cards::*;
+    /// use onejoker::prelude::*;
     ///
     /// let mut d = Deck::new(DeckType::English);
-    /// let p1 = d.new_hand().init(d.draw_hand(cards!("Ac", "Kd")));
-    /// let p2 = d.new_hand().init(d.draw_hand(cards!("2h", "2s")));
+    /// let p1 = d.new_hand().init(d.draw_hand(hand!("Ac", "Kd")));
+    /// let p2 = d.new_hand().init(d.draw_hand(hand!("2h", "2s")));
     /// // Run through  1,712,304 possible Texas Hold'em boards
     /// for h in d.combinations(5) {
     ///    // . . .
@@ -433,9 +439,9 @@ impl Default for Deck {
 }
 
 impl std::str::FromStr for Deck {
-    type Err = OjError;
+    type Err = Error;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> Result<Self> {
         Ok(Deck::new_by_name(s))
     }
 }
@@ -532,7 +538,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_live_deck() -> Result<(), OjError> {
+    fn test_live_deck() -> Result<()> {
         let mut d1 = Deck::new(DeckType::English);
         let mut d2 = Deck::new_by_name("52");
 
@@ -577,7 +583,7 @@ mod tests {
         let c = h1.card_at(0);
         assert!(c.is_none());
 
-        h1.push_all(cards!("Ac", "2d", "3h"));
+        h1.push_all(hand!("Ac", "2d", "3h"));
         assert!(h1.contains(DEUCE_OF_DIAMONDS));
         h1.insert_at(1, FOUR_OF_SPADES);
         assert_eq!(DEUCE_OF_DIAMONDS, h1.card_at(2).unwrap());
@@ -585,10 +591,10 @@ mod tests {
 
         let v = h1.to_vec();
         assert_eq!(vec![FOUR_OF_SPADES, DEUCE_OF_DIAMONDS, TREY_OF_HEARTS], v);
-        h2.set(cards!("4s", "2d", "3h"));
+        h2.set(hand!("4s", "2d", "3h"));
         assert!(h1.equals(&h2));
         h1.push_all([JACK_OF_CLUBS, QUEEN_OF_SPADES]);
-        h2.push_all(cards!("Jc", "Qs"));
+        h2.push_all(hand!("Jc", "Qs"));
         assert!(h1.equals(&h2));
 
         h1.push(KING_OF_HEARTS);

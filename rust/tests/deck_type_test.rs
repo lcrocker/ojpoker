@@ -1,7 +1,7 @@
 //@ tests/master_deck_test.rs
 
 use serde::Deserialize;
-use onejoker::*;
+use onejoker::prelude::*;
 
 #[derive(Deserialize, Debug)]
 struct MasterDeckInfo {
@@ -17,7 +17,7 @@ struct MasterDeckInfo {
 struct MasterDeckDataFile(Vec<MasterDeckInfo>);
 
 #[test]
-fn test_masterdeck_file() -> Result<(), OjError> {
+fn test_masterdeck_file() -> OjResult<()> {
     use std::fs::File;
     use std::io::BufReader;
 

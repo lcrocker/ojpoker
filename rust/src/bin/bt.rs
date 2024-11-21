@@ -1,10 +1,15 @@
 // Build hash tables for poker hand evaluation
+use std::collections::{BinaryHeap, HashMap};
+use std::fs;
+use std::io::Write;
 
-// const DECK: &str = "english";
-// const SCALE: HandScale = HandScale::HighHand;
-// const GAME: &str = "HIGH_HAND";
-// const HASH: fn(&[Card]) -> u32 = |c|
-//     ojh_mp5_english(ojh_bitfield_64co(c).unwrap());
+use onejoker::prelude::*;
+use onejoker::cards::hashes::*;
+
+const DECK: &str = "english";
+const SCALE: HandScale = HandScale::HighHand;
+const GAME: &str = "HIGH_HAND";
+const HASH: fn(&[Card]) -> u32 = ojh_mp7_english;
 
 // const DECK: &str = "english";
 // const SCALE: HandScale = HandScale::DeuceToSeven;
@@ -30,33 +35,30 @@
 // const HASH: fn(&[Card]) -> u32 = |c|
 //     ojh_mp4_english(ojh_bitfield_64co(c).unwrap());
 
-const DECK: &str = "stripped";
-const SCALE: HandScale = HandScale::Stripped;
-const GAME: &str = "STRIPPED_DECK";
-const HASH: fn(&[Card]) -> u32 = |c|
-    ojh_mp5_stripped(ojh_bitfield_64co(c).unwrap());
+// const DECK: &str = "stripped";
+// const SCALE: HandScale = HandScale::Stripped;
+// const GAME: &str = "STRIPPED_DECK";
+// const HASH: fn(&[Card]) -> u32 = |c|
+//     ojh_mp5_stripped(ojh_bitfield_64co(c).unwrap());
 
-use std::collections::{BinaryHeap, HashMap};
-use onejoker::*;
-
-struct HandAndValue {
+struct HandAndDescription {
     hand: Hand,
-    value: HandValue,
+    desc: HandDescription,
 }
-impl PartialEq for HandAndValue {
+impl PartialEq for HandAndDescription {
     fn eq(&self, other: &Self) -> bool {
-        self.value == other.value
+        self.desc.value() == other.desc.value()
     }
 }
-impl Eq for HandAndValue {}
-impl PartialOrd for HandAndValue {
+impl Eq for HandAndDescription {}
+impl PartialOrd for HandAndDescription {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
-impl Ord for HandAndValue {
+impl Ord for HandAndDescription {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.value.cmp(&other.value)
+        self.desc.value().cmp(&other.desc.value())
     }
 }
 
@@ -82,35 +84,38 @@ impl Ord for EquivClassAndHash {
 }
 
 fn build_tables() -> Result<(), OjError> {
-    let mut heap: BinaryHeap<HandAndValue> = BinaryHeap::new();
+    let mut heap: BinaryHeap<HandAndDescription> = BinaryHeap::new();
     let deck = Deck::new_by_name(DECK);
 
-    for hand in deck.combinations(SCALE.complete_hand()) {
-        // println!("// {:?}", hand);
-        let v = SCALE.eval_full()(&hand)?;
-        heap.push(HandAndValue { hand, value: v });
+    for hand in deck.combinations(7) {
+        println!("// {:?}", hand);
+        let desc = SCALE.eval(&hand)?;
+        heap.push(HandAndDescription { hand, desc });
     }
-    let all_hands: Vec<HandAndValue> = heap.into_sorted_vec();
+    let all_hands: Vec<HandAndDescription> = heap.into_sorted_vec();
     let mut ec_heap: BinaryHeap<EquivClassAndHash> = BinaryHeap::new();
-    let mut value_map: HashMap<u32, HandAndValue> = HashMap::new();
+    let mut value_map: HashMap<u32, HandAndDescription> = HashMap::new();
     let mut equiv = 0;
     let mut p_value = 0;
     let mut p_equiv = 0;
 
     let total = all_hands.len();
     for hv in all_hands {
-        if hv.value.value != p_value {
+        if hv.desc.value() != p_value {
             equiv += 1;
         }
-        assert!(hv.value.value >= p_value);
+        assert!(hv.desc.value() >= p_value);
         assert!(equiv >= p_equiv);
-        p_value = hv.value.value;
+        p_value = hv.desc.value();
         p_equiv = equiv;
 
-        let hash = HASH(hv.hand.as_slice());
+        let hash = HASH(&hv.hand[..]);
         ec_heap.push(EquivClassAndHash { eclass: equiv, hash });
         value_map.entry(equiv).or_insert(hv);
     }
+
+    let mut file = fs::File::create("./mp7.bin")?;
+    let mut bytes: [u8; 2] = [0; 2];
 
     println!("// Do not edit: file generated from script
 /// Table 1: direct map from {} perfect hashes \
@@ -125,8 +130,12 @@ to {} equivalence classes\n", total, equiv);
         if p_hash != entry.hash {
             print!("{},", entry.eclass);
             p_hash = entry.hash;
+
+            bytes[0] = (0xFF & entry.eclass) as u8;
+            bytes[1] = (0xFF & (entry.eclass >> 8)) as u8;
+            file.write_all(&bytes)?;
         }
-        if 11 == i % 12 {
+        if 99 == i % 100 {
             print!("\n  ");
         }
     }
@@ -152,24 +161,27 @@ macro_rules! rk {{
     for ec in 1..=equiv {
         let ep = value_map.get_mut(&ec).unwrap();
         if 5 == SCALE.complete_hand() {
+            let hand = ep.desc.hand();
             println!("  (lv!({}),rk!({},{},{},{},{})),",
-                ep.value.level as u32,
-                ep.value.hand[0].rank() as u32,
-                ep.value.hand[1].rank() as u32,
-                ep.value.hand[2].rank() as u32,
-                ep.value.hand[3].rank() as u32,
-                ep.value.hand[4].rank() as u32);
+                ep.desc.level() as u32,
+                hand[0].rank() as u32,
+                hand[1].rank() as u32,
+                hand[2].rank() as u32,
+                hand[3].rank() as u32,
+                hand[4].rank() as u32);
         } else {
-            if ep.value.level as u32 > 11 { ep.value.hand[3] = Card(0); }
-            if ep.value.level as u32 > 12 { ep.value.hand[2] = Card(0); }
-            if ep.value.level as u32 > 13 { ep.value.hand[1] = Card(0); }
+            let lv = ep.desc.level() as u32;
+            let hand = ep.desc.mut_hand();
+            if lv > 11 { hand[3] = Card(0); }
+            if lv > 12 { hand[2] = Card(0); }
+            if lv > 13 { hand[1] = Card(0); }
 
             println!("  (lv!({}),rk!({},{},{},{})),",
-                ep.value.level as u32,
-                ep.value.hand[0].rank() as u32,
-                ep.value.hand[1].rank() as u32,
-                ep.value.hand[2].rank() as u32,
-                ep.value.hand[3].rank() as u32);
+                lv,
+                hand[0].rank() as u32,
+                hand[1].rank() as u32,
+                hand[2].rank() as u32,
+                hand[3].rank() as u32);
         }
     }
     println!("];");
@@ -177,6 +189,13 @@ macro_rules! rk {{
     Ok(())
 }
 
+use std::time::Instant;
+
 fn main() -> Result<(), OjError> {
-    build_tables()
+    let start = Instant::now();
+    build_tables()?;
+    let duration = start.elapsed();
+    println!("Elapsed: {:?}", duration);
+
+    Ok(())
 }

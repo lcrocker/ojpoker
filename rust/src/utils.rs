@@ -1,17 +1,18 @@
 #![doc = include_str!("../doc/utils_module.md")]
 
-use std::sync::{ Mutex, OnceLock };
+use std::sync::{Mutex,OnceLock};
 use std::time::SystemTime;
 
 static SEED: OnceLock<Mutex<[u32; 4]>> = OnceLock::new();
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/PRNG) | A simple xoshiro128++ PRNG
+///
 /// I know, I know, first rule of PRNG club is don't roll your own,
 /// just use the library.
 /// But I'm pretty sure I'm one of the few people who understands this stuff
 /// well enough to bend that rule a bit, and I just don't like the standard
 /// library for this application.
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/oj_rand_next32) | Get next 32 random bitsp
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/oj_rand_next32) | Get next 32 random bits
 pub fn oj_rand_next32() -> u32 {
     let mut s = SEED.get_or_init(|| {
         let _seed = SystemTime::now().
@@ -43,9 +44,10 @@ pub fn oj_rand_next32() -> u32 {
 /// with no division, using rejection sampling. The mask `m` is created
 /// to minimize rejections, which will be at worst 50%.
 /// ```rust
-/// use onejoker::*;
+/// use onejoker::prelude::*;
+/// use onejoker::utils::oj_rand_range;
 ///
-/// let mut hand = Hand::default().init(cards!("As","Ks","Qs","Js","Ts"));
+/// let mut hand = Hand::default().init(hand!("As","Ks","Qs","Js","Ts"));
 /// let r = oj_rand_range(5);
 /// println!("Random card: {}", hand[r]);
 /// ```
@@ -69,7 +71,8 @@ pub fn oj_rand_range(limit: usize) -> usize {
 
 /// # [wiki](https://github.com/lcrocker/ojpoker/wiki/oj_shuffle) | Standard Fisher-Yates shuffle
 /// ```rust
-/// use onejoker::*;
+/// use onejoker::prelude::*;
+/// use onejoker::utils::oj_shuffle;
 ///
 /// let mut v = [1,2,3,4,5,6,7,8,9,10];
 /// oj_shuffle(&mut v);
@@ -115,7 +118,8 @@ macro_rules! compare_and_swap {
 /// Heapsort optimized for small sets like poker hands, and in descending order which is
 /// most useful for ranking and displaying poker hands.
 /// ```rust
-/// use onejoker::*;
+/// use onejoker::prelude::*;
+/// use onejoker::utils::oj_sort;
 ///
 /// let mut v = [7,1,5,10,2,3,9,4,6,8];
 /// oj_sort(&mut v);
@@ -166,7 +170,8 @@ pub fn oj_sort<T: PartialOrd>(a: &mut [T]) {
 /// Given an array of indices into a larger array, increment the 0-based
 /// indices to the next k-combination, returning true when done.
 /// ```rust
-/// use onejoker::*;
+/// use onejoker::prelude::*;
+/// use onejoker::utils::oj_next_combination;
 ///
 /// let mut a = [0,1,2];
 /// oj_next_combination(&mut a, 5);     // 0,1,3
@@ -195,7 +200,8 @@ pub fn oj_next_combination(a: &mut [usize], n: usize) -> bool {
 /// Calculate the binomial coefficient "n choose k" using a lookup table.
 /// Is only valid for n, k in the range 0..=63.
 /// ```rust
-/// use onejoker::*;
+/// use onejoker::prelude::*;
+/// use onejoker::utils::oj_binomial;
 ///
 /// assert_eq!(oj_binomial(5, 2), 10);
 /// ```
@@ -230,10 +236,10 @@ pub const COEFFICIENTS: [[u64; 64]; 64] = {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::errors::*;
+    use crate::error::Result;
 
     #[test]
-    fn test_rand_range() -> Result<(), OjError> {
+    fn test_rand_range() -> Result<()> {
         let mut array = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19];
         let mut counts = [0; 20];
 
@@ -254,7 +260,7 @@ mod tests {
     }
 
     #[test]
-    fn test_binomial_coeffiecients() -> Result<(), OjError> {
+    fn test_binomial_coeffiecients() -> Result<()> {
         assert_eq!(1, oj_binomial(0,0));
         assert_eq!(0, oj_binomial(0,1));
         assert_eq!(1, oj_binomial(1,0));
