@@ -6,7 +6,7 @@ use onejoker::prelude::*;
 use onejoker::cards::hashes::*;
 
 const DECK: &str = "low";
-const SCALE: HandScale = HandScale::AceToFive;
+const SCALE: Scale = Scale::AceToFive;
 const GAME: &str = "ACE_TO_FIVE";
 const HASH: fn(&[Card]) -> u32 = ojh_positional_mp5_low;
 
@@ -16,7 +16,7 @@ struct HandAndDescription {
 }
 impl PartialEq for HandAndDescription {
     fn eq(&self, other: &Self) -> bool {
-        self.desc.value() == other.desc.value()
+        self.desc.value == other.desc.value
     }
 }
 impl Eq for HandAndDescription {}
@@ -27,7 +27,7 @@ impl PartialOrd for HandAndDescription {
 }
 impl Ord for HandAndDescription {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.desc.value().cmp(&other.desc.value())
+        self.desc.value.cmp(&other.desc.value)
     }
 }
 
@@ -89,12 +89,12 @@ fn build_tables() -> Result<(), OjError> {
     let mut p_equiv = 0;
 
     for hv in all_hands {
-        if hv.desc.value() != p_value {
+        if hv.desc.value != p_value {
             equiv += 1;
         }
-        assert!(hv.desc.value() >= p_value);
+        assert!(hv.desc.value >= p_value);
         assert!(equiv >= p_equiv);
-        p_value = hv.desc.value();
+        p_value = hv.desc.value;
         p_equiv = equiv;
 
         let hash = HASH(&hv.hand[..]);
@@ -136,10 +136,10 @@ macro_rules! rk {{
 
     for ec in 1..=(equiv - 13) {
         let ep = &value_map[&ec];
-        let hand = ep.desc.hand();
+        let hand = ep.desc.hand;
 
         println!("  (lv!({}),rk!({},{},{},{},{})),",
-            ep.desc.level() as u32,
+            ep.desc.level as u32,
             hand[0].rank() as u32,
             hand[1].rank() as u32,
             hand[2].rank() as u32,
@@ -156,7 +156,7 @@ pub static ACTION_RAZZ_ADJUST: [u16; {}] = [ 0,
     let mut next_ec = 6176;
     for ec in 1..=(equiv - 52) {
         let ep = &value_map[&ec];
-        let hand = ep.desc.hand();
+        let hand = ep.desc.hand;
 
         if hand[0].rank() > Rank::Ten ||
             hand[1].rank() > Rank::Ten ||

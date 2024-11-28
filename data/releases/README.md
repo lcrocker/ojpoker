@@ -9,9 +9,12 @@ You can choose to enable any or all of them by enabling the
 corresponding feature in Cargo.toml, and copying files from here
 to the appropriate directories.
 
-For example, to enable fast high-hand lookups, enable the
-`"high-hand-tables"` feature in `Cargo.toml`, then copy the source
-file `high_hand_tables.rs` into the `src/poker` directory, and
-finally copy the two `ojp_high_mp\*` files to `~/.cargo/onejoker`
-(or change that directory in the source file).
+For example, to enable fast high-hand lookups, you'll first need
+to copy the source file `high_tables.rs` into the directory
+`rust/src/poker/games`. That file has a function that loads the
+large binary tables from `~/.cargo/onejoker`, so copy the binaries
+`high_\*.bin.gz` to there (or change the source to look for them
+somewhere else).
+Finally, enable the `"high-hand-tables"` feature in `Cargo.toml`.
+Each game has its own feature and its own set of files.
 

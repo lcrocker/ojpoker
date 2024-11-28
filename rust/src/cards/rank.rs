@@ -1,6 +1,16 @@
 //! [wiki](https://github.com/lcrocker/ojpoker/wiki/Rank) | Simple numeric enum for card ranks
+//! # Examples
+//! ```
+//! use onejoker::prelude::*;
+//!
+//! let r = Rank::Six;
+//! println!("{}, {}, {}", r.name(), r.to_char(),
+//!     Rank::from_char('J'));
+//! ```
 
 use crate::error::{Error,Result};
+#[cfg(feature = "serde")]
+use serde::{Serialize, Deserialize};
 
 /// [wiki](https://github.com/lcrocker/tspoker/wiki/Rank) | Simple numeric enum for card ranks
 ///
@@ -13,13 +23,14 @@ use crate::error::{Error,Result};
 /// [Knight](https://github.com/lcrocker/ojpoker/wiki/Knight) @ wiki
 /// for details.
 
-#[allow(dead_code)]
 #[repr(u8)]
-#[derive(PartialEq, PartialOrd, Eq, Ord, Clone, Copy, Debug, Hash)]
+#[derive(PartialEq, PartialOrd, Eq, Ord, Clone, Copy, Debug, Hash, Default)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[allow(missing_docs)]
 pub enum Rank {
     None = 0,
     LowAce = 1,
+    #[default]
     Deuce = 2,
     Trey = 3,
     Four = 4,
@@ -164,9 +175,16 @@ impl std::fmt::Display for Rank {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::cmp::{PartialOrd, PartialEq, Eq, Ord};
+    use std::marker::{Sized, Send, Sync, Unpin};
+    use std::fmt::{Debug, Display};
+
+    fn has_traits<T: Debug + Display + PartialOrd + PartialEq + Eq + Ord + Clone + Copy +
+        std::hash::Hash + std::default::Default + Sized + Send + Sync + Unpin>() {}
 
     #[test]
     fn test_ranks() -> Result<()> {
+        has_traits::<Rank>();
         assert_eq!(Rank::LowAce as i32, 1);
 
         assert_eq!("ace", Rank::LowAce.name());

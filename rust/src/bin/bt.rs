@@ -6,16 +6,21 @@ use std::io::Write;
 use onejoker::prelude::*;
 use onejoker::cards::hashes::*;
 
-const DECK: &str = "english";
-const SCALE: HandScale = HandScale::HighHand;
-const GAME: &str = "HIGH_HAND";
-const HASH: fn(&[Card]) -> u32 = ojh_mp7_english;
+// const DECK: &str = "english";
+// const SCALE: HandScale = HandScale::HighHand;
+// const GAME: &str = "HIGH_HAND";
+// const HASH: fn(&[Card]) -> u32 = ojh_mp5_english;
 
 // const DECK: &str = "english";
-// const SCALE: HandScale = HandScale::DeuceToSeven;
-// const GAME: &str = "DEUCE_TO_SEVEN";
-// const HASH: fn(&[Card]) -> u32 = |c|
-//    ojh_mp5_english(ojh_bitfield_64co(c).unwrap());
+// const SCALE: HandScale = HandScale::HighHand;
+// const GAME: &str = "HIGH_HAND";
+// const HASH: fn(&[Card]) -> u32 = ojh_mp7_english;
+
+const DECK: &str = "english";
+const SCALE: Scale = Scale::DeuceToSeven;
+const GAME: &str = "DEUCE_TO_SEVEN";
+const HASH: fn(&[Card]) -> u32 = ojh_mp5_english;
+// const FILE: &str = "./ojp_deuce_to_seven_mp5_table_1.bin";
 
 // const DECK: &str = "low";
 // const SCALE: HandScale = HandScale::AceToSix;
@@ -47,7 +52,7 @@ struct HandAndDescription {
 }
 impl PartialEq for HandAndDescription {
     fn eq(&self, other: &Self) -> bool {
-        self.desc.value() == other.desc.value()
+        self.desc.value == other.desc.value
     }
 }
 impl Eq for HandAndDescription {}
@@ -58,7 +63,7 @@ impl PartialOrd for HandAndDescription {
 }
 impl Ord for HandAndDescription {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.desc.value().cmp(&other.desc.value())
+        self.desc.value.cmp(&other.desc.value)
     }
 }
 
@@ -101,12 +106,12 @@ fn build_tables() -> Result<(), OjError> {
 
     let total = all_hands.len();
     for hv in all_hands {
-        if hv.desc.value() != p_value {
+        if hv.desc.value != p_value {
             equiv += 1;
         }
-        assert!(hv.desc.value() >= p_value);
+        assert!(hv.desc.value >= p_value);
         assert!(equiv >= p_equiv);
-        p_value = hv.desc.value();
+        p_value = hv.desc.value;
         p_equiv = equiv;
 
         let hash = HASH(&hv.hand[..]);
@@ -161,17 +166,17 @@ macro_rules! rk {{
     for ec in 1..=equiv {
         let ep = value_map.get_mut(&ec).unwrap();
         if 5 == SCALE.complete_hand() {
-            let hand = ep.desc.hand();
+            let hand = ep.desc.hand;
             println!("  (lv!({}),rk!({},{},{},{},{})),",
-                ep.desc.level() as u32,
+                ep.desc.level as u32,
                 hand[0].rank() as u32,
                 hand[1].rank() as u32,
                 hand[2].rank() as u32,
                 hand[3].rank() as u32,
                 hand[4].rank() as u32);
         } else {
-            let lv = ep.desc.level() as u32;
-            let hand = ep.desc.mut_hand();
+            let lv = ep.desc.level as u32;
+            let hand = &mut ep.desc.hand;
             if lv > 11 { hand[3] = Card(0); }
             if lv > 12 { hand[2] = Card(0); }
             if lv > 13 { hand[1] = Card(0); }

@@ -1,8 +1,10 @@
 //! [wiki](https://github.com/lcrocker/ojpoker/wiki/Deck) | "Live" deck of cards for play
 
-use crate::error::{Error,Result};
+use crate::error::{Error, Result};
 use crate::cards::*;
 use crate::utils::*;
+#[cfg(feature = "serde")]
+use serde::{Serialize, Deserialize};
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/Deck) | "Live" deck of cards for play
 ///
@@ -12,7 +14,9 @@ use crate::utils::*;
 /// when printing for this reason to bake debugging easier. Cards in the
 /// deck are not accessed randomly by index, though they can be removed
 /// by value.
+#[repr(C)]
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Deck {
     /// Current contents of the deck
     cards: Vec<Card>,
@@ -201,10 +205,8 @@ impl Deck {
     /// assert!(! d.contains(card!("Jk")));
     /// ```
     pub fn contains(&self, card: Card) -> bool {
-        if let Some(c) = self.deck_type.valid_card(card) {
-            return self.cards.contains(&c);
-        }
-        false
+        let c = self.deck_type.fix_ace(card);
+        self.cards.contains(&c)
     }
 
     /// Push a [Card] onto the deck
@@ -221,11 +223,9 @@ impl Deck {
     /// d.push(burn.pop().unwrap());
     /// ```
     pub fn push(&mut self, card: Card) -> bool {
-        if let Some(c) = self.deck_type.valid_card(card) {
-            self.cards.push(c);
-            return true;
-        }
-        false
+        let c = self.deck_type.valid_card(card);
+        self.cards.push(c);
+        true
     }
 
     /// Pop a [Card] from the deck
@@ -467,6 +467,43 @@ impl std::fmt::Display for Deck {
     }
 }
 
+impl std::hash::Hash for Deck {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.deck_type.hash(state);
+        self.cards.hash(state);
+    }
+}
+
+impl std::cmp::PartialEq for Deck {
+    fn eq(&self, other: &Self) -> bool {
+        if self.deck_type != other.deck_type {
+            return false;
+        }
+        if self.len() != other.len() {
+            return false;
+        }
+        for i in 0..self.len() {
+            if self.cards[i] != other.cards[i] {
+                return false;
+            }
+        }
+        true
+    }
+}
+impl std::cmp::Eq for Deck {}
+
+impl std::cmp::PartialOrd for Deck {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl std::cmp::Ord for Deck {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.deck_type.cmp(&other.deck_type)
+    }
+}
+
 impl Deck {
     /// Create a new iterator over the deck.
     pub fn iter(&self) -> CardIter {
@@ -536,9 +573,17 @@ impl Iterator for CardCombinationIter {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::cmp::{PartialOrd, PartialEq, Eq, Ord};
+    use std::marker::{Sized, Send, Sync, Unpin};
+    use std::fmt::{Debug, Display};
+
+    fn has_traits<T: Debug + Display + PartialOrd + PartialEq + Eq + Ord + Clone +
+        std::hash::Hash + std::default::Default + Sized + Send + Sync + Unpin>() {}
 
     #[test]
     fn test_live_deck() -> Result<()> {
+        has_traits::<Deck>();
+
         let mut d1 = Deck::new(DeckType::English);
         let mut d2 = Deck::new_by_name("52");
 

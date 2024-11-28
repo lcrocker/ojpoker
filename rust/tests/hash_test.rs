@@ -1,18 +1,22 @@
 
+#[cfg(feature = "serde")]
 use serde::Deserialize;
-use onejoker::prelude::*;
-use onejoker::utils::oj_shuffle;
-use onejoker::cards::hashes::*;
 
+use onejoker::prelude::*;
+
+#[cfg(feature = "serde")]
 type HandData = (i32, String, u64);
 
 /// JSON file structure
-#[derive(Deserialize, Debug)]
+#[cfg(feature = "serde")]
+#[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(Deserialize))]
 struct RandomHandDataFile {
     decks: Vec<String>,
     hands: Vec<HandData>,
 }
 
+#[cfg(feature = "serde")]
 fn ranks_identical(h1: &Hand, h2: &Hand) -> bool {
     if h1.len() != h2.len() {
         return false;
@@ -25,6 +29,7 @@ fn ranks_identical(h1: &Hand, h2: &Hand) -> bool {
     true
 }
 
+#[cfg(feature = "serde")]
 fn reorder(h: &Hand) -> Hand {
     let mut ret = *h;
     if h.len() < 2 {
@@ -44,6 +49,7 @@ fn reorder(h: &Hand) -> Hand {
     ret
 }
 
+#[cfg(feature = "serde")]
 fn resuit(h: &Hand) -> Hand {
     let mut ret = *h;
     for i in 0..h.len() {
@@ -60,9 +66,12 @@ fn resuit(h: &Hand) -> Hand {
 }
 
 #[test]
+#[cfg(feature = "serde")]
 fn test_hash_data_file() -> OjResult<()> {
     use std::fs::File;
     use std::io::BufReader;
+    use onejoker::cards::hashes::*;
+    use onejoker::utils::oj_shuffle;
 
     let file = File::open("../data/json/random_hands_100k.jsonc")?;
     let mut reader = BufReader::new(file);
@@ -142,5 +151,10 @@ fn test_hash_data_file() -> OjResult<()> {
         assert_eq!(ojh_prime_32cos(&h1[..])?, ojh_prime_32cos(&h3[..])?);
         assert_eq!(ojh_prime_32cos(&h1[..])?, ojh_prime_32cos(&h4[..])?);
     }
+    Ok(())
+}
+
+#[test]
+fn test_no_json() -> OjResult<()> {
     Ok(())
 }

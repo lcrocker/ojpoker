@@ -1,4 +1,4 @@
-//! [wiki](https://github.com/lcrocker/ojpoker/wiki/Suit) | A simple numeric enum for card suits.
+//! [wiki](https://github.com/lcrocker/ojpoker/wiki/Suit) | A simple numeric enum for card suits
 //! # Examples
 //! ```
 //! use onejoker::prelude::*;
@@ -8,20 +8,23 @@
 //!     s.to_symbol(), Suit::from_char('d'));
 //! ```
 
-use crate::error::{Error,Result};
+use crate::error::{Error, Result};
+#[cfg(feature = "serde")]
+use serde::{Serialize, Deserialize};
 
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Suit) | A simple numeric enum for card suits.
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Suit) | A simple numeric enum for card suits
 ///
 /// Specific numbers do matter: I do a lot of math with them to optimize
 /// things, and the same numbers are used in the other languages.
 
-#[allow(dead_code)]
 #[repr(u8)]
-#[derive(PartialEq, PartialOrd, Eq, Ord, Clone, Copy, Debug, Hash)]
+#[derive(PartialEq, PartialOrd, Eq, Ord, Clone, Copy, Debug, Hash, Default)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Suit {
     /// Joker, etc.
     None = 0,
     /// Clubs / Batons / Acorns / Wands
+    #[default]
     Club = 1,
     /// Diamonds / Coins / Bells / Pentacles
     Diamond = 2,
@@ -152,9 +155,17 @@ impl std::str::FromStr for Suit {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::cmp::{PartialOrd, PartialEq, Eq, Ord};
+    use std::marker::{Sized, Send, Sync, Unpin};
+    use std::fmt::{Debug, Display};
+
+    fn has_traits<T: Debug + Display + PartialOrd + PartialEq + Eq + Ord + Clone + Copy +
+        std::hash::Hash + std::default::Default + Sized + Send + Sync + Unpin>() {}
 
     #[test]
     fn test_suits() -> Result<()> {
+        has_traits::<Suit>();
+
         macro_rules! suittests {
             ( $x:ident, $v:literal, $c:literal, $u:literal, $n:literal, $p:literal ) => {
                 {

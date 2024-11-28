@@ -6,6 +6,10 @@ import { FACE_JC } from "./face_jc.ts";
 import { FACE_JD } from "./face_jd.ts";
 import { FACE_JH } from "./face_jh.ts";
 import { FACE_JS } from "./face_js.ts";
+import { FACE_QC } from "./face_qc.ts";
+import { FACE_QD } from "./face_qd.ts";
+import { FACE_QH } from "./face_qh.ts";
+import { FACE_QS } from "./face_qs.ts";
 import { DECORATION_AS } from "./decoration_as.ts";
 import { JOKERS } from "./faces_jk.ts";
 
@@ -549,6 +553,18 @@ class Face extends Layer {
             case "Js":
                 path = FACE_JS;
                 break;
+            case "Qc":
+                path = FACE_QC;
+                break;
+            case "Qd":
+                path = FACE_QD;
+                break;
+            case "Qh":
+                path = FACE_QH;
+                break;
+            case "Qs":
+                path = FACE_QS;
+                break;
             default:
                 path = "";
         }
@@ -636,7 +652,7 @@ function buildFullDeck(): string {
     let out: string =
 `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg width="17500px" height="9000px"
-viewBox="0 0 17500 9000"
+viewBox="0 0 87500 45000"
 version="1.1" id="deck"
 xmlns="http://www.w3.org/2000/svg"
 xmlns:svg="http://www.w3.org/2000/svg">

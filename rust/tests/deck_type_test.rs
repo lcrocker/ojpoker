@@ -1,9 +1,13 @@
 //@ tests/master_deck_test.rs
 
+#[cfg(feature = "serde")]
 use serde::Deserialize;
+
 use onejoker::prelude::*;
 
-#[derive(Deserialize, Debug)]
+#[cfg(feature = "serde")]
+#[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize,Deserialize))]
 struct MasterDeckInfo {
     name: String,
     dups_allowed: bool,
@@ -13,10 +17,13 @@ struct MasterDeckInfo {
 }
 
 /// JSON file structure
-#[derive(Deserialize, Debug)]
+#[cfg(feature = "serde")]
+#[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize,Deserialize))]
 struct MasterDeckDataFile(Vec<MasterDeckInfo>);
 
 #[test]
+#[cfg(feature = "serde")]
 fn test_masterdeck_file() -> OjResult<()> {
     use std::fs::File;
     use std::io::BufReader;
@@ -37,5 +44,10 @@ fn test_masterdeck_file() -> OjResult<()> {
             assert_eq!(t, DeckType::by_name(&info.aliases[j]));
         }
     }
+    Ok(())
+}
+
+#[test]
+fn test_no_json() -> OjResult<()> {
     Ok(())
 }

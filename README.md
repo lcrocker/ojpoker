@@ -1,4 +1,4 @@
-# ojpoker | Updated: November 20, 2024
+# ojpoker | Updated: November 28, 2024
 
 This is code for the [OneJoker](https://onejoker.org) project,
 aiming to create libraries and other digital tools for handling playing cards
@@ -53,17 +53,13 @@ TypeScript language binding coming soon...
 
 Language binding coming soon...
 
-# Data files
+# Lookup table files
 
-I use many serialized data sets for things like test data and pre-computed
-lookup tables. The smaller and more necessary ones are checked into the repo
-in the `data` directory, but some are very large and do not change often,
-so they are not under source control. They can be downloaded from the repo's
-[Releases](https://githib.com/lcrocker/ojpoker/releases) area.
-
-If you copy the `.rs` files from releases into the Rust `src/poker` area,
-you may then enable extra features in `Cargo.toml` to use those perfect hash
-tables for poker hand evaluation.
+The poker code can optionally use large binary lookup tables to speed up
+its hand evaluations.
+These are not checked into the repo.
+The [Releases](https://githib.com/lcrocker/ojpoker/releases) area contains
+these files, along with a README that explains how to use them.
 
 ## Card images
 

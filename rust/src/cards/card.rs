@@ -1,6 +1,8 @@
 //! [wiki](https://github.com/lcrocker/ojpoker/wiki/Card) | A simple card object wrapping a u8
 
 use paste::paste;
+#[cfg(feature = "serde")]
+use serde::{Serialize, Deserialize};
 
 use crate::error::{Error,Result};
 use crate::cards::rank::*;
@@ -15,8 +17,8 @@ pub type Ordinal = u8;  // some machines might be faster with u32?
 ///
 /// A simple new-type wrapper around the `Ordinal` value,
 /// which is just an alias for u8.
-#[allow(dead_code)]
 #[derive(PartialEq, PartialOrd, Eq, Ord, Copy, Clone, Hash, Default)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Card(pub Ordinal);
 
 /// Make const Card object from string. For example, `card!("Ac")`
@@ -451,10 +453,18 @@ cardconst!(ACE_OF_SPADES, 63);
  #[cfg(test)]
  mod tests {
     use super::*;
+    use std::cmp::{PartialOrd, PartialEq, Eq, Ord};
+    use std::marker::{Sized, Send, Sync, Unpin};
+    use std::fmt::{Debug, Display};
+
+    fn has_traits<T: Debug + Display + PartialOrd + PartialEq + Eq + Ord + Clone + Copy +
+        std::hash::Hash + std::default::Default + Sized + Send + Sync + Unpin>() {}
 
      #[test]
      fn test_cards() -> Result<()> {
-         macro_rules! cardtests {
+        has_traits::<Card>();
+
+        macro_rules! cardtests {
             ( $x:ident, $v:literal, $r:ident, $s:ident, $t:literal, $u:literal,
                 $laf:literal, $haf:literal, $isj:literal, $isa:literal,
                 $isr:literal, $isb:literal, $fn:literal ) => {

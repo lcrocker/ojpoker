@@ -3,6 +3,8 @@
 use std::sync::atomic::{ AtomicU8, Ordering };
 
 use crate::cards::*;
+#[cfg(feature = "serde")]
+use serde::{Serialize,Deserialize};
 
 static DEFAULT_DECK_TYPE: AtomicU8 = AtomicU8::new(1);
 
@@ -10,7 +12,8 @@ static DEFAULT_DECK_TYPE: AtomicU8 = AtomicU8::new(1);
 ///
 /// Contains information about the kinds of decks used in various card games.
 #[repr(u8)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum DeckType {
     /// None / Invalid
     None = 0,
@@ -223,11 +226,10 @@ impl DeckType {
     /// use onejoker::prelude::*;
     ///
     /// let dt = DeckType::by_name("lowball");
-    /// assert_eq!(LOW_ACE_OF_CLUBS, dt.valid_card(ACE_OF_CLUBS).unwrap());
-    /// assert_eq!(DEUCE_OF_CLUBS, dt.valid_card(DEUCE_OF_CLUBS).unwrap());
-    /// assert_eq!(None, dt.valid_card(KNIGHT_OF_CLUBS));
+    /// assert_eq!(LOW_ACE_OF_CLUBS, dt.valid_card(ACE_OF_CLUBS));
+    /// assert_eq!(DEUCE_OF_CLUBS, dt.valid_card(DEUCE_OF_CLUBS));
     /// ```
-    pub const fn valid_card(&self, cin: Card) -> Option<Card> {
+    pub const fn valid_card(&self, cin: Card) -> Card {
         let g = &DECK_INFO_TABLE[*self as usize - 1];
 
         let cout = if g.low_aces {
@@ -235,10 +237,17 @@ impl DeckType {
         } else {
             Card::high_ace_fix(cin)
         };
-        if 0 != (g.card_set & (1 << cout.0)) {
-            Some(cout)
+        assert!(0 != g.card_set & (1 << cout.0), "invalid card");
+        cout
+    }
+
+    /// Fix incoming aces for this deck
+    pub const fn fix_ace(&self, cin: Card) -> Card {
+        let g = &DECK_INFO_TABLE[*self as usize - 1];
+        if g.low_aces {
+            Card::low_ace_fix(cin)
         } else {
-            None
+            Card::high_ace_fix(cin)
         }
     }
 }
@@ -246,6 +255,12 @@ impl DeckType {
 impl std::convert::From<u8> for DeckType {
     fn from(n: u8) -> Self {
         DeckType::from_u8(n)
+    }
+}
+
+impl std::fmt::Display for DeckType {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.name())
     }
 }
 
@@ -360,9 +375,17 @@ mod tests {
     use super::*;
     use crate::error::Result;
     use crate::utils::oj_rand_range;
+    use std::cmp::{PartialOrd, PartialEq, Eq, Ord};
+    use std::marker::{Sized, Send, Sync, Unpin};
+    use std::fmt::{Debug, Display};
+
+    fn has_traits<T: Debug + Display + PartialOrd + PartialEq + Eq + Ord + Clone + Copy +
+        std::hash::Hash + std::default::Default + Sized + Send + Sync + Unpin>() {}
 
     #[test]
     fn deck_type_test() -> Result<()> {
+        has_traits::<DeckType>();
+
         assert_eq!(DeckType::default(), DeckType::AllCards);
         assert_eq!(DeckType::by_name("default"), DeckType::AllCards);
         assert_eq!(DeckType::by_name("poker"), DeckType::English);
@@ -403,19 +426,14 @@ mod tests {
 
             for _ in 0..10 {
                 let card = Card(1 + oj_rand_range(63) as u8);
-                let vc = dt.valid_card(card);
-
-                if let Some(c) = vc {
-                    if dt.low_aces() {
-                        assert_eq!(c, Card::low_ace_fix(card));
-                    } else {
-                        assert_eq!(c, Card::high_ace_fix(card));
-                    }
-                    assert!(dt.has(c));
-                    assert!(0 != (mask & (1 << c.0)));
+                let c: Card =
+                if dt.low_aces() {
+                    Card::low_ace_fix(card)
                 } else {
-                    assert!(!dt.has(card));
-                    assert!(0 == (mask & (1 << card.0)));
+                    Card::high_ace_fix(card)
+                };
+                if dt.has(c) {
+                    assert!(0 != (mask & (1 << c.0)));
                 }
             }
             match dt.name() {

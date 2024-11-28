@@ -77,6 +77,9 @@ pub const fn ojh_uhash_32(inp: u32, param: u32) -> u32 {
     v
 }
 
+/// Original SplitMix64 constant
+pub const OJH_SPLIT_MIX_CONSTANT: u64 = 0x9E37_79B9_7F4A_7C15;
+
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/Universal_Hash) | 64-bit universal hash
 ///
 /// Simple and fast 64-bit integer-to-integer universal hash function.

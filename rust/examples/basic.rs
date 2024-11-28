@@ -8,16 +8,16 @@ fn main() -> OjResult<()> {
 
     println!("Player 1: [{}], Player 2: [{}]", h1, h2);
 
-    let game = HandScale::by_name("high-hand");
+    let game = Scale::by_name("high-hand");
     let v1 = game.eval(&h1)?;
     let v2 = game.eval(&h2)?;
 
-    if v1.value() < v2.value() {
-        println!("Player 1 wins with [{}]", v1.full_name());
-    } else if v1.value() > v2.value() {
-        println!("Player 2 wins with [{}]", v2.full_name());
+    if v1 < v2 {
+        println!("Player 1 wins with [{}] ({})", v1, v1.full_name());
+    } else if v1 > v2 {
+        println!("Player 2 wins with [{}] ({})", v2, v2.full_name());
     } else {
-        println!("Players tie with [{}]", v1.full_name());
+        println!("Players tie with [{}] ({})", v1, v1.full_name());
     }
     Ok(())
 }

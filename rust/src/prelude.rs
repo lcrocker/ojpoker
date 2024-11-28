@@ -1,4 +1,7 @@
-//! [wiki](https://github.com/lcrocker/ojpoker/wiki/Prelude)
+//! [wiki](https://github.com/lcrocker/ojpoker/wiki/Prelude) | Commonly used imports
+//!
+//! This module re-exports all the functions, types, and macros that most users
+//! of the library will need.
 
 pub use crate::error::{Error as OjError, Result as OjResult};
 pub use crate::cards::suit::Suit;
@@ -28,8 +31,8 @@ pub use crate::cards::card_parse::card_parse;
 pub use crate::cards::deck_type::DeckType;
 pub use crate::cards::deck::Deck;
 pub use crate::cards::hand::Hand;
-pub use crate::poker::hand_scale::HandScale;
+pub use crate::poker::hand_scale::Scale;
 
-pub use crate::poker::hand_evaluation::{
+pub use crate::poker::hand_description::{
     HandLevel, HandValue, HandDescription,
 };

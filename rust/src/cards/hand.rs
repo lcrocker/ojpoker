@@ -3,6 +3,8 @@
 use std::ops::{Index, IndexMut};
 use crate::utils::*;
 use crate::cards::*;
+#[cfg(feature = "serde")]
+use serde::{Serialize, Deserialize};
 
 const MAX_HAND_SIZE: usize = 22;
 
@@ -14,6 +16,7 @@ const MAX_HAND_SIZE: usize = 22;
 /// Limited to 22 cards. If you need more, you can use `Vec<Card>`, but you
 /// lose some error checking and convenience methods.
 #[derive(Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[repr(C)]
 pub struct Hand {
     /// Array of [Card]s
@@ -21,7 +24,7 @@ pub struct Hand {
     /// Number of cards in the hand
     pub length: u8,
     /// [DeckType] associated with this hand
-    pub deck_type: u8,
+    pub deck_type: DeckType
 }
 
 impl Hand {
@@ -31,12 +34,22 @@ impl Hand {
     ///
     /// let h = Hand::new(DeckType::OneJoker);
     /// ```
-    pub fn new(t: DeckType) -> Hand {
+    pub fn new(deck_type: DeckType) -> Hand {
         Hand {
             cards: [Card::default(); MAX_HAND_SIZE],
             length: 0,
-            deck_type: t as u8,
+            deck_type,
         }
+    }
+
+    /// Clone the hand, change its deck type, and fix the aces
+    pub fn convert_decktype(&self, t: DeckType) -> Hand {
+        let mut h = *self;
+        h.deck_type = t;
+        for i in 0..h.len() {
+            h.cards[i] = t.fix_ace(h.cards[i]);
+        }
+        h
     }
 
     /// Create new [Hand] from name of deck or game
@@ -49,7 +62,7 @@ impl Hand {
         Hand {
             cards: [Card::default(); MAX_HAND_SIZE],
             length: 0,
-            deck_type: DeckType::by_name(dname) as u8,
+            deck_type: DeckType::by_name(dname),
         }
     }
 
@@ -94,7 +107,7 @@ impl Hand {
     /// ```
     #[inline]
     pub fn deck_type(&self) -> DeckType {
-        DeckType::from_u8(self.deck_type)
+        self.deck_type
     }
 
     /// How many cards in the hand?
@@ -172,14 +185,8 @@ impl Hand {
     /// assert_eq!(h.index_of(FOUR_OF_CLUBS), None);
     /// ```
     pub fn index_of(&self, card: Card) -> Option<usize> {
-        if let Some(c) = self.deck_type().valid_card(card) {
-            for i in 0..(self.length as usize) {
-                if c == self.cards[i] {
-                    return Some(i);
-                }
-            }
-        }
-        None
+        let c = self.deck_type().fix_ace(card);
+        (0..(self.length as usize)).find(|&i| c == self.cards[i])
     }
 
     /// Does the hand contain the given [Card]?
@@ -191,11 +198,10 @@ impl Hand {
     /// assert!(! h.contains(FOUR_OF_CLUBS));
     /// ```
     pub fn contains(&self, card: Card) -> bool {
-        if let Some(c) = self.deck_type().valid_card(card) {
-            for i in 0..(self.length as usize) {
-                if c == self.cards[i] {
-                    return true;
-                }
+        let c = self.deck_type().fix_ace(card);
+        for i in 0..(self.length as usize) {
+            if c == self.cards[i] {
+                return true;
             }
         }
         false
@@ -232,11 +238,9 @@ impl Hand {
         if index >= (self.length as usize) {
             return false;
         }
-        if let Some(c) = self.deck_type().valid_card(card) {
-            self.cards[index] = c;
-            return true;
-        }
-        false
+        let c = self.deck_type().valid_card(card);
+        self.cards[index] = c;
+        true
     }
 
     /// Push a [Card] onto the end of the hand
@@ -251,12 +255,10 @@ impl Hand {
         if (self.length as usize) >= MAX_HAND_SIZE {
             return false;
         }
-        if let Some(c) = self.deck_type().valid_card(card) {
-            self.cards[self.length as usize] = c;
-            self.length += 1;
-            return true;
-        }
-        false
+        let c = self.deck_type().valid_card(card);
+        self.cards[self.length as usize] = c;
+        self.length += 1;
+        true
     }
 
     /// Pop a [Card] from the end of the hand
@@ -293,14 +295,13 @@ impl Hand {
             if (self.length as usize) >= MAX_HAND_SIZE {
                 break;
             }
-            if let Some(cout) = self.deck_type().valid_card(c) {
-                self.cards[self.length as usize] = cout;
-                self.length += 1;
-                pushed += 1;
+            let cout = self.deck_type().valid_card(c);
+            self.cards[self.length as usize] = cout;
+            self.length += 1;
+            pushed += 1;
 
-                if pushed >= n {
-                    break;
-                }
+            if pushed >= n {
+                break;
             }
         }
         pushed
@@ -323,11 +324,10 @@ impl Hand {
             if (self.length as usize) >= MAX_HAND_SIZE {
                 break;
             }
-            if let Some(cout) = self.deck_type().valid_card(c) {
-                self.cards[self.length as usize] = cout;
-                self.length += 1;
-                pushed += 1;
-            }
+            let cout = self.deck_type().valid_card(c);
+            self.cards[self.length as usize] = cout;
+            self.length += 1;
+            pushed += 1;
         }
         pushed
     }
@@ -393,14 +393,13 @@ impl Hand {
         if index <= (self.length as usize) &&
             (self.length as usize) < MAX_HAND_SIZE {
 
-            if let Some(c) = self.deck_type().valid_card(card) {
-                for i in (index..(self.length as usize)).rev() {
-                    self.cards[i + 1] = self.cards[i];
-                }
-                self.cards[index] = c;
-                self.length += 1;
-                return true;
+            let c = self.deck_type().valid_card(card);
+            for i in (index..(self.length as usize)).rev() {
+                self.cards[i + 1] = self.cards[i];
             }
+            self.cards[index] = c;
+            self.length += 1;
+            return true;
         }
         false
     }
@@ -813,6 +812,51 @@ impl std::default::Default for Hand {
     }
 }
 
+impl std::hash::Hash for Hand {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        for i in 0..(self.length as usize) {
+            self.cards[i].hash(state);
+        }
+    }
+}
+
+impl std::cmp::PartialEq for Hand {
+    fn eq(&self, other: &Self) -> bool {
+        self.equals(other)
+    }
+}
+impl std::cmp::Eq for Hand {}
+
+impl std::cmp::Ord for Hand {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        match self.length.cmp(&other.length) {
+            std::cmp::Ordering::Less => std::cmp::Ordering::Less,
+            std::cmp::Ordering::Greater => std::cmp::Ordering::Greater,
+            _ => {
+                let mut sv = self.to_vec();
+                let mut ov = other.to_vec();
+                oj_sort(&mut sv);
+                oj_sort(&mut ov);
+
+                for i in 0..self.length as usize {
+                    match sv[i].cmp(&ov[i]) {
+                        std::cmp::Ordering::Less => return std::cmp::Ordering::Less,
+                        std::cmp::Ordering::Greater => return std::cmp::Ordering::Greater,
+                        _ => (),
+                    }
+                }
+                std::cmp::Ordering::Equal
+            }
+        }
+    }
+}
+
+impl std::cmp::PartialOrd for Hand {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 /// Iterator over [Card]s
 pub struct CardIter {
     cards: Vec<Card>,
@@ -934,9 +978,17 @@ impl Iterator for CardCombinationIter {
 mod tests {
     use super::*;
     use crate::error::Result;
+    use std::cmp::{PartialOrd, PartialEq, Eq, Ord};
+    use std::marker::{Sized, Send, Sync, Unpin};
+    use std::fmt::{Debug, Display};
+
+    fn has_traits<T: Debug + Display + PartialOrd + PartialEq + Eq + Ord + Clone + Copy +
+        std::hash::Hash + std::default::Default + Sized + Send + Sync + Unpin>() {}
 
     #[test]
     fn test_hand_methods() -> Result<()> {
+        has_traits::<Hand>();
+
         let d = Deck::default();
         let mut h = d.new_hand();
         assert_eq!(h.len(), 0);

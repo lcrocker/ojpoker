@@ -1,4 +1,6 @@
+
 use wasm_bindgen::prelude::*;
+extern crate onejoker;
 
 #[wasm_bindgen]
 pub fn add(a: i32, b: i32) -> i32 {
