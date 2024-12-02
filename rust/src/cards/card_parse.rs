@@ -28,6 +28,8 @@ impl<'a> Iterator for CardParseIter<'a> {
     type Item = Card;
 
     fn next(&mut self) -> Option<Self::Item> {
+        // No loop guard here. If the first character of the first card
+        // appears after 12GB of whitespace, we'll find it.
         loop {
             match self.state {
                 CardParseState::Initial => {

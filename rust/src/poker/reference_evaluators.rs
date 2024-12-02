@@ -1,44 +1,44 @@
 //! [wiki](https://github.com/lcrocker/ojpoker/wiki/Reference_Evaluators) | Standard evaluators
 
-use crate::error::Result;
-use crate::utils::*;
-use crate::cards::*;
+use crate::prelude::*;
+use crate::utils::oj_sort;
+use crate::cards::hashes::ojh_positional_32cs;
 use crate::poker::*;
 
-/// Return just numeric value to compare hands.
-pub type FixedHandEvaluatorQuick = fn(&Hand) -> HandValue;
-/// Return full record of hand value info.
-pub type FixedHandEvaluatorFull = fn(&Hand) -> Result<HandDescription>;
+/// Should be enough to leave room for all rank combinations between levels
+pub const HAND_LEVEL_MULTIPLIER: u32 = 0x100000;
 
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_best_of) | Best n-card hand from larger set
-///
-/// Given a large hand and fixed-length evaluator, find the best hand
-/// of that length from the larger set.
-pub fn ojp_best_of(h: &Hand, g: Scale,
-eval: FixedHandEvaluatorFull) -> Result<HandDescription> {
-    let mut best_value = HAND_VALUE_WORST;
-    let mut best: HandDescription = HandDescription::worst();
-    debug_assert!(h.len() >= g.complete_hand());
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_default_hand_value) | Default hand value calculator
+pub fn ojp_default_hand_value(h: &Hand, g: Scale, l: HandLevel) -> HandValue {
+    let max = if h.len() > g.complete_hand() {
+        g.complete_hand()
+    } else {
+        h.len()
+    };
+    let h: u32 = ojh_positional_32cs(&h[..max])
+        .expect("already checked");
 
-    for sub in h.combinations(g.complete_hand()) {
-        let desc = eval(&sub)?;
-        if desc.value < best_value {
-            best_value = desc.value;
-            best = desc;
-        }
+    HAND_LEVEL_MULTIPLIER * g.value_from_level(l)
+    + if g.low_hands() {
+        h
+    } else {
+        h ^ 0xFFFFF
     }
-    Ok(best)
 }
+
+/// Return numeric value to compare hands.
+pub type HandEvaluator = fn(&Hand) -> HandValue;
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_best_value_of) | Best n-card hand value from larger set
 ///
-/// Given a large hand and evaluator, find the best 5-card hand value, no description.
-pub fn ojp_best_value_of(h: &Hand, g: Scale,
-eval: FixedHandEvaluatorQuick) -> HandValue {
+/// Given a large hand and evaluator, find the best n-card hand value.
+pub fn ojp_best_of(h: &Hand, k: usize, g: Scale, eval: HandEvaluator)
+-> HandValue {
     let mut best = HAND_VALUE_WORST;
-    debug_assert!(h.len() >= g.complete_hand());
+    debug_assert!(k >= g.complete_hand());
+    debug_assert!(h.len() > k);
 
-    for sub in h.combinations(g.complete_hand()) {
+    for sub in h.combinations(k) {
         let v = eval(&sub);
         if v < best {
             best = v;
@@ -89,6 +89,7 @@ const MEXICAN_RANK_ORDER: [i8; 16] = [
 
 fn is_straight(h: &mut Hand, g: Scale) -> bool {
     debug_assert!(is_sorted_descending(&h[..]));
+
     if h.len() != g.complete_hand() {
         return false;
     }
@@ -127,7 +128,7 @@ fn is_straight(h: &mut Hand, g: Scale) -> bool {
         }
     }
     if g.spanish_gap() {
-        for i in 1..g.complete_hand() {
+        for i in 1..h.len() {
             if MEXICAN_RANK_ORDER[h[i].rank() as usize] + 1 !=
                 MEXICAN_RANK_ORDER[h[i - 1].rank() as usize] {
 
@@ -135,7 +136,7 @@ fn is_straight(h: &mut Hand, g: Scale) -> bool {
             }
         }
     } else {
-        for i in 1..g.complete_hand() {
+        for i in 1..h.len() {
             if POKER_RANK_ORDER[h[i].rank() as usize] + 1 !=
                 POKER_RANK_ORDER[h[i - 1].rank() as usize] {
 
@@ -167,12 +168,7 @@ fn is_quads(h: &mut Hand) -> bool {
         h[1].rank() == h[3].rank() &&
         h[1].rank() == h[4].rank() {
 
-        let tc = h[0];
-        h[0] = h[1];
-        h[1] = h[2];
-        h[2] = h[3];
-        h[3] = h[4];
-        h[4] = tc;
+        h[..].swap(0, 4);
         return true;
     }
     false
@@ -196,12 +192,8 @@ fn is_full_house(h: &mut Hand) -> bool {
         h[2].rank() == h[3].rank() &&
         h[2].rank() == h[4].rank() {
 
-        let tc = h[0];
-        h[0] = h[2];
-        h[2] = h[4];
-        h[4] = h[1];
-        h[1] = h[3];
-        h[3] = tc;
+        h[..].swap(0, 3);
+        h[..].swap(1, 4);
         return true;
     }
     false
@@ -226,11 +218,7 @@ fn is_trips(h: &mut Hand) -> bool {
     if h[1].rank() == h[2].rank() &&
         h[1].rank() == h[3].rank() {
 
-        let tc = h[0];
-        h[0] = h[1];
-        h[1] = h[2];
-        h[2] = h[3];
-        h[3] = tc;
+        h[..].swap(0, 3);
         return true;
     }
     if h.len() < 5 {
@@ -240,12 +228,8 @@ fn is_trips(h: &mut Hand) -> bool {
     if h[2].rank() == h[3].rank() &&
         h[2].rank() == h[4].rank() {
 
-        let tc = h[0];
-        h[0] = h[2];
-        h[2] = h[4];
-        h[4] = h[1];
-        h[1] = h[3];
-        h[3] = tc;
+        h[..].swap(0, 3);
+        h[..].swap(1, 4);
         return true;
     }
     false
@@ -270,22 +254,15 @@ fn is_two_pair(h: &mut Hand) -> bool {
     if h[0].rank() == h[1].rank() &&
         h[3].rank() == h[4].rank() {
 
-        let tc = h[2];
-        h[2] = h[3];
-        h[3] = h[4];
-        h[4] = tc;
+        h[..].swap(2, 4);
         return true;
     }
     // CAABB
     if h[1].rank() == h[2].rank() &&
         h[3].rank() == h[4].rank() {
 
-        let tc = h[0];
-        h[0] = h[1];
-        h[1] = h[2];
-        h[2] = h[3];
-        h[3] = h[4];
-        h[4] = tc;
+        h[..].swap(0, 2);
+        h[..].swap(2, 4);
         return true;
     }
     false
@@ -306,10 +283,7 @@ fn is_one_pair(h: &mut Hand) -> bool {
     }
     // BAACD
     if h[1].rank() == h[2].rank() {
-        let tc = h[0];
-        h[0] = h[1];
-        h[1] = h[2];
-        h[2] = tc;
+        h[..].swap(0, 2);
         return true;
     }
     if h.len() < 4 {
@@ -326,12 +300,9 @@ fn is_one_pair(h: &mut Hand) -> bool {
     }
     // BCDAA
     if h[3].rank() == h[4].rank() {
-        let tc = h[0];
-        h[0] = h[3];
-        h[3] = h[1];
-        h[1] = h[4];
-        h[4] = h[2];
-        h[2] = tc;
+        h[..].swap(2, 4);
+        h[..].swap(1, 3);
+        h[..].swap(0, 2);
         return true;
     }
     false
@@ -379,143 +350,39 @@ enum HandEvaluatorState {
     NotTwoPair,
 }
 
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_reference_eval_full) | Reference full hand evaluator
-///
-/// This function is the reference evaluator used to define and create
-/// game-specific evaluators. It is not generally called by the user directly
-/// unless you are coding a new game. Returns a full [HandDescription].
-/// ```rust
-/// use onejoker::prelude::*;
-/// use onejoker::poker::{ojp_reference_evaluator_full};
-///
-/// let hand = Hand::new(DeckType::English).init(hand!("As","Js","Ts","7s","5s"));
-/// let v = ojp_reference_evaluator_full(&hand, Scale::HighHand).unwrap();
-/// // assert_eq!(8969227, v.value());   // default value of AJT75 flush
-/// ```
-pub fn ojp_reference_evaluator_full(hand: &Hand, g: Scale)
--> Result<HandDescription> {
-    let mut h = *hand;
-    debug_assert!(h.len() <= g.complete_hand());
-    debug_assert!(h.deck_type().low_aces() == g.low_aces());
-
-    if h.is_empty() {
-        return HandDescriptionBuilder::new(&h, g)
-            .with_level(HandLevel::None)
-            .with_value(HAND_VALUE_WORST).complete();
-    }
-    oj_sort(&mut h[..]);
-    let mut state = HandEvaluatorState::Initial;
-
-    loop {
-        match state {
-            HandEvaluatorState::Initial => {
-                state =
-                if ! g.straights_and_flushes() {
-                    HandEvaluatorState::NotStraightOrFlush
-                } else if is_flush(&h, g) {
-                    HandEvaluatorState::Flush
-                } else {
-                    HandEvaluatorState::NotFlush
-                }
-            },
-            HandEvaluatorState::Flush => {
-                if is_straight(&mut h, g) {
-                    return HandDescriptionBuilder::new(&h, g)
-                        .with_level(HandLevel::StraightFlush)
-                        .with_default_value().complete();
-                }
-                return HandDescriptionBuilder::new(&h, g)
-                    .with_level(HandLevel::Flush)
-                    .with_default_value().complete();
-            },
-            HandEvaluatorState::NotFlush => {
-                if is_straight(&mut h, g) {
-                    return HandDescriptionBuilder::new(&h, g)
-                        .with_level(HandLevel::Straight)
-                        .with_default_value().complete();
-                }
-                state = HandEvaluatorState::NotStraightOrFlush;
-            },
-            HandEvaluatorState::NotStraightOrFlush => {
-                if is_quads(&mut h) {
-                    if 5 == h.len() && h[0].rank() == h[4].rank() {
-                        return HandDescriptionBuilder::new(&h, g)
-                            .with_level(HandLevel::FiveOfAKind)
-                            .with_default_value().complete();
-                    }
-                    return HandDescriptionBuilder::new(&h, g)
-                        .with_level(HandLevel::Quads)
-                        .with_default_value().complete();
-                }
-                state = HandEvaluatorState::NotQuads;
-            },
-            HandEvaluatorState::NotQuads => {
-                if is_full_house(&mut h) {
-                    return HandDescriptionBuilder::new(&h, g)
-                        .with_level(HandLevel::FullHouse)
-                        .with_default_value().complete();
-                }
-                state = HandEvaluatorState::NotFullHouse;
-            },
-            HandEvaluatorState::NotFullHouse => {
-                if is_trips(&mut h) {
-                    return HandDescriptionBuilder::new(&h, g)
-                        .with_level(HandLevel::Trips)
-                        .with_default_value().complete();
-                }
-                state = HandEvaluatorState::NotTrips;
-            },
-            HandEvaluatorState::NotTrips => {
-                if is_two_pair(&mut h) {
-                    return HandDescriptionBuilder::new(&h, g)
-                        .with_level(HandLevel::TwoPair)
-                        .with_default_value().complete();
-                }
-                state = HandEvaluatorState::NotTwoPair;
-            },
-            HandEvaluatorState::NotTwoPair => {
-                return if is_one_pair(&mut h) {
-                    HandDescriptionBuilder::new(&h, g)
-                        .with_level(HandLevel::Pair)
-                        .with_default_value().complete()
-                } else {
-                    debug_assert!(verify_no_pair(&h));
-
-                    HandDescriptionBuilder::new(&h, g)
-                        .with_level(HandLevel::NoPair)
-                        .with_default_value().complete()
-                }
-            },
-        }
-    }
-}
-
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_default_eval_quick) | Default quick hand evaluator
 ///
-/// This function is the default "quick" hand evaluator used to create
-/// game-specific evaluators. It is not generally called by the user directly
-/// unless you are coding a new game. Produces comparator value only.
+/// This function is the default general-purpose evaluator for hands up to
+/// the "complete hand" size of the given scale (usually 5 cards). It returns
+/// a comparator value with level and rank information packed into a single
+/// 32-bit integer. The value can be compared directly: winning hands are
+/// smaller numbers. Such comparisons between hands of different sizes are
+/// not meaningful.
 /// ```rust
 /// use onejoker::prelude::*;
-/// use onejoker::poker::{ojp_reference_evaluator_quick};
+/// use onejoker::poker::{ojp_reference_evaluator};
 ///
 /// let hand = Hand::new(DeckType::English).init(hand!("As","Js","Ts","7s","5s"));
-/// let cmp = ojp_reference_evaluator_quick(&hand, Scale::HighHand);
-/// // assert_eq!(8969227, cmp);
+/// let v = ojp_reference_evaluator(&hand, Scale::HighHand);
+/// assert_eq!(0x50458A, v);
 /// ```
-pub fn ojp_reference_evaluator_quick(hand: &Hand, g: Scale)
--> HandValue {
-    let mut h = *hand;
-    debug_assert!(h.len() <= g.complete_hand());
-    debug_assert!(h.deck_type().low_aces() == g.low_aces());
+pub fn ojp_reference_evaluator(hand: &Hand, g: Scale) -> HandValue {
+    debug_assert!(hand.len() <= g.complete_hand());
+    debug_assert!(hand.is_not_empty());
 
-    if h.is_empty() {
-        return HAND_VALUE_WORST;
-    }
+    let mut h = if hand.deck_type().low_aces() == g.low_aces() {
+        *hand
+    } else {
+        hand.convert_decktype(g.deck_type())
+    };
     oj_sort(&mut h[..]);
     let mut state = HandEvaluatorState::Initial;
 
+    let mut loop_guard = 20;
     loop {
+        loop_guard -= 1;
+        assert!(loop_guard > 0);
+
         match state {
             HandEvaluatorState::Initial => {
                 state =
@@ -578,12 +445,124 @@ pub fn ojp_reference_evaluator_quick(hand: &Hand, g: Scale)
     }
 }
 
+// Return HAND_VALUE_WORST if not a badugi, or the 32-bit hand value
+fn badugi_value(cards: &[Card]) -> u32 {
+    let mut suits: u32 = 0;
+    let mut ranks: u32 = 0;
+
+    let mut v: u32 = 0;
+    for c in cards {
+        let s = c.suit() as u32;
+        let r = c.rank() as u32;
+
+        if 0 != (suits & (1 << s)) || 0 != (ranks & (1 << r)) {
+            return HAND_VALUE_WORST;
+        }
+        suits |= 1 << s;
+        ranks |= 1 << r;
+
+        v <<= 4;
+        v += c.rank() as u32;
+    }
+    v + (5 - cards.len() as u32) * HAND_LEVEL_MULTIPLIER
+}
+
+enum BadugiEvaluatorState {
+    Initial,
+    NotFour,
+    NotThree,
+    NotTwo
+}
+
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/ojp_badugi_reference_evaluator) | Badugi/Badeucy evaluator
+///
+/// Will produce Badugi values if given a hand with low aces, or Badeucy values
+/// given a hand with high aces.
+pub fn ojp_badugi_reference_evaluator(hand: &Hand) -> HandValue {
+    let mut h = *hand;
+    oj_sort(&mut h[..]);
+    let mut state = BadugiEvaluatorState::Initial;
+
+    let mut loop_guard = 10;
+    loop {
+        loop_guard -= 1;
+        assert!(loop_guard > 0);
+
+        match state {
+            BadugiEvaluatorState::Initial => {
+                if h.len() < 4 {
+                    state = BadugiEvaluatorState::NotFour;
+                    continue;
+                }
+                let v= badugi_value(&h[..]);
+                if HAND_VALUE_WORST == v {
+                    state = BadugiEvaluatorState::NotFour;
+                    continue;
+                }
+                return v;
+            },
+            BadugiEvaluatorState::NotFour => {
+                if h.len() < 3 {
+                    state = BadugiEvaluatorState::NotThree;
+                    continue;
+                }
+                let mut best_value = HAND_VALUE_WORST;
+                let mut v: u32;
+
+                for h3 in h.combinations(3) {
+                    v = badugi_value(&h3[..]);
+                    if v < best_value {
+                        best_value = v;
+                    }
+                }
+                if HAND_VALUE_WORST == best_value {
+                    state = BadugiEvaluatorState::NotThree;
+                    continue;
+                }
+                return best_value;
+            },
+            BadugiEvaluatorState::NotThree => {
+                if h.len() < 2 {
+                    state = BadugiEvaluatorState::NotTwo;
+                    continue;
+                }
+                let mut best_value = HAND_VALUE_WORST;
+                let mut v: u32;
+
+                for h2 in h.combinations(2) {
+                    v = badugi_value(&h2[..]);
+                    if v < best_value {
+                        best_value = v;
+                    }
+                }
+                if HAND_VALUE_WORST == best_value {
+                    state = BadugiEvaluatorState::NotTwo;
+                    continue;
+                }
+                return best_value;
+            },
+            BadugiEvaluatorState::NotTwo => {
+                let mut least = 0;
+
+                for i in 1..h.len() {
+                    if h[i].rank() < h[least].rank() {
+                        least = i;
+                    }
+                }
+                return Scale::Badugi.value_from_level(HandLevel::OneCard) *
+                    HAND_LEVEL_MULTIPLIER + h[least].rank() as u32;
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::*;
+    // use super::*;
+    use crate::error::Result;
 
     #[test]
-    fn test_hand_evaluator_high() -> Result<()> {
+    fn test_hand_evaluator() -> Result<()> {
         Ok(())
     }
 }

@@ -5,7 +5,7 @@ pub use high_hand::*;
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/High_Hand_Tables) | High hand lookup tables
 #[cfg(feature = "high-hand-tables")]
-pub mod high_hand_tables;
+pub mod high_tables;
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/Ace_To_Five) | Ace-To-Seven low poker hands
 pub mod ace_to_five;

@@ -43,28 +43,18 @@ pub fn ojp_pai_gow_full_name(v: &HandValue) -> String {
     }
 }
 
-/*
- * TODO
- *
- * Pai Gow evaluators do not handle the bug. These functions will
- * eventually be called by the functions that do handle the bug.
- */
-
 #[cfg(feature = "high-hand-tables")]
-// Change high hand equivalence class into pai gow equivalence class.
-// Adjust all values by one for A-A-A-A-Jk, the move the wheel and
-// steel wheel up by seven spots.
+// Change high hand equivalence class into pai gow equivalence class
+// by moving the wheels up 8 spots.
 fn pai_gow_adjust_ec(ec: u32) -> u32 {
-    if ec == 10 {
-        3
-    } else if ec == 1609 {
-        1602
-    } else if ec > 1 && ec < 10 {
-        ec + 2
-    } else if ec > 1600 && ec < 1609 {
-        ec + 2
-    } else {
-        ec + 1
+    match ec {
+        ..15 => ec,
+        15..23 => ec + 1,
+        23 => 15,
+        24..1614 => ec,
+        1614..1622 => ec + 1,
+        1622 => 1614,
+        1623.. => ec,
     }
 }
 
@@ -193,47 +183,6 @@ pub fn ojp_bug_replace_pai_gow(h: &Hand) -> Option<BugReplacement> {
     Some(ojp_bug_replacement(rank, suit, &scan))
 }
 
-use lazy_static::lazy_static;
-
-lazy_static! {
-    /// After setting a bit for each rank in the hand, these are the patterns
-    /// that indicate the rank needed for the bug to complete a straight.
-    pub static ref PAI_GOW_STRAIGHT_PATTERNS: std::collections::HashMap<u16, u8> = {
-        let mut m = std::collections::HashMap::new();
-        m.insert(0b0000000000111101, 15);   // Nevada high-wheel rule
-        m.insert(0b0000000010111001, 6);
-        m.insert(0b0000000110110001, 6);
-        m.insert(0b0000001110100001, 6);
-        m.insert(0b0000000001111001, 7);
-        m.insert(0b0000000101110001, 7);
-        m.insert(0b0000001101100001, 7);
-        m.insert(0b0000011101000001, 7);
-        m.insert(0b0000000011110001, 8);
-        m.insert(0b0000001011100001, 8);
-        m.insert(0b0000011011000001, 8);
-        m.insert(0b0000111010000001, 8);
-        m.insert(0b0000000111100001, 9);
-        m.insert(0b0000010111000001, 9);
-        m.insert(0b0000110110000001, 9);
-        m.insert(0b0010110100000001, 9);
-        m.insert(0b0000001111000001, 10);
-        m.insert(0b0000101110000001, 10);
-        m.insert(0b0010101100000001, 10);
-        m.insert(0b0110101000000001, 10);
-        m.insert(0b1110100000000001, 10);
-        m.insert(0b0000011110000001, 11);
-        m.insert(0b0010011100000001, 11);
-        m.insert(0b0110011000000001, 11);
-        m.insert(0b1110010000000001, 11);
-        m.insert(0b0000111100000001, 13);
-        m.insert(0b0100111000000001, 13);
-        m.insert(0b1100110000000001, 13);
-        m.insert(0b0010111000000001, 14);
-        m.insert(0b1010110000000001, 14);
-        m.insert(0b0110110000000001, 15);
-        m
-    };
-}
 
 /*
  * CODE ENDS HERE

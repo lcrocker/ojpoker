@@ -32,7 +32,6 @@ pub use crate::cards::deck_type::DeckType;
 pub use crate::cards::deck::Deck;
 pub use crate::cards::hand::Hand;
 pub use crate::poker::hand_scale::Scale;
-
-pub use crate::poker::hand_description::{
+pub use crate::poker::hand_value::{
     HandLevel, HandValue, HandDescription,
 };

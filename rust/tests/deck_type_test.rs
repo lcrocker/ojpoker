@@ -7,7 +7,7 @@ use onejoker::prelude::*;
 
 #[cfg(feature = "serde")]
 #[derive(Debug)]
-#[cfg_attr(feature = "serde", derive(Serialize,Deserialize))]
+#[cfg_attr(feature = "serde", derive(Deserialize))]
 struct MasterDeckInfo {
     name: String,
     dups_allowed: bool,
@@ -19,7 +19,7 @@ struct MasterDeckInfo {
 /// JSON file structure
 #[cfg(feature = "serde")]
 #[derive(Debug)]
-#[cfg_attr(feature = "serde", derive(Serialize,Deserialize))]
+#[cfg_attr(feature = "serde", derive(Deserialize))]
 struct MasterDeckDataFile(Vec<MasterDeckInfo>);
 
 #[test]

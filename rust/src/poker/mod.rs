@@ -4,9 +4,9 @@
 pub mod hand_scale;
 pub use hand_scale::*;
 
-/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Hand_Description) | Evaluated hand data
-pub mod hand_description;
-pub use hand_description::*;
+/// [wiki](https://github.com/lcrocker/ojpoker/wiki/Hand_Value) | Evaluated hand data
+pub mod hand_value;
+pub use hand_value::*;
 
 /// [wiki](https://github.com/lcrocker/ojpoker/wiki/Reference_Evaluators) | Hand evaluation code
 pub mod reference_evaluators;

@@ -1,6 +1,5 @@
 //! [wiki](https://github.com/lcrocker/ojpoker/wiki/Scale) | Poker hand evaluation info
 
-use crate::error::{Error,Result};
 use crate::cards::*;
 use crate::poker::*;
 
@@ -9,7 +8,7 @@ use crate::poker::*;
 /// Enum representing hand "scales", or ways in which poker hands are
 /// evaluated in different games.
 #[repr(u8)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Hash)]
 pub enum Scale {
     /// None / Invalid
     None = 0,
@@ -295,94 +294,34 @@ impl Scale {
     /// Game-specific function to get full English name of hand
     /// ```rust
     /// use onejoker::prelude::*;
-    /// use onejoker::poker::{ojp_high_eval_full};
+    /// use onejoker::poker::{ojp_high_value,ojp_high_description};
     ///
     /// let hand = Hand::new(DeckType::English).init(hand!("9s","As","9d","Ks","Ah"));
-    /// let v = ojp_high_eval_full(&hand).unwrap();
-    /// println!("{}", v.full_name());
-    /// println!("{}", Scale::HighHand.full_name(&v));
+    /// let v = ojp_high_value(&hand);
+    /// let d = ojp_high_description(&hand, v);
+    /// println!("{}", d.full_text());
+    /// println!("{}", Scale::HighHand.full_text(&d));
     /// ```
-    pub fn full_name(&self, d: &HandDescription) -> String {
+    pub fn full_text(&self, d: &HandDescription) -> String {
         match *self {
             Scale::HighHand | Scale::HighHandBug | Scale::PaiGow |
             Scale::Stripped | Scale::Mexican | Scale::ThreeCard => {
-                ojp_high_full_name(d)
+                ojp_high_full_text(d)
             },
             Scale::AceToFive | Scale::AceToFiveBug => {
-                ojp_ace_to_five_full_name(d)
+                ojp_ace_to_five_full_text(d)
             },
             Scale::DeuceToSeven | Scale::AceToSix => {
-                ojp_deuce_to_seven_full_name(d)
+                ojp_deuce_to_seven_full_text(d)
             },
             Scale::Badugi | Scale::Badeucy => {
-                ojp_badugi_full_name(d)
+                ojp_badugi_full_text(d)
             },
             Scale::ActionRazz => {
                 // ojp_action_razz_full_name(d)
-                ojp_ace_to_five_full_name(d)
+                ojp_ace_to_five_full_text(d)
             },
             Scale::None => "".to_string(),
-        }
-    }
-
-    /// Game-specific full hand evaluation function
-    /// ```rust
-    /// use onejoker::prelude::*;
-    ///
-    /// let hand = Hand::new(DeckType::English).init(hand!("9s","As","9d","Ks","Ah"));
-    /// let v = Scale::HighHand.eval(&hand).unwrap();
-    /// println!("{}", v.full_name());
-    /// ```
-    pub fn eval(&self, hand: &Hand) -> Result<HandDescription> {
-        match *self {
-            Scale::HighHand => {
-                ojp_high_eval_full(hand)
-            },
-            Scale::AceToFive => {
-                ojp_ace_to_five_eval_full(hand)
-            },
-            Scale::DeuceToSeven => {
-                ojp_deuce_to_seven_eval_full(hand)
-            },
-            Scale::AceToSix => {
-                ojp_ace_to_six_eval_full(hand)
-            },
-            Scale::Badugi => {
-                ojp_badugi_eval_full(hand)
-            },
-            Scale::Badeucy => {
-                // ojp_badeucy_eval_full(hand)
-                Err(Error::NotImplemented("".into()))
-            },
-            Scale::HighHandBug => {
-                // ojp_high_bug_eval_full(hand)
-                Err(Error::NotImplemented("".into()))
-            },
-            Scale::AceToFiveBug => {
-                // ojp_ace_to_five_bug_eval_full(hand)
-                Err(Error::NotImplemented("".into()))
-            },
-            Scale::PaiGow => {
-                // ojp_pai_gow_eval_full(hand)
-                Err(Error::NotImplemented("".into()))
-            },
-            Scale::Stripped => {
-                // ojp_stripped_eval_full(hand)
-                Err(Error::NotImplemented("".into()))
-            },
-            Scale::Mexican => {
-                // ojp_mexican_eval_full(hand)
-                Err(Error::NotImplemented("".into()))
-            },
-            Scale::ActionRazz => {
-                // ojp_action_razz_eval_full(hand)
-                Err(Error::NotImplemented("".into()))
-            },
-            Scale::ThreeCard => {
-                // ojp_three_card_eval_full(hand)
-                Err(Error::NotImplemented("".into()))
-            },
-            Scale::None => Err(Error::Internal("unknown scale".into())),
         }
     }
 
@@ -391,59 +330,121 @@ impl Scale {
     /// use onejoker::prelude::*;
     ///
     /// let hand = Hand::new(DeckType::English).init(hand!("9s","As","9d","Ks","Ah"));
-    /// let v = Scale::HighHand.eval_quick(&hand);
+    /// let v = Scale::HighHand.value(&hand);
     /// println!("{}", v);
     /// ```
-    pub fn eval_quick(&self, hand: &Hand) -> HandValue {
+    pub fn value(&self, hand: &Hand) -> HandValue {
         match *self {
             Scale::HighHand => {
-                ojp_high_eval_quick(hand)
+                ojp_high_value(hand)
             },
             Scale::AceToFive => {
-                ojp_ace_to_five_eval_quick(hand)
+                ojp_ace_to_five_value(hand)
             },
             Scale::DeuceToSeven => {
-                ojp_deuce_to_seven_eval_quick(hand)
+                ojp_deuce_to_seven_value(hand)
             },
             Scale::AceToSix => {
-                ojp_ace_to_six_eval_quick(hand)
+                ojp_ace_to_six_value(hand)
             },
             Scale::Badugi => {
-                ojp_badugi_eval_quick(hand)
+                ojp_badugi_value(hand)
             },
             Scale::Badeucy => {
                 // ojp_badeucy_eval_quick(hand)
                 HAND_VALUE_WORST
             },
             Scale::HighHandBug => {
-                // ojp_high_bug_eval_full(hand)
+                // ojp_high_bug_value(hand)
                 HAND_VALUE_WORST
             },
             Scale::AceToFiveBug => {
-                // ojp_ace_to_five_bug_eval_full(hand)
+                // ojp_ace_to_five_bug_value(hand)
                 HAND_VALUE_WORST
             },
             Scale::PaiGow => {
-                // ojp_pai_gow_eval_full(hand)
+                // ojp_pai_gow_value(hand)
                 HAND_VALUE_WORST
             },
             Scale::Stripped => {
-                // ojp_stripped_eval_full(hand)
+                // ojp_stripped_value(hand)
                 HAND_VALUE_WORST
             },
             Scale::Mexican => {
-                // ojp_mexican_eval_full(hand)
+                // ojp_mexican_value(hand)
                 HAND_VALUE_WORST
             },
             Scale::ActionRazz => {
-                // ojp_action_razz_eval_full(hand)
+                // ojp_action_razz_value(hand)
                 HAND_VALUE_WORST
             },
             Scale::ThreeCard => {
-                // ojp_three_card_eval_full(hand)
+                // ojp_three_card_value(hand)
                 HAND_VALUE_WORST
             },
             Scale::None => HAND_VALUE_WORST,
+        }
+    }
+
+    /// Get description of hand
+    /// ```rust
+    /// use onejoker::prelude::*;
+    ///
+    /// let hand = Hand::new(DeckType::English).init(hand!("9s","As","9d","Ks","Ah"));
+    /// let v = Scale::HighHand.value(&hand);
+    /// let d = Scale::HighHand.description(&hand, v);
+    /// println!("{}", v);
+    /// ```
+    pub fn description(&self, h: &Hand, v: HandValue) -> HandDescription {
+        match *self {
+            Scale::HighHand => {
+                ojp_high_description(h, v)
+            },
+            Scale::AceToFive => {
+                ojp_ace_to_five_description(h, v)
+            },
+            Scale::DeuceToSeven => {
+                ojp_deuce_to_seven_description(h, v)
+            },
+            Scale::AceToSix => {
+                ojp_ace_to_six_description(h, v)
+            },
+            Scale::Badugi => {
+                ojp_badugi_description(h, v)
+            },
+            Scale::Badeucy => {
+                // ojp_badeucy_description(hand)
+                ojp_high_description(h, v)
+            },
+            Scale::HighHandBug => {
+                // ojp_high_bug_description(h, v)
+                ojp_high_description(h, v)
+            },
+            Scale::AceToFiveBug => {
+                // ojp_ace_to_five_bug_description(hand)
+                ojp_high_description(h, v)
+            },
+            Scale::PaiGow => {
+                // ojp_pai_gow_description(hand)
+                ojp_high_description(h, v)
+            },
+            Scale::Stripped => {
+                // ojp_stripped_description(hand)
+                ojp_high_description(h, v)
+            },
+            Scale::Mexican => {
+                // ojp_mexican_description(hand)
+                ojp_high_description(h, v)
+            },
+            Scale::ActionRazz => {
+                // ojp_action_razz_description(hand)
+                ojp_high_description(h, v)
+            },
+            Scale::ThreeCard => {
+                // ojp_three_card_deswcription(hand)
+                ojp_high_description(h, v)
+            },
+            Scale::None => HandDescription::default(),
         }
     }
 }
@@ -480,7 +481,7 @@ struct ScaleInfo {
 }
 
 #[inline]
-fn value_from_level_high(l: HandLevel) -> u32 {
+const fn value_from_level_high(l: HandLevel) -> u32 {
     match l {
         HandLevel::FiveOfAKind => 1,
         HandLevel::StraightFlush => 2,
@@ -497,7 +498,7 @@ fn value_from_level_high(l: HandLevel) -> u32 {
 }
 
 #[inline]
-fn level_from_value_high(v: u32) -> HandLevel {
+const fn level_from_value_high(v: u32) -> HandLevel {
     match v {
         1 => HandLevel::FiveOfAKind,
         2 => HandLevel::StraightFlush,
@@ -514,7 +515,7 @@ fn level_from_value_high(v: u32) -> HandLevel {
 }
 
 #[inline]
-fn value_from_level_ace_to_five(l: HandLevel) -> u32 {
+const fn value_from_level_ace_to_five(l: HandLevel) -> u32 {
     match l {
         HandLevel::NoPair => 1,
         HandLevel::Pair => 2,
@@ -528,7 +529,7 @@ fn value_from_level_ace_to_five(l: HandLevel) -> u32 {
 }
 
 #[inline]
-fn level_from_value_ace_to_five(v: u32) -> HandLevel {
+const fn level_from_value_ace_to_five(v: u32) -> HandLevel {
     match v {
         1 => HandLevel::NoPair,
         2 => HandLevel::Pair,
@@ -542,7 +543,7 @@ fn level_from_value_ace_to_five(v: u32) -> HandLevel {
 }
 
 #[inline]
-fn value_from_level_deuce_to_seven(l: HandLevel) -> u32 {
+const fn value_from_level_deuce_to_seven(l: HandLevel) -> u32 {
     match l {
         HandLevel::NoPair => 1,
         HandLevel::Pair => 2,
@@ -559,7 +560,7 @@ fn value_from_level_deuce_to_seven(l: HandLevel) -> u32 {
 }
 
 #[inline]
-fn level_from_value_deuce_to_seven(v: u32) -> HandLevel {
+const fn level_from_value_deuce_to_seven(v: u32) -> HandLevel {
     match v {
         1 => HandLevel::NoPair,
         2 => HandLevel::Pair,
@@ -576,7 +577,7 @@ fn level_from_value_deuce_to_seven(v: u32) -> HandLevel {
 }
 
 #[inline]
-fn value_from_level_badugi(l: HandLevel) -> u32 {
+const fn value_from_level_badugi(l: HandLevel) -> u32 {
     match l {
         HandLevel::FourCard => 1,
         HandLevel::ThreeCard => 2,
@@ -587,7 +588,7 @@ fn value_from_level_badugi(l: HandLevel) -> u32 {
 }
 
 #[inline]
-fn level_from_value_badugi(v: u32) -> HandLevel {
+const fn level_from_value_badugi(v: u32) -> HandLevel {
     match v {
         1 => HandLevel::FourCard,
         2 => HandLevel::ThreeCard,
@@ -598,7 +599,7 @@ fn level_from_value_badugi(v: u32) -> HandLevel {
 }
 
 #[inline]
-fn value_from_level_stripped(l: HandLevel) -> u32 {
+const fn value_from_level_stripped(l: HandLevel) -> u32 {
     match l {
         HandLevel::FiveOfAKind => 1,
         HandLevel::StraightFlush => 2,
@@ -615,7 +616,7 @@ fn value_from_level_stripped(l: HandLevel) -> u32 {
 }
 
 #[inline]
-fn level_from_value_stripped(v: u32) -> HandLevel {
+const fn level_from_value_stripped(v: u32) -> HandLevel {
     match v {
         1 => HandLevel::FiveOfAKind,
         2 => HandLevel::StraightFlush,
@@ -632,7 +633,7 @@ fn level_from_value_stripped(v: u32) -> HandLevel {
 }
 
 #[inline]
-fn value_from_level_action_razz(l: HandLevel) -> u32 {
+const fn value_from_level_action_razz(l: HandLevel) -> u32 {
     match l {
         HandLevel::NoPair => 1,
         HandLevel::Pair => 2,
@@ -653,7 +654,7 @@ fn value_from_level_action_razz(l: HandLevel) -> u32 {
 }
 
 #[inline]
-fn level_from_value_action_razz(v: u32) -> HandLevel {
+const fn level_from_value_action_razz(v: u32) -> HandLevel {
     match v {
         1 => HandLevel::NoPair,
         2 => HandLevel::Pair,
@@ -674,7 +675,7 @@ fn level_from_value_action_razz(v: u32) -> HandLevel {
 }
 
 #[inline]
-fn value_from_level_three_card(l: HandLevel) -> u32 {
+const fn value_from_level_three_card(l: HandLevel) -> u32 {
     match l {
         HandLevel::StraightFlush => 1,
         HandLevel::Trips => 2,
@@ -687,7 +688,7 @@ fn value_from_level_three_card(l: HandLevel) -> u32 {
 }
 
 #[inline]
-fn level_from_value_three_card(v: u32) -> HandLevel {
+const fn level_from_value_three_card(v: u32) -> HandLevel {
     match v {
         1 => HandLevel::StraightFlush,
         2 => HandLevel::Trips,
@@ -775,7 +776,7 @@ const SCALE_INFO_TABLE: [ScaleInfo; SCALE_MAX] = [
     },
     ScaleInfo {     // 7
         name: "paigow",
-        deck_type: DeckType::LowJoker,
+        deck_type: DeckType::OneJoker,
         complete_hand: 5,
         low_aces: false,
         low_hands: false,
@@ -800,7 +801,7 @@ const SCALE_INFO_TABLE: [ScaleInfo; SCALE_MAX] = [
     ScaleInfo {     // 9
         name: "action-razz",
         deck_type: DeckType::Low,
-        complete_hand: 6,
+        complete_hand: 5,
         low_aces: true,
         low_hands: true,
         straights_and_flushes: false,
@@ -911,9 +912,18 @@ fn scale_by_alias(alias: &str) -> Scale {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::error::Result;
 
     #[test]
     fn test_hand_scale_info() -> Result<()> {
+        for i in 1..=SCALE_MAX {
+            println!("Scale: {}", i);
+
+            let g = Scale::from_u8(i as u8);
+            assert!(g.complete_hand() > 0);
+            assert!(g.complete_hand() <= 5);
+            assert!(g.deck_type().low_aces() == g.low_aces());
+        }
         assert_eq!(Scale::default(), Scale::HighHand);
         assert_eq!(Scale::by_name("default"), Scale::HighHand);
         assert_eq!(Scale::by_name("poker"), Scale::HighHand);

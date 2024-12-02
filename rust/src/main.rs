@@ -70,7 +70,8 @@ fn build_tables() -> OjResult<()> {
             print!("\revaluated {} hands", count);
             std::io::stdout().flush()?;
         }
-        let desc = SCALE.eval(&hand)?;
+        let v = SCALE.value(&hand);
+        let desc = SCALE.description(&hand, v);
         heap.push(HandAndDescription { hand, desc });
     }
     println!("\revaluated  {} hands", count);
@@ -79,8 +80,8 @@ fn build_tables() -> OjResult<()> {
     let file2 = File::create(format!("./{}_table_2.rs", FNAME))?;
     let mut writer2 = BufWriter::new(file2);
     writeln!(writer2, "pub const {}_TABLE_2: [u32; 7476] = [", FNAME.to_uppercase())?;
-    writeln!(writer2, "    0x000000, 0x1FFFFF, 0x1EEEEE, 0x1DDDDD, 0x1BBBBB, 0x1AAAAA, 0x199999, 0x188888,")?;
-    write!(writer2, "    0x177777, 0x166666, 0x155555, 0x144444, 0x133333, 0x122222, ")?;
+    writeln!(writer2, "    0x000000, 0x100000, 0x111111, 0x122222, 0x144444, 0x155555, 0x166666, 0x177777,")?;
+    write!(writer2, "    0x188888, 0x199999, 0x1AAAAA, 0x1BBBBB, 0x1CCCCC, 0x1DDDDD, ")?;
 
     let mut p_val = 0;
     let mut ec = 0;
@@ -104,6 +105,9 @@ fn build_tables() -> OjResult<()> {
                 rval += c.rank() as u32;
             }
             rval |= 0x100000 * hd.desc.level as u32;
+            if ! SCALE.low_hands() {
+                rval ^= 0xFFFFF;
+            }
             write!(writer2, "{:#06X}, ", rval)?;
             if 2 == (ec & 0x07) {
                 write!(writer2, "\n    ")?;

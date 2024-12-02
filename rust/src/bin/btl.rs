@@ -73,7 +73,8 @@ fn build_tables() -> Result<(), OjError> {
                             Card::from_rank_suit(*r5, Suit::Spade),
                         ]);
 
-                        let desc = SCALE.eval(&hand)?;
+                        let v = SCALE.value(&hand);
+                        let desc = SCALE.description(&hand, v);
                         heap.push(HandAndDescription { hand, desc });
                     }
                 }

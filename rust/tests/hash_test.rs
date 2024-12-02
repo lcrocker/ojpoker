@@ -3,6 +3,7 @@
 use serde::Deserialize;
 
 use onejoker::prelude::*;
+use onejoker::utils::oj_shuffle;
 
 #[cfg(feature = "serde")]
 type HandData = (i32, String, u64);
@@ -71,7 +72,6 @@ fn test_hash_data_file() -> OjResult<()> {
     use std::fs::File;
     use std::io::BufReader;
     use onejoker::cards::hashes::*;
-    use onejoker::utils::oj_shuffle;
 
     let file = File::open("../data/json/random_hands_100k.jsonc")?;
     let mut reader = BufReader::new(file);

@@ -60,13 +60,12 @@ pub fn oj_rand_range(limit: usize) -> usize {
 
     let mut loop_guard = 100;
     loop {
+        loop_guard -= 1;
+        assert!(loop_guard > 0);
+
         let v = oj_rand_next32() & m;
         if (v as usize) < limit { return v as usize; }
-
-        loop_guard -= 1;
-        if loop_guard <= 0 { break; }
     }
-    0
 }
 
 /// # [wiki](https://github.com/lcrocker/ojpoker/wiki/oj_shuffle) | Standard Fisher-Yates shuffle
@@ -89,10 +88,11 @@ pub fn oj_shuffle<T>(a: &mut [T]) {
 /// Non-recursive heapify function for heapsort.
 fn heapify<T: PartialOrd>(a: &mut [T], n: usize, i: usize) {
     let mut i = i;
-    let mut loop_guard = 200;
 
-    while loop_guard > 0 {
+    let mut loop_guard = 200;
+    loop {
         loop_guard -= 1;
+        assert!(loop_guard > 0);
 
         let mut min = i;
         let left = 2 * i + 1;
