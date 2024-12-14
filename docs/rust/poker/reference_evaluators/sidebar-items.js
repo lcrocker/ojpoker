@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["HAND_LEVEL_MULTIPLIER"],"fn":["ojp_badugi_reference_evaluator","ojp_best_of","ojp_default_hand_value","ojp_reference_evaluator"],"type":["HandEvaluator"]};

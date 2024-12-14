@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["ojc_parse"]};
+window.SIDEBAR_ITEMS = {"fn":["card_parse"]};

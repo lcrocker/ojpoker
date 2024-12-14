@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["ojp_ace_to_six_eval_full","ojp_ace_to_six_eval_quick","ojp_ace_to_six_full_name"]};

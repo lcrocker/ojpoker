@@ -1,4 +1,4 @@
-//! [wiki](https://github.com/lcrocker/ojpoker/wiki/Scale) | Poker hand evaluation info
+//! [wiki](https://github.com/lcrocker/ojpoker/wiki/Hand_Scale) | Poker hand types
 
 use crate::cards::*;
 use crate::poker::*;
@@ -89,7 +89,6 @@ impl Scale {
     pub fn name(&self) -> &'static str {
         SCALE_INFO_TABLE[*self as usize - 1].name
     }
-
 
     /// Preferred deck for this game
     /// ```rust
@@ -197,25 +196,25 @@ impl Scale {
     pub fn value_from_level(&self, hl: HandLevel) -> u32 {
         match *self {
             Scale::HighHand | Scale::HighHandBug | Scale::PaiGow => {
-                value_from_level_high(hl)
+                hh_value_from_level(hl)
             },
             Scale::AceToFive | Scale::AceToFiveBug => {
-                value_from_level_ace_to_five(hl)
+                a5_value_from_level(hl)
             },
             Scale::DeuceToSeven | Scale::AceToSix => {
-                value_from_level_deuce_to_seven(hl)
+                kc_value_from_level(hl)
             },
             Scale::Badugi | Scale::Badeucy => {
-                value_from_level_badugi(hl)
+                bg_value_from_level(hl)
             },
             Scale::Stripped | Scale::Mexican => {
-                value_from_level_stripped(hl)
+                st_value_from_level(hl)
             },
             Scale::ActionRazz => {
-                value_from_level_action_razz(hl)
+                ar_value_from_level(hl)
             },
             Scale::ThreeCard => {
-                value_from_level_three_card(hl)
+                tc_value_from_level(hl)
             },
             Scale::None => HAND_LEVEL_WORST as u32,
         }
@@ -230,25 +229,25 @@ impl Scale {
     pub fn level_from_value(&self, v: u32) -> HandLevel {
         match *self {
             Scale::HighHand | Scale::HighHandBug | Scale::PaiGow => {
-                level_from_value_high(v)
+                hh_level_from_value(v)
             },
             Scale::AceToFive | Scale::AceToFiveBug => {
-                level_from_value_ace_to_five(v)
+                a5_level_from_value(v)
             },
             Scale::DeuceToSeven | Scale::AceToSix => {
-                level_from_value_deuce_to_seven(v)
+                kc_level_from_value(v)
             },
             Scale::Badugi | Scale::Badeucy => {
-                level_from_value_badugi(v)
+                bg_level_from_value(v)
             },
             Scale::Stripped | Scale::Mexican => {
-                level_from_value_stripped(v)
+                st_level_from_value(v)
             },
             Scale::ActionRazz => {
-                level_from_value_action_razz(v)
+                ar_level_from_value(v)
             },
             Scale::ThreeCard => {
-                level_from_value_three_card(v)
+                tc_level_from_value(v)
             },
             Scale::None => HandLevel::None,
         }
@@ -294,32 +293,38 @@ impl Scale {
     /// Game-specific function to get full English name of hand
     /// ```rust
     /// use onejoker::prelude::*;
-    /// use onejoker::poker::{ojp_high_value,ojp_high_description};
+    /// use onejoker::poker::{ojp_hh_value,ojp_hh_description};
     ///
     /// let hand = Hand::new(DeckType::English).init(hand!("9s","As","9d","Ks","Ah"));
-    /// let v = ojp_high_value(&hand);
-    /// let d = ojp_high_description(&hand, v);
+    /// let v = ojp_hh_value(&hand);
+    /// let d = ojp_hh_description(&hand, v);
     /// println!("{}", d.full_text());
     /// println!("{}", Scale::HighHand.full_text(&d));
     /// ```
     pub fn full_text(&self, d: &HandDescription) -> String {
         match *self {
-            Scale::HighHand | Scale::HighHandBug | Scale::PaiGow |
-            Scale::Stripped | Scale::Mexican | Scale::ThreeCard => {
-                ojp_high_full_text(d)
+            Scale::HighHand | Scale::PaiGow | Scale::Stripped |
+            Scale::Mexican | Scale::ThreeCard => {
+                ojp_hh_full_text(d)
             },
-            Scale::AceToFive | Scale::AceToFiveBug => {
-                ojp_ace_to_five_full_text(d)
+            Scale::HighHandBug => {
+                ojp_hb_full_text(d)
+            },
+            Scale::AceToFive  => {
+                ojp_a5_full_text(d)
+            },
+            Scale::AceToFiveBug => {
+                ojp_cl_full_text(d)
             },
             Scale::DeuceToSeven | Scale::AceToSix => {
-                ojp_deuce_to_seven_full_text(d)
+                ojp_kc_full_text(d)
             },
             Scale::Badugi | Scale::Badeucy => {
-                ojp_badugi_full_text(d)
+                ojp_bg_full_text(d)
             },
             Scale::ActionRazz => {
-                // ojp_action_razz_full_name(d)
-                ojp_ace_to_five_full_text(d)
+                // ojp_ar_full_name(d)
+                ojp_a5_full_text(d)
             },
             Scale::None => "".to_string(),
         }
@@ -336,50 +341,48 @@ impl Scale {
     pub fn value(&self, hand: &Hand) -> HandValue {
         match *self {
             Scale::HighHand => {
-                ojp_high_value(hand)
+                ojp_hh_value(hand)
             },
             Scale::AceToFive => {
-                ojp_ace_to_five_value(hand)
+                ojp_a5_value(hand)
             },
             Scale::DeuceToSeven => {
-                ojp_deuce_to_seven_value(hand)
+                ojp_kc_value(hand)
             },
             Scale::AceToSix => {
-                ojp_ace_to_six_value(hand)
+                ojp_ll_value(hand)
             },
             Scale::Badugi => {
-                ojp_badugi_value(hand)
+                ojp_bg_value(hand)
             },
             Scale::Badeucy => {
-                // ojp_badeucy_eval_quick(hand)
-                HAND_VALUE_WORST
+                ojp_bc_value(hand)
             },
             Scale::HighHandBug => {
-                // ojp_high_bug_value(hand)
-                HAND_VALUE_WORST
+                ojp_hb_value(hand)
             },
             Scale::AceToFiveBug => {
-                // ojp_ace_to_five_bug_value(hand)
+                // ojp_cl_value(hand)
                 HAND_VALUE_WORST
             },
             Scale::PaiGow => {
-                // ojp_pai_gow_value(hand)
+                // ojp_pg_value(hand)
                 HAND_VALUE_WORST
             },
             Scale::Stripped => {
-                // ojp_stripped_value(hand)
+                // ojp_st_value(hand)
                 HAND_VALUE_WORST
             },
             Scale::Mexican => {
-                // ojp_mexican_value(hand)
+                // ojp_mx_value(hand)
                 HAND_VALUE_WORST
             },
             Scale::ActionRazz => {
-                // ojp_action_razz_value(hand)
+                // ojp_ar_value(hand)
                 HAND_VALUE_WORST
             },
             Scale::ThreeCard => {
-                // ojp_three_card_value(hand)
+                // ojp_tc_value(hand)
                 HAND_VALUE_WORST
             },
             Scale::None => HAND_VALUE_WORST,
@@ -398,51 +401,50 @@ impl Scale {
     pub fn description(&self, h: &Hand, v: HandValue) -> HandDescription {
         match *self {
             Scale::HighHand => {
-                ojp_high_description(h, v)
+                ojp_hh_description(h, v)
             },
             Scale::AceToFive => {
-                ojp_ace_to_five_description(h, v)
+                ojp_a5_description(h, v)
             },
             Scale::DeuceToSeven => {
-                ojp_deuce_to_seven_description(h, v)
+                ojp_kc_description(h, v)
             },
             Scale::AceToSix => {
-                ojp_ace_to_six_description(h, v)
+                ojp_ll_description(h, v)
             },
             Scale::Badugi => {
-                ojp_badugi_description(h, v)
+                ojp_bg_description(h, v)
             },
             Scale::Badeucy => {
-                // ojp_badeucy_description(hand)
-                ojp_high_description(h, v)
+                ojp_bc_description(h, v)
             },
             Scale::HighHandBug => {
-                // ojp_high_bug_description(h, v)
-                ojp_high_description(h, v)
+                // ojp_hb_description(h, v)
+                ojp_hh_description(h, v)
             },
             Scale::AceToFiveBug => {
-                // ojp_ace_to_five_bug_description(hand)
-                ojp_high_description(h, v)
+                // ojp_cl_description(hand)
+                ojp_a5_description(h, v)
             },
             Scale::PaiGow => {
-                // ojp_pai_gow_description(hand)
-                ojp_high_description(h, v)
+                // ojp_pg_description(hand)
+                ojp_hh_description(h, v)
             },
             Scale::Stripped => {
-                // ojp_stripped_description(hand)
-                ojp_high_description(h, v)
+                // ojp_st_description(hand)
+                ojp_hh_description(h, v)
             },
             Scale::Mexican => {
-                // ojp_mexican_description(hand)
-                ojp_high_description(h, v)
+                // ojp_mx_description(hand)
+                ojp_hh_description(h, v)
             },
             Scale::ActionRazz => {
-                // ojp_action_razz_description(hand)
-                ojp_high_description(h, v)
+                // ojp_ar_description(hand)
+                ojp_a5_description(h, v)
             },
             Scale::ThreeCard => {
-                // ojp_three_card_deswcription(hand)
-                ojp_high_description(h, v)
+                // ojp_tc_deswcription(hand)
+                ojp_hh_description(h, v)
             },
             Scale::None => HandDescription::default(),
         }
@@ -481,7 +483,7 @@ struct ScaleInfo {
 }
 
 #[inline]
-const fn value_from_level_high(l: HandLevel) -> u32 {
+const fn hh_value_from_level(l: HandLevel) -> u32 {
     match l {
         HandLevel::FiveOfAKind => 1,
         HandLevel::StraightFlush => 2,
@@ -498,7 +500,7 @@ const fn value_from_level_high(l: HandLevel) -> u32 {
 }
 
 #[inline]
-const fn level_from_value_high(v: u32) -> HandLevel {
+const fn hh_level_from_value(v: u32) -> HandLevel {
     match v {
         1 => HandLevel::FiveOfAKind,
         2 => HandLevel::StraightFlush,
@@ -515,7 +517,7 @@ const fn level_from_value_high(v: u32) -> HandLevel {
 }
 
 #[inline]
-const fn value_from_level_ace_to_five(l: HandLevel) -> u32 {
+const fn a5_value_from_level(l: HandLevel) -> u32 {
     match l {
         HandLevel::NoPair => 1,
         HandLevel::Pair => 2,
@@ -529,7 +531,7 @@ const fn value_from_level_ace_to_five(l: HandLevel) -> u32 {
 }
 
 #[inline]
-const fn level_from_value_ace_to_five(v: u32) -> HandLevel {
+const fn a5_level_from_value(v: u32) -> HandLevel {
     match v {
         1 => HandLevel::NoPair,
         2 => HandLevel::Pair,
@@ -543,7 +545,7 @@ const fn level_from_value_ace_to_five(v: u32) -> HandLevel {
 }
 
 #[inline]
-const fn value_from_level_deuce_to_seven(l: HandLevel) -> u32 {
+const fn kc_value_from_level(l: HandLevel) -> u32 {
     match l {
         HandLevel::NoPair => 1,
         HandLevel::Pair => 2,
@@ -560,7 +562,7 @@ const fn value_from_level_deuce_to_seven(l: HandLevel) -> u32 {
 }
 
 #[inline]
-const fn level_from_value_deuce_to_seven(v: u32) -> HandLevel {
+const fn kc_level_from_value(v: u32) -> HandLevel {
     match v {
         1 => HandLevel::NoPair,
         2 => HandLevel::Pair,
@@ -577,7 +579,7 @@ const fn level_from_value_deuce_to_seven(v: u32) -> HandLevel {
 }
 
 #[inline]
-const fn value_from_level_badugi(l: HandLevel) -> u32 {
+const fn bg_value_from_level(l: HandLevel) -> u32 {
     match l {
         HandLevel::FourCard => 1,
         HandLevel::ThreeCard => 2,
@@ -588,7 +590,7 @@ const fn value_from_level_badugi(l: HandLevel) -> u32 {
 }
 
 #[inline]
-const fn level_from_value_badugi(v: u32) -> HandLevel {
+const fn bg_level_from_value(v: u32) -> HandLevel {
     match v {
         1 => HandLevel::FourCard,
         2 => HandLevel::ThreeCard,
@@ -599,7 +601,7 @@ const fn level_from_value_badugi(v: u32) -> HandLevel {
 }
 
 #[inline]
-const fn value_from_level_stripped(l: HandLevel) -> u32 {
+const fn st_value_from_level(l: HandLevel) -> u32 {
     match l {
         HandLevel::FiveOfAKind => 1,
         HandLevel::StraightFlush => 2,
@@ -616,7 +618,7 @@ const fn value_from_level_stripped(l: HandLevel) -> u32 {
 }
 
 #[inline]
-const fn level_from_value_stripped(v: u32) -> HandLevel {
+const fn st_level_from_value(v: u32) -> HandLevel {
     match v {
         1 => HandLevel::FiveOfAKind,
         2 => HandLevel::StraightFlush,
@@ -633,7 +635,7 @@ const fn level_from_value_stripped(v: u32) -> HandLevel {
 }
 
 #[inline]
-const fn value_from_level_action_razz(l: HandLevel) -> u32 {
+const fn ar_value_from_level(l: HandLevel) -> u32 {
     match l {
         HandLevel::NoPair => 1,
         HandLevel::Pair => 2,
@@ -654,7 +656,7 @@ const fn value_from_level_action_razz(l: HandLevel) -> u32 {
 }
 
 #[inline]
-const fn level_from_value_action_razz(v: u32) -> HandLevel {
+const fn ar_level_from_value(v: u32) -> HandLevel {
     match v {
         1 => HandLevel::NoPair,
         2 => HandLevel::Pair,
@@ -675,7 +677,7 @@ const fn level_from_value_action_razz(v: u32) -> HandLevel {
 }
 
 #[inline]
-const fn value_from_level_three_card(l: HandLevel) -> u32 {
+const fn tc_value_from_level(l: HandLevel) -> u32 {
     match l {
         HandLevel::StraightFlush => 1,
         HandLevel::Trips => 2,
@@ -688,7 +690,7 @@ const fn value_from_level_three_card(l: HandLevel) -> u32 {
 }
 
 #[inline]
-const fn level_from_value_three_card(v: u32) -> HandLevel {
+const fn tc_level_from_value(v: u32) -> HandLevel {
     match v {
         1 => HandLevel::StraightFlush,
         2 => HandLevel::Trips,

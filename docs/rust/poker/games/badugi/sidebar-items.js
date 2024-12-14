@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["ojp_bc_description","ojp_bc_eval_4","ojp_bc_value","ojp_bg_description","ojp_bg_eval_4","ojp_bg_full_text","ojp_bg_value"]};

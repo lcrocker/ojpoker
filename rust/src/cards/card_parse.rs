@@ -131,16 +131,17 @@ pub fn card_parse(text: &str) -> impl Iterator<Item = Card> + '_ {
 mod tests {
     use super::*;
     use crate::error::Result;
-    use crate::utils::oj_rand_range;
+    use crate::utils::Random;
     use crate::cards::*;
 
     #[test]
     fn test_cards() -> Result<()> {
+        let mut rng = Random::new();
         let mut deck = Deck::new(DeckType::TwoJokers);
 
         for _ in 0..100 {
-            let len = 1 + oj_rand_range(4) +
-                oj_rand_range(4) + oj_rand_range(4);
+            let len = 1 + rng.uniform16(4) +
+                rng.uniform16(4) + rng.uniform16(4);
 
             deck.refill_and_shuffle();
             let h = deck.new_hand().init(deck.draw(len));

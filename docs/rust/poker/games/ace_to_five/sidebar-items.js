@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["ojp_a5_description","ojp_a5_eval_5","ojp_a5_full_text","ojp_a5_value","ojp_cl_description","ojp_cl_eval_5","ojp_cl_full_text","ojp_cl_value"]};

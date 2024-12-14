@@ -1,8 +1,8 @@
-//! [wiki](https://github.com/lcrocker/ojpoker/wiki/Reference_Evaluators) | Standard evaluators
+//! [wiki](https://github.com/lcrocker/ojpoker/wiki/Reference_Evaluators) | Hand evaluation code
 
 use crate::prelude::*;
 use crate::utils::oj_sort;
-use crate::cards::hashes::ojh_positional_32cs;
+use crate::cards::hashes::ojh_base16_32cs;
 use crate::poker::*;
 
 /// Should be enough to leave room for all rank combinations between levels
@@ -15,7 +15,7 @@ pub fn ojp_default_hand_value(h: &Hand, g: Scale, l: HandLevel) -> HandValue {
     } else {
         h.len()
     };
-    let h: u32 = ojh_positional_32cs(&h[..max])
+    let h: u32 = ojh_base16_32cs(&h[..max])
         .expect("already checked");
 
     HAND_LEVEL_MULTIPLIER * g.value_from_level(l)

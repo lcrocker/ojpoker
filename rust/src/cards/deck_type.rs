@@ -374,7 +374,7 @@ const PINOCHLE_CARDS: [Card; 48] =
 mod tests {
     use super::*;
     use crate::error::Result;
-    use crate::utils::oj_rand_range;
+    use crate::utils::Random;
     use std::cmp::{PartialOrd, PartialEq, Eq, Ord};
     use std::marker::{Sized, Send, Sync, Unpin};
     use std::fmt::{Debug, Display};
@@ -412,6 +412,7 @@ mod tests {
         assert_eq!(DeckType::by_name("german"), DeckType::Stripped);
         assert_eq!(DeckType::by_name("durak"), DeckType::Swiss);
 
+        let mut rng = Random::new();
         for i in 1..=DECKTYPE_MAX {
             let dt = DeckType::from_u8(i as u8);
 
@@ -425,7 +426,7 @@ mod tests {
             assert_eq!(mask, DECK_INFO_TABLE[dt as usize - 1].card_set);
 
             for _ in 0..10 {
-                let card = Card(1 + oj_rand_range(63) as u8);
+                let card = Card(1 + rng.uniform16(63) as u8);
                 let c: Card =
                 if dt.low_aces() {
                     Card::low_ace_fix(card)

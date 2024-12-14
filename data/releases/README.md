@@ -1,20 +1,17 @@
 # Large data files
 
-This directory contains large files not checked into the repo.
-You can download these from
-[releases](https://github.com/lcrocker/ojpoker/releases).
+These files are large compressed binary files used as lookup
+tables for poker hand evaluation.
+They are not checked into the repo, but are available from the
+[releases](https://github.com/lcrocker/ojpoker/releases) area.
 
-These are large tables used to speed up poker hand evaluation.
-You can choose to enable any or all of them by enabling the
-corresponding feature in Cargo.toml, and copying files from here
-to the appropriate directories.
+To enable the use of these tables for a game, copy the tables
+for that game (there are two each) to `$CARGO_HOME/onejoker/`,
+then enable the corresponding feature in Cargo.toml.
 
 For example, to enable fast high-hand lookups, you'll first need
-to copy the source file `high_tables.rs` into the directory
-`rust/src/poker/games`. That file has a function that loads the
-large binary tables from `~/.cargo/onejoker`, so copy the binaries
-`high_\*.bin.gz` to there (or change the source to look for them
-somewhere else).
+to copy the `ojp_hh\*` files to `~/.cargo/onejoker`.
+Do not uncompress them!
+The library will do that at runtime.
 Finally, enable the `"high-hand-tables"` feature in `Cargo.toml`.
-Each game has its own feature and its own set of files.
 

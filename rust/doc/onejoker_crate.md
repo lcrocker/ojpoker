@@ -1,6 +1,6 @@
 # [wiki](https://github.com/lcrocker/ojpoker/wiki/Rust_Libraries) | A library for handling playing cards and card games.
 
-Last updated November 22, 2024 \
+Last updated December 13, 2024 \
 \
 This crate is part of the [OneJoker](https://onejoker.org) project
 to create free software for handling playing cards and card games
@@ -62,9 +62,9 @@ you will have to specify what type of deck to use: (e.g.
 `let d = Deck::new(DeckType::English);`) and which function to call
 for evaluating hands (e.g. `ojp_high_value(&hand)`).
 
-Each `Scale` contains an `value()` function that computes a number
+Each `Scale` contains a `value()` function that computes a number
 that can be used to compare hands--smaller number is better.
-If you want more information about the hand that just who wins,
+If you want more information about the hand than just who wins,
 you can use the scale's `description()` function to create a
 structure that has more information. Here we use it to print the
 hand and its text description.

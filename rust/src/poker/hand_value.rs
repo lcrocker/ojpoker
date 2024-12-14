@@ -1,4 +1,4 @@
-//! [wiki](https://github.com/lcrocker/ojpoker/wiki/Hand_Description) | Evaluated hand data
+//! [wiki](https://github.com/lcrocker/ojpoker/wiki/Hand_Value) | Evaluated hand data
 
 use crate::error::{Error,Result};
 use crate::cards::*;

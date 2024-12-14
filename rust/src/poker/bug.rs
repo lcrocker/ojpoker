@@ -1,3 +1,4 @@
+//! [wiki](https://github.com/lcrocker/ojpoker/wiki/Bug) | Bug scan and replacement
 
 use crate::prelude::*;
 
@@ -39,7 +40,7 @@ fn first_ace(mask: u8, index: i8) -> Option<BugScanResult> {
     })
 }
 
-/// Scan incomplete hand for a bug,
+/// Scan incomplete hand for a bug
 pub fn ojp_bug_scan_p_1(h: &Hand, g: Scale) -> Option<BugScanResult> {
     debug_assert!(h.len() < 5);
     debug_assert!(g.deck_type().has(JOKER));

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"macro":["card","cards"],"mod":["cards","errors","poker","utils"]};
+window.SIDEBAR_ITEMS = {"macro":["card","hand"],"mod":["cards","error","poker","prelude","utils"]};

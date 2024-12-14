@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["ace_to_five","ace_to_six","badugi","deuce_to_seven","hand_evaluation","hand_scale","high_hand","pai_gow"]};
+window.SIDEBAR_ITEMS = {"mod":["bug","games","hand_scale","hand_value","reference_evaluators","tables"]};

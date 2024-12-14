@@ -458,16 +458,9 @@ impl Hand {
         }
     }
 
-    /// Shuffle the [Hand] in place
-    /// ```rust
-    /// use onejoker::prelude::*;
-    ///
-    /// let mut h = Hand::default().init(hand!("Ah", "Kh", "Qh", "Jh", "Th"));
-    /// h.shuffle();
-    /// println!("{}", h); // e.g., "QhJhKhThAh"
-    /// ```
-    pub fn shuffle(&mut self) {
-        oj_shuffle(&mut self.cards[..(self.length as usize)]);
+    /// Shuffle the [Hand] in place using the given [Random]
+    pub fn shuffle(&mut self, rng: &mut Random) {
+        oj_shuffle(&mut self.cards[..(self.length as usize)], rng);
     }
 
     /// Sort the [Hand] in place
@@ -988,6 +981,7 @@ mod tests {
     #[test]
     fn test_hand_methods() -> Result<()> {
         has_traits::<Hand>();
+        let mut rng = Random::new();
 
         let d = Deck::default();
         let mut h = d.new_hand();
@@ -1086,7 +1080,7 @@ mod tests {
          */
 
         h = d2.new_hand().init(card_parse("3h5h8dTh3c4h7sJkQs7d"));
-        h.shuffle();
+        h.shuffle(&mut rng);
         assert_eq!(h.len(), 10);
         assert!(h.contains(FIVE_OF_HEARTS));
         assert!(h.contains(TEN_OF_HEARTS));
@@ -1097,7 +1091,7 @@ mod tests {
         assert_eq!(h.to_string(), "QsTh8d7s7d5h4h3h3cJk");
 
         h.remove_card(SEVEN_OF_DIAMONDS);
-        h.shuffle();
+        h.shuffle(&mut rng);
         assert_eq!(h.len(), 9);
         assert!(h.contains(TREY_OF_CLUBS));
         assert!(h.contains(SEVEN_OF_SPADES));

@@ -2,7 +2,7 @@
 
 use crate::error::{Error, Result};
 use crate::cards::*;
-use crate::utils::*;
+use crate::utils::{Random, oj_sort, oj_next_combination};
 #[cfg(feature = "serde")]
 use serde::{Serialize, Deserialize};
 
@@ -20,7 +20,10 @@ use serde::{Serialize, Deserialize};
 pub struct Deck {
     /// Current contents of the deck
     cards: Vec<Card>,
-    /// Static pointer to associated [DeckType]
+    /// PRNG
+    #[serde(skip)]
+    rng: Random,
+    /// Associated [DeckType]
     deck_type: DeckType,
 }
 
@@ -34,6 +37,7 @@ impl Deck {
     pub fn new(t: DeckType) -> Deck {
         Deck {
             cards: t.card_list().to_vec(),
+            rng: Random::new(),
             deck_type: t,
         }
     }
@@ -49,6 +53,7 @@ impl Deck {
 
         Deck {
             cards: t.card_list().to_vec(),
+            rng: Random::new(),
             deck_type: t,
         }
     }
@@ -62,6 +67,12 @@ impl Deck {
     /// ```
     pub fn deck_type(&self) -> DeckType {
         self.deck_type
+    }
+
+    /// Set the PRNG seed for this deck
+    pub fn reproducible(mut self, seed: u64) -> Self {
+        self.rng = Random::new().seeded(seed);
+        self
     }
 
     /// Initial shuffle for new deck
@@ -107,7 +118,10 @@ impl Deck {
     /// currently in it. There is a separate `refill_and_shuffle` method
     /// for doing both.
     pub fn shuffle(&mut self) {
-        oj_shuffle(&mut self.cards[..]);
+        for i in (1..self.cards.len()).rev() {
+            let j = self.rng.uniform16(i + 1);
+            if i != j { self.cards.swap(i, j); }
+        }
     }
 
     /// Refill the deck to its original contents
@@ -136,7 +150,7 @@ impl Deck {
     /// ```
     pub fn refill_and_shuffle(&mut self) {
         self.cards = self.deck_type.card_list().to_vec();
-        oj_shuffle(&mut self.cards[..]);
+        self.shuffle();
     }
 
     /// Number of cards currently in the deck

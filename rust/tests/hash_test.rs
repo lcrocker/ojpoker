@@ -3,7 +3,7 @@
 use serde::Deserialize;
 
 use onejoker::prelude::*;
-use onejoker::utils::oj_shuffle;
+use onejoker::utils::{Random, oj_shuffle};
 
 #[cfg(feature = "serde")]
 type HandData = (i32, String, u64);
@@ -31,7 +31,7 @@ fn ranks_identical(h1: &Hand, h2: &Hand) -> bool {
 }
 
 #[cfg(feature = "serde")]
-fn reorder(h: &Hand) -> Hand {
+fn reorder(h: &Hand, rng: &mut Random) -> Hand {
     let mut ret = *h;
     if h.len() < 2 {
         return ret;
@@ -42,7 +42,7 @@ fn reorder(h: &Hand) -> Hand {
         if max <= 0 {
             break;
         }
-        oj_shuffle(&mut ret[..]);
+        oj_shuffle(&mut ret[..], rng);
         if ! h.equals(&ret) {
             break;
         }
@@ -77,6 +77,7 @@ fn test_hash_data_file() -> OjResult<()> {
     let mut reader = BufReader::new(file);
     let data: RandomHandDataFile = serde_json5::from_reader(&mut reader)?;
 
+    let mut rng = Random::new();
     for i in 0..data.hands.len() {
         let mut deck =
             Deck::new_by_name(data.decks[data.hands[i].0 as usize - 1].as_str());
@@ -87,7 +88,7 @@ fn test_hash_data_file() -> OjResult<()> {
         let h2 = deck.new_hand().init(
             card_parse(h1.to_string().as_str()));
 
-        let h3 = reorder(&h1);
+        let h3 = reorder(&h1, &mut rng);
         let h4 = resuit(&h1);
 
         assert!(h1.equals(&h2));
@@ -112,16 +113,16 @@ fn test_hash_data_file() -> OjResult<()> {
                 h1.is_equivalent_to(&h4));
         }
         if h1.len() > 16 { continue; }
-        assert_eq!(ojh_positional_64cs(&h1[..])?, ojh_positional_64cs(&h2[..])?);
-        assert_eq!(ojh_positional_64cs(&h1[..])? == ojh_positional_64cs(&h3[..])?,
+        assert_eq!(ojh_base16_64cs(&h1[..])?, ojh_base16_64cs(&h2[..])?);
+        assert_eq!(ojh_base16_64cs(&h1[..])? == ojh_base16_64cs(&h3[..])?,
             ranks_identical(&h1, &h3));
-        assert_eq!(ojh_positional_64cs(&h1[..])?, ojh_positional_64cs(&h4[..])?);
+        assert_eq!(ojh_base16_64cs(&h1[..])?, ojh_base16_64cs(&h4[..])?);
 
         if h1.len() > 10 { continue; }
-        assert_eq!(ojh_positional_64c(&h1[..])?, ojh_positional_64c(&h2[..])?);
-        assert_eq!(ojh_positional_64c(&h1[..])? == ojh_positional_64c(&h3[..])?,
+        assert_eq!(ojh_base64_64c(&h1[..])?, ojh_base64_64c(&h2[..])?);
+        assert_eq!(ojh_base64_64c(&h1[..])? == ojh_base64_64c(&h3[..])?,
             h1.equals(&h3));
-        assert_eq!(ojh_positional_64c(&h1[..])? == ojh_positional_64c(&h4[..])?,
+        assert_eq!(ojh_base64_64c(&h1[..])? == ojh_base64_64c(&h4[..])?,
             h1.equals(&h4));
 
         assert_eq!(ojh_prime_64cos(&h1[..])?, ojh_prime_64cos(&h2[..])?);
@@ -129,10 +130,10 @@ fn test_hash_data_file() -> OjResult<()> {
         assert_eq!(ojh_prime_64cos(&h1[..])?, ojh_prime_64cos(&h4[..])?);
 
         if h1.len() > 8 { continue; }
-        assert_eq!(ojh_positional_32cs(&h1[..])?, ojh_positional_32cs(&h2[..])?);
-        assert_eq!(ojh_positional_32cs(&h1[..])? == ojh_positional_32cs(&h3[..])?,
+        assert_eq!(ojh_base16_32cs(&h1[..])?, ojh_base16_32cs(&h2[..])?);
+        assert_eq!(ojh_base16_32cs(&h1[..])? == ojh_base16_32cs(&h3[..])?,
             ranks_identical(&h1, &h3));
-        assert_eq!(ojh_positional_32cs(&h1[..])?, ojh_positional_32cs(&h4[..])?);
+        assert_eq!(ojh_base16_32cs(&h1[..])?, ojh_base16_32cs(&h4[..])?);
 
         if h1.len() > 7 { continue; }
         assert_eq!(ojh_prime_64co(&h1[..])?, ojh_prime_64co(&h2[..])?);
@@ -141,10 +142,10 @@ fn test_hash_data_file() -> OjResult<()> {
             h1.is_equivalent_to(&h4));
 
         if h1.len() > 5 { continue; }
-        assert_eq!(ojh_positional_32c(&h1[..])?, ojh_positional_32c(&h2[..])?);
-        assert_eq!(ojh_positional_32c(&h1[..])? == ojh_positional_32c(&h3[..])?,
+        assert_eq!(ojh_base64_32c(&h1[..])?, ojh_base64_32c(&h2[..])?);
+        assert_eq!(ojh_base64_32c(&h1[..])? == ojh_base64_32c(&h3[..])?,
             h1.equals(&h3));
-        assert_eq!(ojh_positional_32c(&h1[..])? == ojh_positional_32c(&h4[..])?,
+        assert_eq!(ojh_base64_32c(&h1[..])? == ojh_base64_32c(&h4[..])?,
             h1.equals(&h4));
 
         assert_eq!(ojh_prime_32cos(&h1[..])?, ojh_prime_32cos(&h2[..])?);

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["HandScale"]};
+window.SIDEBAR_ITEMS = {"enum":["Scale"]};

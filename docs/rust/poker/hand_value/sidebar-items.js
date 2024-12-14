@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["HAND_LEVEL_BEST","HAND_LEVEL_WORST","HAND_VALUE_BEST","HAND_VALUE_WORST"],"enum":["HandExtras","HandLevel"],"struct":["HandDescription","HandDescriptionBuilder"],"type":["HandValue"]};
